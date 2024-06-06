@@ -163,22 +163,11 @@ elif page == "Technical and Probability Analysis":
         st.write(f"Lower Value at Risk (VaR) at {round(confidence_level * 100)}% confidence level: {round(var, 2)}")
         st.write(f"Upper Value at Risk (VaR) at {round(confidence_level_2 * 100)}% confidence level: {round(var_2, 2)}")
 
-        # Plot price simulations
-        st.subheader("Monte Carlo Simulation of Brent Oil Prices")
-        fig = go.Figure()
-        colors = plt.cm.rainbow(np.linspace(0, 1, iterations))  # Generate a range of colors
 
-        for i in range(iterations):
-            color = 'rgba({}, {}, {}, 0.1)'.format(int(colors[i][0] * 255), int(colors[i][1] * 255), int(colors[i][2] * 255), colors[i][3])
-            fig.add_trace(go.Scatter(
-                x=list(range(t_intervals)),
-                y=price_list[:, i],
-                mode='lines',
-                line=dict(color=color)
-            ))
-        fig.update_layout(title='Monte Carlo Simulation of Brent Oil Prices', xaxis_title='Days', yaxis_title='Price')
+        st.subheader("Monte Carlo Simulation of Brent Oil Prices - Histogram")
+        fig = px.histogram(price_list[-1], nbins=50, title='Distribution of Final Prices from Monte Carlo Simulation')
+        fig.update_layout(xaxis_title='Price', yaxis_title='Frequency')
         st.plotly_chart(fig)
-
 # Run the app
 
 # Run the app

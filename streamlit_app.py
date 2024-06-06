@@ -166,12 +166,15 @@ elif page == "Technical and Probability Analysis":
         # Plot price simulations
         st.subheader("Monte Carlo Simulation of Brent Oil Prices")
         fig = go.Figure()
+        colors = plt.cm.rainbow(np.linspace(0, 1, iterations))  # Generate a range of colors
+
         for i in range(iterations):
+            color = 'rgba({}, {}, {}, 0.1)'.format(int(colors[i][0] * 255), int(colors[i][1] * 255), int(colors[i][2] * 255), colors[i][3])
             fig.add_trace(go.Scatter(
                 x=list(range(t_intervals)),
                 y=price_list[:, i],
                 mode='lines',
-                line=dict(color='rgba(0, 0, 255, 0.1)')  # Blue with 10% opacity
+                line=dict(color=color)
             ))
         fig.update_layout(title='Monte Carlo Simulation of Brent Oil Prices', xaxis_title='Days', yaxis_title='Price')
         st.plotly_chart(fig)

@@ -165,51 +165,8 @@ elif page == "Technical and Probability Analysis":
 
 
         st.subheader("Monte Carlo Simulation of Brent Oil Prices - Histogram")
-        final_prices = price_list[-1]
-        quantile_30 = np.percentile(final_prices, 30)
-        quantile_80 = np.percentile(final_prices, 80)
-
-        fig = px.histogram(final_prices, nbins=50, title='Distribution of Final Prices from Monte Carlo Simulation')
+        fig = px.histogram(price_list[-1], nbins=50, title='Distribution of Final Prices from Monte Carlo Simulation')
         fig.update_layout(xaxis_title='Price', yaxis_title='Frequency')
-
-        # Add quantile lines
-        fig.add_shape(
-            type="line",
-            x0=quantile_30,
-            y0=0,
-            x1=quantile_30,
-            y1=max(fig.data[0]['y']),
-            line=dict(color="red", width=2, dash="dash"),
-        )
-        fig.add_shape(
-            type="line",
-            x0=quantile_80,
-            y0=0,
-            x1=quantile_80,
-            y1=max(fig.data[0]['y']),
-            line=dict(color="green", width=2, dash="dash"),
-        )
-
-        # Add quantile annotations
-        fig.add_annotation(
-            x=quantile_30,
-            y=max(fig.data[0]['y']),
-            text="30% Quantile",
-            showarrow=True,
-            arrowhead=1,
-            ax=-40,
-            ay=-40,
-        )
-        fig.add_annotation(
-            x=quantile_80,
-            y=max(fig.data[0]['y']),
-            text="80% Quantile",
-            showarrow=True,
-            arrowhead=1,
-            ax=-40,
-            ay=-40,
-        )
-
         st.plotly_chart(fig)
 # Run the app
 

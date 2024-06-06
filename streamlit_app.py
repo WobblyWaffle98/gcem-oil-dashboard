@@ -92,7 +92,6 @@ elif page == "Financial Markets":
 # Technical and Probability Analysis Page
 elif page == "Technical and Probability Analysis":
     st.header("Technical and Probability Analysis")
-
     # Inputs for the simulation
     today = datetime.date.today()
     end_date = st.date_input("Select end date", today - datetime.timedelta(days=1), max_value=today - datetime.timedelta(days=1))
@@ -171,6 +170,8 @@ elif page == "Technical and Probability Analysis":
             fig.add_trace(go.Scatter(x=list(range(t_intervals)), y=price_list[:, i], mode='lines', line=dict(color='blue', opacity=0.1)))
         fig.update_layout(title='Monte Carlo Simulation of Brent Oil Prices', xaxis_title='Days', yaxis_title='Price')
         st.plotly_chart(fig)
+
+# Run the app
 
 # Run the app
 if __name__ == "__main__":

@@ -94,13 +94,14 @@ elif page == "Technical and Probability Analysis":
     st.header("Technical and Probability Analysis")
 
     # Inputs for the simulation
-    end_date = st.date_input("Select end date", datetime.datetime(2024, 6, 4))
-    future_end_date = st.date_input("Select future end date", datetime.datetime(2024, 12, 31))
+    today = datetime.date.today()
+    end_date = st.date_input("Select end date", today - datetime.timedelta(days=1), max_value=today - datetime.timedelta(days=1))
+    future_end_date = st.date_input("Select future end date", datetime.date(2024, 12, 31))
     run_simulation = st.button("Run Simulation")
 
     if run_simulation:
-        start_date = end_date - pd.DateOffset(years=10)
-        brent_data = yf.download('BZ=F', start=start_date, end=end_date)
+        start_date = pd.Timestamp(end_date) - pd.DateOffset(years=10)
+        brent_data = yf.download('BZ=F', start=start_date, end=pd.Timestamp(end_date) + pd.Timedelta(days=1))
 
         # Extract the 'Close' prices
         new_data = brent_data['Close']
@@ -118,7 +119,7 @@ elif page == "Technical and Probability Analysis":
 
         # Price predictions for the specified future period with iterations
         last_date = new_data.index[-1]
-        t_intervals = (future_end_date - last_date).days
+        t_intervals = (pd.Timestamp(future_end_date) - last_date).days
         iterations = 1000
         daily_returns = np.exp(drift + stdev * norm.ppf(np.random.rand(t_intervals, iterations)))
 

@@ -167,7 +167,12 @@ elif page == "Technical and Probability Analysis":
         st.subheader("Monte Carlo Simulation of Brent Oil Prices")
         fig = go.Figure()
         for i in range(iterations):
-            fig.add_trace(go.Scatter(x=list(range(t_intervals)), y=price_list[:, i], mode='lines', line=dict(color='blue', opacity=0.1)))
+            fig.add_trace(go.Scatter(
+                x=list(range(t_intervals)),
+                y=price_list[:, i],
+                mode='lines',
+                line=dict(color='rgba(0, 0, 255, 0.1)')  # Blue with 10% opacity
+            ))
         fig.update_layout(title='Monte Carlo Simulation of Brent Oil Prices', xaxis_title='Days', yaxis_title='Price')
         st.plotly_chart(fig)
 

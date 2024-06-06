@@ -93,81 +93,83 @@ elif page == "Financial Markets":
 elif page == "Technical and Probability Analysis":
     st.header("Technical and Probability Analysis")
 
-    # Fetch data for Brent oil using yfinance
-    end_date = datetime.datetime(2024, 6, 4)
-    start_date = end_date - pd.DateOffset(years=10)
-    brent_data = yf.download('BZ=F', start=start_date, end=end_date)
+    # Inputs for the simulation
+    end_date = st.date_input("Select end date", datetime.datetime(2024, 6, 4))
+    future_end_date = st.date_input("Select future end date", datetime.datetime(2024, 12, 31))
+    run_simulation = st.button("Run Simulation")
 
-    # Extract the 'Close' prices
-    new_data = brent_data['Close']
+    if run_simulation:
+        start_date = end_date - pd.DateOffset(years=10)
+        brent_data = yf.download('BZ=F', start=start_date, end=end_date)
 
-    # Historical log returns
-    log_returns = np.log(1 + new_data.pct_change())
+        # Extract the 'Close' prices
+        new_data = brent_data['Close']
 
-    # Drift = Average Daily Return − (Variance / 2)
-    u = log_returns.mean()
-    var = log_returns.var()
-    drift = u - (0.5 * var)
+        # Historical log returns
+        log_returns = np.log(1 + new_data.pct_change())
 
-    # Standard deviation of historic log returns
-    stdev = log_returns.std()
+        # Drift = Average Daily Return − (Variance / 2)
+        u = log_returns.mean()
+        var = log_returns.var()
+        drift = u - (0.5 * var)
 
-    # Price predictions for the next 1000 days with specified iterations
-    future_end_date = datetime.datetime(2024, 12, 31)  # Desired end date
-    last_date = new_data.index[-1]
-    t_intervals = (future_end_date - last_date).days
-    iterations = 1000
-    daily_returns = np.exp(drift + stdev * norm.ppf(np.random.rand(t_intervals, iterations)))
+        # Standard deviation of historic log returns
+        stdev = log_returns.std()
 
-    # Initial stock price
-    S0 = new_data.iloc[-1]
-    price_list = np.zeros_like(daily_returns)
-    price_list[0] = S0
+        # Price predictions for the specified future period with iterations
+        last_date = new_data.index[-1]
+        t_intervals = (future_end_date - last_date).days
+        iterations = 1000
+        daily_returns = np.exp(drift + stdev * norm.ppf(np.random.rand(t_intervals, iterations)))
 
-    # Simulate price series
-    for t in range(1, t_intervals):
-        price_list[t] = price_list[t - 1] * daily_returns[t]
+        # Initial stock price
+        S0 = new_data.iloc[-1]
+        price_list = np.zeros_like(daily_returns)
+        price_list[0] = S0
 
-    # Calculate daily, monthly, and annual volatility
-    daily_volatility = log_returns.std()
-    trading_days_per_month = 21  # Assuming 21 trading days in a month
-    monthly_volatility = daily_volatility * np.sqrt(trading_days_per_month)
-    trading_days_per_year = 252  # Assuming 252 trading days in a year
-    annual_volatility = daily_volatility * np.sqrt(trading_days_per_year)
+        # Simulate price series
+        for t in range(1, t_intervals):
+            price_list[t] = price_list[t - 1] * daily_returns[t]
 
-    # Calculate VaR
-    confidence_level = 0.05  # 95% confidence level
-    var = np.percentile(price_list, confidence_level * 100)
+        # Calculate daily, monthly, and annual volatility
+        daily_volatility = log_returns.std()
+        trading_days_per_month = 21  # Assuming 21 trading days in a month
+        monthly_volatility = daily_volatility * np.sqrt(trading_days_per_month)
+        trading_days_per_year = 252  # Assuming 252 trading days in a year
+        annual_volatility = daily_volatility * np.sqrt(trading_days_per_year)
 
-    confidence_level_2 = 0.95  # 95% confidence level
-    var_2 = np.percentile(price_list, confidence_level_2 * 100)
+        # Calculate VaR
+        confidence_level = 0.05  # 95% confidence level
+        var = np.percentile(price_list, confidence_level * 100)
 
-    # Display the forecast results and volatilities
-    st.subheader("Forecast Results")
-    st.write(f"Current Closing price: {round(S0, 2)}")
-    st.write(f"Number of iterations: {iterations}")
-    st.write(f"Forecasted period: {future_end_date.strftime('%Y-%m-%d')} consisting of {t_intervals} days")
-    st.write(f"Expected average price: {round(np.mean(price_list), 2)}")
-    st.write(f"Quantile (30%): {round(np.percentile(price_list, 30), 2)}")
-    st.write(f"Quantile (80%): {round(np.percentile(price_list, 80), 2)}")
+        confidence_level_2 = 0.95  # 95% confidence level
+        var_2 = np.percentile(price_list, confidence_level_2 * 100)
 
-    st.subheader("Volatilities")
-    st.write(f"Daily Volatility: {round(daily_volatility * 100, 2)}%")
-    st.write(f"Monthly Volatility (21 trading days): {round(monthly_volatility * 100, 2)}%")
-    st.write(f"Annual Volatility (252 trading days): {round(annual_volatility * 100, 2)}%")
+        # Display the forecast results and volatilities
+        st.subheader("Forecast Results")
+        st.write(f"Current Closing price: {round(S0, 2)}")
+        st.write(f"Number of iterations: {iterations}")
+        st.write(f"Forecasted period: {future_end_date.strftime('%Y-%m-%d')} consisting of {t_intervals} days")
+        st.write(f"Expected average price: {round(np.mean(price_list), 2)}")
+        st.write(f"Quantile (30%): {round(np.percentile(price_list, 30), 2)}")
+        st.write(f"Quantile (80%): {round(np.percentile(price_list, 80), 2)}")
 
-    st.subheader("Value at Risk (VaR)")
-    st.write(f"Lower Value at Risk (VaR) at {round(confidence_level * 100)}% confidence level: {round(var, 2)}")
-    st.write(f"Upper Value at Risk (VaR) at {round(confidence_level_2 * 100)}% confidence level: {round(var_2, 2)}")
+        st.subheader("Volatilities")
+        st.write(f"Daily Volatility: {round(daily_volatility * 100, 2)}%")
+        st.write(f"Monthly Volatility (21 trading days): {round(monthly_volatility * 100, 2)}%")
+        st.write(f"Annual Volatility (252 trading days): {round(annual_volatility * 100, 2)}%")
 
-    # Plot price simulations
-    st.subheader("Monte Carlo Simulation of Brent Oil Prices")
-    fig, ax = plt.subplots(figsize=(10, 6))
-    ax.plot(price_list)
-    ax.set_title('Monte Carlo Simulation of Brent Oil Prices')
-    ax.set_xlabel('Days')
-    ax.set_ylabel('Price')
-    st.pyplot(fig)
+        st.subheader("Value at Risk (VaR)")
+        st.write(f"Lower Value at Risk (VaR) at {round(confidence_level * 100)}% confidence level: {round(var, 2)}")
+        st.write(f"Upper Value at Risk (VaR) at {round(confidence_level_2 * 100)}% confidence level: {round(var_2, 2)}")
+
+        # Plot price simulations
+        st.subheader("Monte Carlo Simulation of Brent Oil Prices")
+        fig = go.Figure()
+        for i in range(iterations):
+            fig.add_trace(go.Scatter(x=list(range(t_intervals)), y=price_list[:, i], mode='lines', line=dict(color='blue', opacity=0.1)))
+        fig.update_layout(title='Monte Carlo Simulation of Brent Oil Prices', xaxis_title='Days', yaxis_title='Price')
+        st.plotly_chart(fig)
 
 # Run the app
 if __name__ == "__main__":

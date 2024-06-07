@@ -5,12 +5,13 @@ import numpy as np
 import plotly.express as px
 from scipy.stats import norm
 import pandas as pd
+import plotly.graph_objects as go
 
 def technical_probability_page():
     st.header("Technical and Probability Analysis")
     # Inputs for the simulation
     today = datetime.date.today()
-    end_date = st.date_input("Select end date", today - datetime.timedelta(days=1), max_value=today - datetime.timedelta(days=1))
+    end_date = st.date_input("Select current date", today - datetime.timedelta(days=1), max_value=today - datetime.timedelta(days=1))
     future_end_date = st.date_input("Select future end date", datetime.date(2024, 12, 31), min_value= end_date + datetime.timedelta(days=1))
     run_simulation = st.button("Run Simulation")
 
@@ -35,7 +36,7 @@ def technical_probability_page():
         # Price predictions for the specified future period with iterations
         last_date = new_data.index[-1]
         t_intervals = (pd.Timestamp(future_end_date) - last_date).days
-        iterations = 1000
+        iterations = 5000
         daily_returns = np.exp(drift + stdev * norm.ppf(np.random.rand(t_intervals, iterations)))
 
         # Initial stock price
@@ -65,27 +66,92 @@ def technical_probability_page():
         confidence_level_2 = 0.95  # 95% confidence level
         var_2 = np.percentile(price_list, confidence_level_2 * 100)
 
-        # Display the forecast results and volatilities
-        st.subheader("Forecast Results")
-        st.write(f"Current Closing price: {round(S0, 2)}")
-        st.write(f"Number of iterations: {iterations}")
-        st.write(f"Forecasted period: {future_end_date.strftime('%Y-%m-%d')} consisting of {t_intervals} days")
-        st.write(f"Expected average price: {round(np.mean(price_list), 2)}")
-        st.write(f"Quantile (30%): {round(np.percentile(price_list, 30), 2)}")
-        st.write(f"Quantile (80%): {round(np.percentile(price_list, 80), 2)}")
+        st.divider()
 
-        st.subheader("Volatilities")
-        st.write(f"Daily Volatility: {round(daily_volatility * 100, 2)}%")
-        st.write(f"Monthly Volatility (21 trading days): {round(monthly_volatility * 100, 2)}%")
-        st.write(f"Annual Volatility (252 trading days): {round(annual_volatility * 100, 2)}%")
+        st.subheader("Simulation Details & Results")
 
-        st.subheader("Value at Risk (VaR)")
-        st.write(f"Lower Value at Risk (VaR) at {round(confidence_level * 100)}% confidence level: {round(var, 2)}")
-        st.write(f"Upper Value at Risk (VaR) at {round(confidence_level_3 * 100)}% confidence level: {round(var_3, 2)}")
-        st.write(f"Upper Value at Risk (VaR) at {round(confidence_level_2 * 100)}% confidence level: {round(var_2, 2)}")
+        col1, col2, col3 = st.columns(3)
+
+        with col1:
+            st.metric(label="Current Closing Price", value=round(S0, 2))
+            st.metric(label="Number of Iterations", value=iterations)
+            st.metric(label="Forecasted Period", value=future_end_date.strftime('%Y-%m-%d') + f" ({t_intervals} days)")
+            st.metric(label="Expected Average Price", value=round(np.mean(price_list), 2))
+            st.metric(label="Quantile (30%)", value=round(np.percentile(price_list, 30), 2))
+            st.metric(label="Quantile (80%)", value=round(np.percentile(price_list, 80), 2))
+
+        with col2:
+            
+            st.metric(label="Daily Volatility", value=f"{round(daily_volatility * 100, 2)}%")
+            st.metric(label="Monthly Volatility (21 trading days)", value=f"{round(monthly_volatility * 100, 2)}%")
+            st.metric(label="Annual Volatility (252 trading days)", value=f"{round(annual_volatility * 100, 2)}%")
+
+        with col3:
+            st.metric(label=f"Lower VaR (5% confidence level)", value=round(var, 2))
+            st.metric(label=f"Lower VaR (1% confidence level)", value=round(var_3, 2))
+            st.metric(label=f"Upper VaR (95% confidence level)", value=round(var_2, 2))
         
+        #############################################
+        col4, col5 = st.columns(2)
+        ##############################
 
-        st.subheader("Monte Carlo Simulation of Brent Oil Prices - Histogram")
-        fig = px.histogram(price_list[-1], nbins=50, title='Distribution of Final Prices from Monte Carlo Simulation')
-        fig.update_layout(xaxis_title='Price', yaxis_title='Frequency')
-        st.plotly_chart(fig)
+        with col4:
+            st.subheader("Monte Carlo Simulation of Brent Oil Prices - Histogram")
+            fig = px.histogram(price_list[-1], nbins=50, title='Distribution of Final Prices from Monte Carlo Simulation',
+                            labels={'value': 'Price', 'count': 'Frequency'})
+            fig.update_layout(
+                xaxis_title='Price',
+                yaxis_title='Frequency',
+                bargap=0.2,
+                template='plotly_dark'
+            )
+            
+            # Add lines for mean and median
+            mean_price = np.mean(price_list[-1])
+            fig.add_vline(x=mean_price, line_dash="dash", line_color="green", annotation_text="Mean", annotation_position="top right")
+
+            Q30 =  round(np.percentile(price_list, 30), 2)
+            Q80 =  round(np.percentile(price_list, 80), 2)
+            
+            # Add annotations for VaR
+            fig.add_vline(x=Q30, line_dash="dash", line_color="red", annotation_text="Q30", annotation_position="top right")
+            fig.add_vline(x=Q80, line_dash="dash", line_color="orange", annotation_text="Q80", annotation_position="top right")
+            
+            st.plotly_chart(fig)
+
+            st.subheader("Monte Carlo Simulation of Brent Oil Prices - Key Paths")
+            mean_path = np.mean(price_list, axis=1)
+
+            percentile_30_path = np.percentile(price_list, 30, axis=1)
+            percentile_80_path = np.percentile(price_list, 80, axis=1)
+
+            fig_key_paths = px.line(title='Monte Carlo Simulation Key Paths', labels={'index': 'Days', 'value': 'Price'})
+            fig_key_paths.add_scatter(x=list(range(t_intervals)), y=mean_path, mode='lines', name='Mean Path', line=dict(color='blue'))
+            fig_key_paths.add_scatter(x=list(range(t_intervals)), y=percentile_30_path, mode='lines', name='P30', line=dict(color='red', dash='dash'))
+            fig_key_paths.add_scatter(x=list(range(t_intervals)), y=percentile_80_path, mode='lines', name='P80', line=dict(color='orange', dash='dash'))
+
+            fig_key_paths.update_layout(template='plotly_dark')
+            st.plotly_chart(fig_key_paths)
+
+        ############################################
+        with col5:
+            st.subheader("Historical Brent Oil Prices and Rolling Historical Volatility")
+            fig_combined = go.Figure()
+            rolling_volatility = log_returns.rolling(window=252).std() * np.sqrt(252)
+
+            # Add Brent oil prices to the graph
+            fig_combined.add_trace(go.Scatter(x=new_data.index, y=new_data.values, mode='lines', name='Brent Oil Prices', line=dict(color='blue')))
+
+            # Create a second y-axis for the volatility
+            fig_combined.update_layout(yaxis=dict(title="Brent Oil Prices"), yaxis2=dict(title="Volatility", overlaying="y", side="right"))
+
+            # Add rolling historical volatility to the graph
+            fig_combined.add_trace(go.Scatter(x=rolling_volatility.index, y=rolling_volatility.values, mode='lines', name='Rolling Volatility', line=dict(color='red'), yaxis='y2'))
+
+            fig_combined.update_layout(title="Historical Brent Oil Prices and Rolling Historical Volatility", template='plotly_dark')
+            st.plotly_chart(fig_combined)
+            
+
+
+        ############################################
+

@@ -100,7 +100,7 @@ def technical_probability_page():
 
         with col4:
             st.subheader("Monte Carlo Simulation of Brent Oil Prices - Histogram")
-            fig = px.histogram(price_list[-1], nbins=50, title='Distribution of Final Prices from Monte Carlo Simulation',
+            fig = px.histogram(price_list[-1], nbins=500, title='Distribution of Final Prices from Monte Carlo Simulation',
                             labels={'value': 'Price', 'count': 'Frequency'})
             fig.update_layout(
                 xaxis_title='Price',
@@ -111,14 +111,14 @@ def technical_probability_page():
             
             # Add lines for mean and median
             mean_price = np.mean(price_list[-1])
-            fig.add_vline(x=mean_price, line_dash="dash", line_color="green", annotation_text="Mean", annotation_position="top right")
+            fig.add_vline(x=mean_price, line_dash="dash", line_color="black", annotation_text="Mean", annotation_position="bottom")
 
             Q30 =  round(np.percentile(price_list, 30), 2)
             Q80 =  round(np.percentile(price_list, 80), 2)
             
             # Add annotations for VaR
-            fig.add_vline(x=Q30, line_dash="dash", line_color="red", annotation_text="Q30", annotation_position="top right")
-            fig.add_vline(x=Q80, line_dash="dash", line_color="orange", annotation_text="Q80", annotation_position="top right")
+            fig.add_vline(x=Q30, line_dash="dash", line_color="red", annotation_text="Q30", annotation_position="top")
+            fig.add_vline(x=Q80, line_dash="dash", line_color="orange", annotation_text="Q80", annotation_position="top")
             
             st.plotly_chart(fig)
 

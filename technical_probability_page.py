@@ -66,30 +66,33 @@ def technical_probability_page():
         confidence_level_2 = 0.95  # 95% confidence level
         var_2 = np.percentile(price_list, confidence_level_2 * 100)
 
-        st.divider()
+        confidence_level_4 = 0.99  # 95% confidence level
+        var_4 = np.percentile(price_list, confidence_level_4 * 100)
 
         st.subheader("Simulation Details & Results")
 
         col1, col2, col3 = st.columns(3)
 
         with col1:
+            st.divider()
             st.metric(label="Current Closing Price", value=round(S0, 2))
             st.metric(label="Number of Iterations", value=iterations)
             st.metric(label="Forecasted Period", value=future_end_date.strftime('%Y-%m-%d') + f" ({t_intervals} days)")
             st.metric(label="Expected Average Price", value=round(np.mean(price_list), 2))
-            st.metric(label="Quantile (30%)", value=round(np.percentile(price_list, 30), 2))
-            st.metric(label="Quantile (80%)", value=round(np.percentile(price_list, 80), 2))
-
         with col2:
-            
+            st.divider()
             st.metric(label="Daily Volatility", value=f"{round(daily_volatility * 100, 2)}%")
             st.metric(label="Monthly Volatility (21 trading days)", value=f"{round(monthly_volatility * 100, 2)}%")
             st.metric(label="Annual Volatility (252 trading days)", value=f"{round(annual_volatility * 100, 2)}%")
 
         with col3:
-            st.metric(label=f"Lower VaR (5% confidence level)", value=round(var, 2))
+            st.divider()
+            st.metric(label="Quantile (30%)", value=round(np.percentile(price_list, 30), 2))
+            st.metric(label="Quantile (80%)", value=round(np.percentile(price_list, 80), 2))
             st.metric(label=f"Lower VaR (1% confidence level)", value=round(var_3, 2))
+            st.metric(label=f"Lower VaR (5% confidence level)", value=round(var, 2))
             st.metric(label=f"Upper VaR (95% confidence level)", value=round(var_2, 2))
+            st.metric(label=f"Upper VaR (99% confidence level)", value=round(var_4, 2))
         
         #############################################
         col4, col5 = st.columns(2)

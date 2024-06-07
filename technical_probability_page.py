@@ -55,8 +55,12 @@ def technical_probability_page():
         annual_volatility = daily_volatility * np.sqrt(trading_days_per_year)
 
         # Calculate VaR
-        confidence_level = 0.05  # 95% confidence level
+        confidence_level = 0.05  # 5% confidence level
         var = np.percentile(price_list, confidence_level * 100)
+
+        # Calculate VaR
+        confidence_level_3 = 0.01  # 1% confidence level
+        var_3 = np.percentile(price_list, confidence_level_3 * 100)
 
         confidence_level_2 = 0.95  # 95% confidence level
         var_2 = np.percentile(price_list, confidence_level_2 * 100)
@@ -77,7 +81,9 @@ def technical_probability_page():
 
         st.subheader("Value at Risk (VaR)")
         st.write(f"Lower Value at Risk (VaR) at {round(confidence_level * 100)}% confidence level: {round(var, 2)}")
+        st.write(f"Upper Value at Risk (VaR) at {round(confidence_level_3 * 100)}% confidence level: {round(var_3, 2)}")
         st.write(f"Upper Value at Risk (VaR) at {round(confidence_level_2 * 100)}% confidence level: {round(var_2, 2)}")
+        
 
         st.subheader("Monte Carlo Simulation of Brent Oil Prices - Histogram")
         fig = px.histogram(price_list[-1], nbins=50, title='Distribution of Final Prices from Monte Carlo Simulation')

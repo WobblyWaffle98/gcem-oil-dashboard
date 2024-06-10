@@ -34,10 +34,15 @@ def technical_probability_page():
     today = datetime.date.today()
     end_date = st.date_input("Select current date", today - datetime.timedelta(days=1), max_value=today - datetime.timedelta(days=1))
     future_end_date = st.date_input("Select future end date", datetime.date(2024, 12, 31), min_value= end_date + datetime.timedelta(days=1))
+    # Streamlit slider for selecting the number of years of historical data
+    years_of_data = st.slider('Select number of years of historical data:', min_value=1, max_value=10, value=10) 
+
     run_simulation = st.button("Run Simulation")
 
+       
+
     if run_simulation:
-        start_date = pd.Timestamp(end_date) - pd.DateOffset(years=10)
+        start_date = pd.Timestamp(end_date) - pd.DateOffset(years=years_of_data)
         brent_data = yf.download('BZ=F', start=start_date, end=pd.Timestamp(end_date) + pd.Timedelta(days=1))
 
         # Extract the 'Close' prices
@@ -57,7 +62,7 @@ def technical_probability_page():
         # Price predictions for the specified future period with iterations
         last_date = new_data.index[-1]
         t_intervals = (pd.Timestamp(future_end_date) - last_date).days
-        iterations = 5000
+        iterations = 10000
         daily_returns = np.exp(drift + stdev * norm.ppf(np.random.rand(t_intervals, iterations)))
 
         # Initial stock price
@@ -100,6 +105,23 @@ def technical_probability_page():
             st.metric(label="Number of Iterations", value=iterations)
             st.metric(label="Forecasted Period", value=future_end_date.strftime('%Y-%m-%d') + f" ({t_intervals} days)")
             st.metric(label="Expected Average Price", value=round(np.mean(price_list), 2))
+            @st.cache_data
+            def convert_df(df):
+                # IMPORTANT: Cache the conversion to prevent computation on every rerun
+                return df.to_csv().encode("utf-8")
+
+            # Reverse the DataFrame
+            reversed_data = new_data[::-1]
+            csv = convert_df(reversed_data)
+
+            st.download_button(
+                label="Download data as CSV",
+                data=csv,
+                file_name="Brent_Price.csv",
+                mime="text/csv",
+)
+
+
         with col2:
             st.divider()
             st.metric(label="Daily Volatility", value=f"{round(daily_volatility * 100, 2)}%")

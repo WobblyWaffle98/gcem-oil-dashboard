@@ -344,6 +344,8 @@ def fundamentals_page():
 ##################################################
     with tab4:
         st.subheader("Oil Consumptions")
+        # Suppress SSL verification warnings
+        requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
         def fetch_data(api_url, params):
             try:
@@ -492,6 +494,8 @@ def fundamentals_page():
 ###########################
     with tab5:
         st.subheader("EIA Weekly Inventory numbers")
+        # Suppress SSL verification warnings
+        requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
          # Series to fetch
         series_list = {

@@ -134,7 +134,7 @@ def financial_markets_page():
                 xaxis=dict(tickangle=45),
                 showlegend=False
             )
-            st.plotly_chart(fig)
+            st.plotly_chart(fig,use_container_width=True)
 
 
     with tab3:

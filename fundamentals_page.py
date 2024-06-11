@@ -6,16 +6,19 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 import yfinance as yf
-import datetime
-
+from datetime import datetime
+from collections import defaultdict
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
+from datetime import date, timedelta
+from dateutil.relativedelta import relativedelta    
+
 
 def fundamentals_page():
     st.header("Fundamental Indicators")
     # Add fundamentals page specific code here
 
-    tab1, tab3, tab4, tab2, tab5 = st.tabs(["Balances", "Production", "Consumption","Seasonality", "EIA Inventory"])
+    tab1, tab3, tab4, tab2, tab5, tab6 = st.tabs(["Balances", "Production", "Consumption","Seasonality", "EIA Inventory","EIA Inventory+"])
 
     with tab1:
         st.subheader("Supply demand balances")
@@ -120,7 +123,7 @@ def fundamentals_page():
         ticker = 'BZ=F'
         
         # Fetch historical data for the last 10 years
-        data = yf.download(ticker, start='2014-01-01', end=datetime.date.today())
+        data = yf.download(ticker, start='2014-01-01', end=datetime.now())
         
         # Resample data to end of month to ensure we have monthly data points
         monthly_data = data['Adj Close'].resample('M').last()
@@ -222,7 +225,7 @@ def fundamentals_page():
                 title=f'Average Month-on-Month Percentage Change of Brent Crude Oil Prices (Period: {period} years)',
                 xaxis_title='Month',
                 yaxis_title='Average Percentage Change',
-                xaxis=dict(tickmode='array', tickvals=list(range(12)), ticktext=['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'])
+                xaxis=dict(tickmode='array', tickvals=list(range(1, 13)), ticktext=['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'])
             )
             st.plotly_chart(fig, use_container_width=True)
 
@@ -487,12 +490,228 @@ def fundamentals_page():
 
 
 ###########################
-        with tab5:
+    with tab5:
+        st.subheader("EIA Weekly Inventory numbers")
+
+         # Series to fetch
+        series_list = {
+            'WGTSTUS1': 'U.S. Ending Stocks of Total Gasoline',
+            'WDISTUS1': 'U.S. Ending Stocks of Distillate Fuel Oil',
+            'WCESTUS1' : 'U.S. Ending Stocks excluding SPR of Crude Oil',
+        }
+
+        # Function to fetch data from the API
+        def fetch_data(series):
+            url = f"https://api.eia.gov/v2/petroleum/sum/sndw/data/?api_key=gcp5ZkcZhaL5aCVvviD38eMtVEZXEyP28KqMHh4h&frequency=weekly&data[0]=value&facets[series][]={series}&start=2024-01-01&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
+            response = requests.get(url, verify=False)
+            if response.status_code == 200:
+                return response.json().get('response', {}).get('data', [])
+            else:
+                print(f"Failed to fetch data for series {series}: {response.status_code} {response.reason}")
+                return []
+
+        # Function to calculate W-o-W changes
+        def calculate_wow_changes(data):
+            dates = [entry['period'] for entry in data]
+            values = [float(entry['value']) for entry in data]
+            changes = [values[i] - values[i+1] for i in range(len(values)-1)]
+            return dates[:-1], changes
+
+
+        # Fetch data for each series
+        series_data = {series: fetch_data(series) for series in series_list}
+
+        def plot_series(series_key, series_name):
+            # Fetch data for the series
+            data = fetch_data(series_key)
+
+            # Check if data is available
+            if data:
+                # Calculate week-over-week changes
+                wow_dates, wow_changes = calculate_wow_changes(data)
+
+                # Create a bar plot
+                fig = go.Figure(go.Bar(
+                    x=wow_dates,
+                    y=wow_changes,
+                    marker_color=['green' if change > 0 else 'red' for change in wow_changes]
+                ))
+
+                # Customize layout for the bar plot
+                fig.update_layout(
+                    title=f'Week-over-Week Changes in {series_name}',
+                    xaxis=dict(title='Date'),
+                    yaxis=dict(title='W-o-W Change (Thousand Barrels)'),
+                    plot_bgcolor='rgba(0,0,0,0)'
+                )
+
+                # Show plot
+                st.plotly_chart(fig, use_container_width=True)
+                
+        def calculate_latest_and_wow_percentage(data):
+            if len(data) >= 2:
+                latest_value = float(data[0]['value'])
+                previous_value = float(data[1]['value'])
+                wow_percentage_change = ((latest_value - previous_value) / previous_value) * 100
+                wow_change = (latest_value - previous_value) 
+                return latest_value, wow_percentage_change, wow_change
+            else:
+                return None, None
+
+        def plot_inventory_levels(series_key, series_name):
+            data = series_data.get(series_key, [])
+            if data:
+                dates = [entry['period'] for entry in data]
+                values = [float(entry['value']) for entry in data]
+                fig = go.Figure(go.Scatter(
+                    x=dates,
+                    y=values,
+                    mode='lines+markers',
+                    line=dict(color='blue', width=2)
+                ))
+                fig.update_layout(
+                    title=f'{series_name} Levels Over Time',
+                    xaxis=dict(title='Date'),
+                    yaxis=dict(title='Inventory Levels (Thousand Barrels)'),
+                    plot_bgcolor='rgba(0,0,0,0)'
+                )
+                st.plotly_chart(fig, use_container_width=True)
+
+
+        # Function to fetch data from the API
+        def fetch_data_2(series, start_date):
+            url = f"https://api.eia.gov/v2/petroleum/sum/sndw/data/?api_key=gcp5ZkcZhaL5aCVvviD38eMtVEZXEyP28KqMHh4h&frequency=weekly&data[0]=value&facets[series][]={series}&start={start_date}&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
+            response = requests.get(url, verify=False)
+            if response.status_code == 200:
+                return response.json().get('response', {}).get('data', [])
+            else:
+                st.error(f"Failed to fetch data for series {series}: {response.status_code} {response.reason}")
+                return []
+            
+        # Function to calculate 5-year range and average
+        def calculate_five_year_stats(data):
+            weekly_values = defaultdict(list)
+            for entry in data:
+                week = datetime.strptime(entry['period'], "%Y-%m-%d").strftime("%U")
+                weekly_values[week].append(float(entry['value']))
+            
+            five_year_min = {week: min(values) for week, values in weekly_values.items()}
+            five_year_max = {week: max(values) for week, values in weekly_values.items()}
+            five_year_avg = {week: sum(values) / len(values) for week, values in weekly_values.items()}
+            return five_year_min, five_year_max, five_year_avg
+
+        # Series to fetch
+        series_list = {
+            'WCESTUS1': 'U.S. Ending Stocks excluding SPR of Crude Oil',
+            'WGTSTUS1': 'U.S. Ending Stocks of Total Gasoline',
+            'WDISTUS1': 'U.S. Ending Stocks of Distillate Fuel Oil',
+        }
+
+
+        # Calculate the start date for 5 years of historical data
+        start_date_2 = (datetime.now() - timedelta(days=5*365)).strftime("%Y-%m-%d")
+
+        # Fetch data for each series
+        series_data_2 = {series: fetch_data_2(series, start_date_2) for series in series_list}
+
+
+        # Create separate plots for each series
+        figs = {}
+        for i, (series, data) in enumerate(series_data_2.items(), start=1):
+            if data:
+                # Extract dates and values
+                dates = [entry['period'] for entry in data]
+                values = [float(entry['value']) for entry in data]
+                
+                # Calculate 5-year range and average
+                five_year_min, five_year_max, five_year_avg = calculate_five_year_stats(data)
+                weeks = [datetime.strptime(date, "%Y-%m-%d").strftime("%U") for date in dates]
+                min_values = [five_year_min[week] for week in weeks]
+                max_values = [five_year_max[week] for week in weeks]
+                avg_values = [five_year_avg[week] for week in weeks]
+                
+                # Create a plot
+                fig = go.Figure()
+
+                # Add actual values line plot
+                fig.add_trace(go.Scatter(
+                    x=dates, 
+                    y=values, 
+                    mode='lines',
+                    name='Actual Values',
+                    marker=dict(color='blue'),
+                    line=dict(color='blue')
+                ))
+                
+                # Add 5-year range as a filled area
+                fig.add_trace(go.Scatter(
+                    x=dates + dates[::-1],
+                    y=max_values + min_values[::-1],
+                    fill='toself',
+                    fillcolor='rgba(0,100,80,0.2)',
+                    line=dict(color='rgba(255,255,255,0)'),
+                    hoverinfo="skip",
+                    showlegend=True,
+                    name='5-Year Range'
+                ))
+
+                # Add 5-year average line plot
+                fig.add_trace(go.Scatter(
+                    x=dates, 
+                    y=avg_values, 
+                    mode='lines',
+                    name='5-Year Average',
+                    line=dict(color='orange', dash='dash')
+                ))
+
+                # Customize layout
+                fig.update_layout(
+                    title=f'{series_list[series]}',
+                    xaxis=dict(title='Date'),
+                    yaxis=dict(title='Value (Thousand Barrels)'),
+                    plot_bgcolor='rgba(0,0,0,0)'
+                )
+
+                # Store plot in dictionary
+                figs[f'fig{i}'] = fig
+
+
+
+        col3,col4,col5 = st.columns(3)
+
+        with col3:
+            latest_value, wow_percentage_change, wow_change = calculate_latest_and_wow_percentage(series_data['WCESTUS1'])
+            st.metric(label="U.S. Crude Oil Inventory", value=str(f"Δ {wow_change:,.0f} k barrels"), delta=str(f"{wow_percentage_change:,.02f}")+"%")
+            # Plot for 'U.S. Ending Stocks excluding SPR of Crude Oil'
+            plot_series('WCESTUS1', 'U.S. Crude Oil Inventory')
+            plot_inventory_levels('WCESTUS1', 'U.S. Crude Oil Inventory')
+            st.plotly_chart(figs['fig1'], use_container_width=True)
+
+        with col4:
+            latest_value, wow_percentage_change, wow_change = calculate_latest_and_wow_percentage(series_data['WGTSTUS1'])
+            st.metric(label="U.S. Gasoline Inventory", value=str(f"Δ {wow_change:,.0f} k barrels"), delta=str(f"{wow_percentage_change:,.02f}")+"%")
+            # Plot for 'U.S. Ending Stocks of Total Gasoline'
+            plot_series('WGTSTUS1', 'U.S. Gasoline Inventory')
+            plot_inventory_levels('WGTSTUS1', 'U.S. Gasoline Inventory')
+            st.plotly_chart(figs['fig2'], use_container_width=True)
+
+        with col5:
+            latest_value, wow_percentage_change, wow_change = calculate_latest_and_wow_percentage(series_data['WDISTUS1'])
+            st.metric(label="U.S. Distillate Inventory", value=str(f"Δ {wow_change:,.0f} k barrels"), delta=str(f"{wow_percentage_change:,.02f}")+"%")
+            # Plot for 'U.S. Ending Stocks of Distillate Fuel Oil'
+            plot_series('WDISTUS1', 'U.S. Distillate Inventory')
+            plot_inventory_levels('WDISTUS1', 'U.S. Distillate Inventory')
+            st.plotly_chart(figs['fig3'], use_container_width=True)
+
+
+        with tab6:
+
             st.subheader("EIA Weekly Inventory numbers")
 
-             # Function to fetch data from the API
-            def fetch_data(series):
-                url = f"https://api.eia.gov/v2/petroleum/sum/sndw/data/?api_key=gcp5ZkcZhaL5aCVvviD38eMtVEZXEyP28KqMHh4h&frequency=weekly&data[0]=value&facets[series][]={series}&start=2020-01-01&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
+            
+                # Function to fetch data from the API
+            def fetch_data(series,start_date):
+                url = f"https://api.eia.gov/v2/petroleum/sum/sndw/data/?api_key=gcp5ZkcZhaL5aCVvviD38eMtVEZXEyP28KqMHh4h&frequency=weekly&data[0]=value&facets[series][]={series}&start={start_date}&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
                 response = requests.get(url, verify=False)
                 if response.status_code == 200:
                     return response.json()['response']['data']
@@ -511,8 +730,17 @@ def fundamentals_page():
                 'WCESTUS1' : 'U.S. Ending Stocks excluding SPR of Crude Oil',
             }
 
+            # Calculate the default date (today minus three months)
+            default_date = date.today() - relativedelta(months=12)
+
+            # Date input widget to select the start date
+            start_date = st.date_input("Choose start date", default_date)
+
+            # Convert the date to a string in the format 'YYYY-MM-DD'
+            start_date_str = start_date.strftime('%Y-%m-%d')
+
             # Fetch data for each series
-            series_data = {series: fetch_data(series) for series in series_list}
+            series_data = {series: fetch_data(series, start_date_str) for series in series_list}
 
             # Function to calculate W-o-W changes
             def calculate_wow_changes(data):
@@ -558,3 +786,4 @@ def fundamentals_page():
             # Show plots
             st.plotly_chart(fig_original, use_container_width=True)
             st.plotly_chart(fig_wow, use_container_width=True)
+

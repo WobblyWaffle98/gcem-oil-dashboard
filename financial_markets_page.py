@@ -7,6 +7,9 @@ import yfinance as yf
 from datetime import datetime, timedelta
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 import plotly.graph_objs as go
+import time
+
+
 
 def financial_markets_page():
     st.header("Financial Market Indicators")
@@ -67,74 +70,84 @@ def financial_markets_page():
         fetch_and_plot_correlation(period)
 
     with tab2:
+        
+        current_year = datetime.now().year
+        previous_year = current_year - 1
+        previousprevious_year = current_year - 2
 
-        # Suppress SSL verification warnings
-        requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+        # Python code to download data from Treasury
+        def get_data():
+            all_data = []
+            for year in [current_year, previous_year,previousprevious_year]:
+                print(year)
+                year = str(year)
+                url1 = f'https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/'+year+'/all?type=daily_treasury_yield_curve&field_tdr_date_value='+year+'page&_format=csv'
+                
+                data = pd.read_csv(url1)
+                all_data.append(data)
+            
+            pd_alldata = pd.concat(all_data, ignore_index=True)
+            pd_alldata['Date'] = pd.to_datetime(pd_alldata['Date'])
+            pd_alldata.index = pd_alldata['Date']
+            
+            req_cols = ['1 Mo','2 Mo','3 Mo', '6 Mo', '1 Yr', '2 Yr', '3 Yr', '5 Yr', 
+                        '7 Yr', '10 Yr', '20 Yr', '30 Yr']
+            final = pd_alldata[req_cols]
 
-        # FRED API endpoint for Treasury yields
-        fred_api_url = "https://api.stlouisfed.org/fred/series/observations"
+            return final
 
-        # API key (get your own API key from FRED)
-        api_key = "0ba1761f1d82d23194c202620bb7d7f9"
+        # Get the data
+        data = get_data()
 
-        # Define the Treasury yield symbols (constant maturity) and their order
-        treasury_yields = {
-            "3-Month": "DGS3MO",
-            "6-Month": "DGS6MO",
-            "1-Year": "DGS1",
-            "2-Year": "DGS2",
-            "5-Year": "DGS5",
-            "10-Year": "DGS10",
-            "30-Year": "DGS30"
-        }
 
-        # Streamlit app
-        st.title('US Treasury Yield Curve Visualization')
+        # Create traces for each column
+        traces = []
+        for col in data.columns:
+            trace = go.Scatter(x=data.index, y=data[col], mode='lines', name=col)
+            traces.append(trace)
 
-        # Date input for user to select a date
-        specific_date = st.date_input('Select a date', datetime(2024, 6, 6))
+        # Create layout
+        layout = go.Layout(title='Treasury Yield Time Series',
+                        xaxis=dict(title='Date'),
+                        yaxis=dict(title='Yield (%)'))
 
-        # Fetch Treasury yield data from FRED
-        yields = {}
-        for maturity, symbol in treasury_yields.items():
-            params = {
-                "series_id": symbol,
-                "api_key": api_key,
-                "file_type": "json"
-            }
-            response = requests.get(fred_api_url, params=params, verify=False)
-            if response.status_code == 200:
-                data = response.json()
-                # Find the observation for the specified date
-                observation = next((obs for obs in data["observations"] if obs["date"] == specific_date.strftime('%Y-%m-%d')), None)
-                if observation:
-                    try:
-                        yields[maturity] = float(observation["value"])
-                    except ValueError:
-                        st.warning(f"Invalid data for {maturity} on {specific_date}: {observation['value']}")
-                else:
-                    st.warning(f"No data available for {maturity} on {specific_date}")
-            else:
-                st.error(f"Failed to fetch data for {maturity}")
+        # Create figure
+        fig = go.Figure(data=traces, layout=layout)
 
-        # Check if any data was fetched
-        if not yields:
-            st.error(f"No yield data available for the specified date: {specific_date}")
-        else:
-            # Sort yields by maturity
-            sorted_yields = dict(sorted(yields.items(), key=lambda item: list(treasury_yields.keys()).index(item[0])))
+        st.plotly_chart(fig, use_container_width=True)
 
-            # Plot the yield curve using Plotly
-            fig = go.Figure()
-            fig.add_trace(go.Scatter(x=list(sorted_yields.keys()), y=list(sorted_yields.values()), mode='lines+markers'))
-            fig.update_layout(
-                title=f'US Treasury Yield Curve (Data as of {specific_date})',
-                xaxis_title='Maturity',
-                yaxis_title='Yield (%)',
-                xaxis=dict(tickangle=45),
-                showlegend=False
-            )
-            st.plotly_chart(fig,use_container_width=True)
+        #########################
+
+        # Extract the first and seventh rows
+        Current = data.iloc[0]
+        Last_week = data.iloc[6]
+        Last_Month = data.iloc[29]
+        Last_Year = data.iloc[364]
+
+        # Create a figure
+        fig = go.Figure()
+
+        # Add first row data to the plot
+        fig.add_trace(go.Scatter(x=Current.index, y=Current.values, mode='lines', name='Current'))
+
+        # Add seventh row data to the plot
+        fig.add_trace(go.Scatter(x=Last_week.index, y=Last_week.values, mode='lines', name='Last Week'))
+
+        # Add seventh row data to the plot
+        fig.add_trace(go.Scatter(x=Last_Month.index, y=Last_Month.values, mode='lines', name='Last Month'))
+
+        # Add seventh row data to the plot
+        fig.add_trace(go.Scatter(x=Last_Year.index, y=Last_Year.values, mode='lines', name='Last Year'))
+
+        # Customize layout
+        fig.update_layout(
+            title="Treasury Yield Curve",
+            xaxis_title="Maturity",
+            yaxis_title="Rate (%)"
+        )
+
+        # Show the plot
+        st.plotly_chart(fig, use_container_width=True)
 
 
     with tab3:
@@ -189,3 +202,50 @@ def financial_markets_page():
 
         # Fetch data and plot correlation matrix
         fetch_and_plot_fx_correlation(fx_period)
+
+     # Function to plot time series of DXY and Brent
+        def plot_time_series():
+            # Define start date as July 2007
+            start_date = datetime(2007, 7, 1)
+            
+            # Fetch data for DXY and Brent Crude Oil
+            df_dxy = yf.download("DX-Y.NYB", start=start_date)['Adj Close']
+            df_brent = yf.download("BZ=F", start=start_date)['Adj Close']
+
+            fig_ts = go.Figure()
+
+            # Add trace for DXY
+            fig_ts.add_trace(go.Scatter(x=df_dxy.index, y=df_dxy, name="US Dollar Index", yaxis="y1"))
+
+            # Add trace for Brent Crude Oil
+            fig_ts.add_trace(go.Scatter(x=df_brent.index, y=df_brent, name="Brent Crude Oil", yaxis="y2"))
+
+            # Update layout to have two y-axes
+            fig_ts.update_layout(
+                title="Time Series of DXY and Brent",
+                xaxis_title="Date",
+                yaxis=dict(title="US Dollar Index", color="blue"),
+                yaxis2=dict(title="Brent Crude Oil", color="red", overlaying="y", side="right")
+            )
+
+            st.plotly_chart(fig_ts, use_container_width=True)
+
+            # Calculate rolling one-year correlation
+            rolling_corr = df_dxy.rolling(window=252, min_periods=1).corr(df_brent)
+
+            # Plot rolling correlation
+            fig_corr = go.Figure()
+            fig_corr.add_trace(go.Scatter(x=rolling_corr.index, y=rolling_corr,fill='tozeroy', name="Rolling 1-Year Correlation"))
+            fig_corr.update_layout(
+                title="Rolling 1-Year Correlation between DXY and Brent Crude Oil",
+                xaxis_title="Date",
+                yaxis_title="Correlation",
+                showlegend=False
+            )
+            st.plotly_chart(fig_corr, use_container_width=True)
+
+        # Streamlit app layout
+        st.title('Time Series of DXY and Brent')
+
+        # Plot time series and rolling correlation
+        plot_time_series()

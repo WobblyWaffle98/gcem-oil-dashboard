@@ -340,6 +340,106 @@ def fundamentals_page():
             mime="text/csv",
             )
 
+        #####
+        def fetch_data(api_url, params):
+            try:
+                response = requests.get(api_url, params=params, verify=False)
+                response.raise_for_status()
+                return response.json()
+            except requests.exceptions.HTTPError as err:
+                print(f"HTTP error occurred: {err}")
+            except Exception as err:
+                print(f"An error occurred: {err}")
+            return None
+
+        api_url = 'https://api.eia.gov/v2/steo/data/'
+        api_key = 'gcp5ZkcZhaL5aCVvviD38eMtVEZXEyP28KqMHh4h'
+
+        params = {
+            "api_key": api_key,
+            "frequency": "monthly",
+            "data[]": "value",
+            "start": "1998",
+            "sort[0][column]": "period",
+            "sort[0][direction]": "desc",
+            "offset": 0,
+            "length": 5000
+        }
+
+        # Fetch OPEC+ production data
+        params["facets[seriesId][]"] = "COPR_OPECPLUS"
+        data_production_OPECPLUS = fetch_data(api_url, params)
+
+        # Fetch US production data
+        params["facets[seriesId][]"] = "COPRPUS"
+        data_production_US = fetch_data(api_url, params)
+
+        # Fetch US production data
+        params["facets[seriesId][]"] = "COPR_NONOPECPLUS_XUS"
+        data_production_NONOPECxUS = fetch_data(api_url, params)
+
+        # Extract production data
+        periods = [item['period'] for item in data_production_OPECPLUS['response']['data']]
+        production_values_OPECPLUS = [float(item['value']) for item in data_production_OPECPLUS['response']['data']]
+        production_values_US = [float(item['value']) for item in data_production_US['response']['data']]
+        production_values_NONOPECxUS = [float(item['value']) for item in data_production_NONOPECxUS['response']['data']]
+
+        # Calculate market share percentage of OPEC+ over total volume
+        total_volume = [p + c + d for p, c , d in zip(production_values_OPECPLUS, production_values_US, production_values_NONOPECxUS)]
+        opec_plus_market_share = [(p / t) * 100 for p, t in zip(production_values_OPECPLUS, total_volume)]
+
+        # Create a stacked bar chart
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=periods, y=production_values_OPECPLUS, name='OPEC+ Production'))
+        fig.add_trace(go.Scatter(x=periods, y=production_values_US, name='US Production'))
+        fig.add_trace(go.Scatter(x=periods, y=production_values_NONOPECxUS, name='Non OPEC+ exUS Production'))
+
+
+        fig.update_layout(
+            title='Total World Petroleum and Other Liquid Production by OPEC+ and Non-OPEC',
+            xaxis_title='Month',
+            yaxis_title='Volume (million barrels per day)',
+        )
+
+        # Print the DataFrame
+        df = pd.DataFrame({
+            'Month': periods,
+            'OPEC+ Production': production_values_OPECPLUS,
+            'US Production': production_values_US,
+            'Non OPEC+ exUS Production': production_values_NONOPECxUS,
+            'OPEC+ Market Share (%)': opec_plus_market_share
+        })
+
+        
+
+        # Create a line plot for OPEC+ market share
+        fig_market_share = go.Figure()
+        fig_market_share.add_trace(go.Scatter(x=periods, y=opec_plus_market_share, mode='lines', name='OPEC+ Market Share'))
+
+        fig_market_share.update_layout(
+            title='OPEC+ Market Share Over Time',
+            xaxis_title='Month',
+            yaxis_title='Market Share (%)',
+            template='plotly_white'
+        )
+
+        @st.cache_data
+        def convert_df(df):
+            # IMPORTANT: Cache the conversion to prevent computation on every rerun
+            return df.to_csv().encode("utf-8")
+
+        st.plotly_chart(fig, use_container_width=True)
+        
+        st.plotly_chart(fig_market_share, use_container_width=True)
+
+        st.download_button(
+            label="Download data as CSV",
+            data=convert_df(df),
+            file_name="OilMonthlyProduction.csv",
+            mime="text/csv",
+            )
+
+
 
 ##################################################
     with tab4:

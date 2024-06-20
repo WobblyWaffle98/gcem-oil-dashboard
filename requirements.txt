@@ -9,3 +9,4 @@ scipy
 seaborn
 datetime
 xlrd
+prettytable

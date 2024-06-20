@@ -6,6 +6,7 @@ import plotly.express as px
 from scipy.stats import norm
 import pandas as pd
 import plotly.graph_objects as go
+import streamlit.components.v1 as components
 
 # Markdown content explaining Monte Carlo simulation
 monte_carlo_explanation = """
@@ -28,9 +29,69 @@ Monte Carlo simulation is a method used to estimate the future price of oil by c
 def technical_probability_page():
     st.header("Technical and Probability Analysis",help= monte_carlo_explanation)
 
-    tab1,tab2 = st.tabs(['MonteCarlo Analysis (Daily)','MonteCarlo Analysis (Monthly)'])
+    tab1,tab2,tab3 = st.tabs(['Technical Analysis','MonteCarlo Analysis (Daily)','MonteCarlo Analysis (Monthly)'])
 
     with tab1:
+        st.subheader("TradingView Technical Analysis")
+        Brent_chart = """
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Centered Content Example</title>
+                <style>
+                    body {
+                        margin: 0;
+                        display: flex;
+                        justify-content: centre;
+                        align-items: centre;
+                        height: 100vh;
+                    }
+
+                    .container {
+                        width: 90%;
+                        max-width: 1200px; /* Adjust max-width as per your design */
+                        text-align: centre;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <!-- TradingView Widget BEGIN -->
+                    <div class="tradingview-widget-container" style="height:100%;width:100%">
+                    <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
+                    <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"><span class="blue-text"></span></a></div>
+                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
+                    {
+                    "autosize": true,
+                    "symbol": "VELOCITY:BRENT",
+                    "interval": "D",
+                    "timezone": "Asia/Kuala_Lumpur",
+                    "theme": "dark",
+                    "style": "1",
+                    "locale": "en",
+                    "hide_top_toolbar": true,
+                    "allow_symbol_change": false,
+                    "calendar": false,
+                    "studies": [
+                        "STD;Pivot%1Points%1Standard"
+                
+                    ],
+                    "hide_volume": true,
+                    "support_host": "https://www.tradingview.com"
+                    }
+                    </script>
+                    </div>
+                    <!-- TradingView Widget END -->
+                </div>
+            </body>
+            </html>
+                """
+
+        components.html(Brent_chart, height=800, scrolling=False)
+
+    with tab2:
         # Inputs for the simulation
         today = datetime.date.today()
         end_date = st.date_input("Select current date", today - datetime.timedelta(days=1), max_value=today - datetime.timedelta(days=1), key="end_date_input")
@@ -202,7 +263,7 @@ def technical_probability_page():
 
             ############################################
 
-    with tab2:
+    with tab3:
         # Inputs for the simulation
         today = datetime.date.today()
         end_date = st.date_input("Select current date", today - datetime.timedelta(days=1), max_value=today - datetime.timedelta(days=1), key="end_date_input_2")
@@ -283,7 +344,7 @@ def technical_probability_page():
                 st.divider()
                 st.metric(label="Current Closing Price", value=round(S0, 2))
                 st.metric(label="Number of Iterations", value=iterations)
-                st.metric(label="Forecasted Period", value=future_end_date.strftime('%Y-%m-%d') + f" ({t_intervals_monthly} days)")
+                st.metric(label="Forecasted Period", value=future_end_date.strftime('%Y-%m-%d') + f" ({t_intervals_monthly} Months)")
                 st.metric(label="Expected Average Price", value=round(np.mean(price_list_monthly), 2))
                 @st.cache_data
                 def convert_df(df):

@@ -104,6 +104,120 @@ def main_page():
                             <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
                             {
                             "autosize": true,
+                            "symbol": "ICEEUR:BRN1!",
+                            "interval": "D",
+                            "timezone": "Asia/Kuala_Lumpur",
+                            "theme": "dark",
+                            "style": "1",
+                            "locale": "en",
+                            "hide_legend": true,
+                            "withdateranges": true,
+                            "allow_symbol_change": false,
+                            "calendar": false,
+                            "studies": [
+                                "STD;Pivot%1Points%1High%1Low"
+                            ],
+                            "hide_volume": true,
+                            "support_host": "https://www.tradingview.com"
+                            }
+                            </script>
+                            </div>
+                            <!-- TradingView Widget END -->
+
+                        </div>
+                    </body>
+                    </html>
+                    """
+        
+        WTI_chart = """
+                            <!DOCTYPE html>
+                    <html lang="en">
+                    <head>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <title>Centered Content Example</title>
+                        <style>
+                            body {
+                                margin: 0;
+                                display: flex;
+                                justify-content: left;
+                                align-items: left;
+                                height: 100vh;
+                            }
+
+                            .container {
+                                width: 90%;
+                                max-width: 800px; /* Adjust max-width as per your design */
+                                text-align: left;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            <!-- TradingView Widget BEGIN -->
+                            <div class="tradingview-widget-container" style="height:100%;width:100%">
+                            <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
+                            <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"><span class="blue-text"></span></a></div>
+                            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
+                            {
+                            "autosize": true,
+                            "symbol": "VELOCITY:BRENT",
+                            "interval": "D",
+                            "timezone": "Asia/Kuala_Lumpur",
+                            "theme": "dark",
+                            "style": "1",
+                            "locale": "en",
+                            "hide_legend": true,
+                            "withdateranges": true,
+                            "allow_symbol_change": false,
+                            "calendar": false,
+                            "studies": [
+                                "STD;Pivot%1Points%1High%1Low"
+                            ],
+                            "hide_volume": true,
+                            "support_host": "https://www.tradingview.com"
+                            }
+                            </script>
+                            </div>
+                            <!-- TradingView Widget END -->
+
+                        </div>
+                    </body>
+                    </html>
+                    """
+        
+        NatGas_chart = """
+                            <!DOCTYPE html>
+                    <html lang="en">
+                    <head>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <title>Centered Content Example</title>
+                        <style>
+                            body {
+                                margin: 0;
+                                display: flex;
+                                justify-content: left;
+                                align-items: left;
+                                height: 100vh;
+                            }
+
+                            .container {
+                                width: 90%;
+                                max-width: 800px; /* Adjust max-width as per your design */
+                                text-align: left;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            <!-- TradingView Widget BEGIN -->
+                            <div class="tradingview-widget-container" style="height:100%;width:100%">
+                            <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
+                            <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"><span class="blue-text"></span></a></div>
+                            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
+                            {
+                            "autosize": true,
                             "symbol": "VELOCITY:BRENT",
                             "interval": "D",
                             "timezone": "Asia/Kuala_Lumpur",

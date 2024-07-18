@@ -68,7 +68,7 @@ def main_page():
         components.html(investing_calendar, height=800, scrolling=False)
 
     with col2:
-        st.subheader('Latest Brent Price')
+        
 
         # Define the HTML content for the Investing.com Economic Calendar iframe
         # HTML content for the iframe
@@ -243,8 +243,11 @@ def main_page():
                     </html>
                     """
 
+        st.subheader('Latest Brent Price')
         components.html(Brent_chart, height=500, scrolling=False)
+        st.subheader('Latest WTI Price')
         components.html(WTI_chart, height=500, scrolling=False)
+        st.subheader('Latest Henry Hub Price')
         components.html(NatGas_chart, height=500, scrolling=False)
 
 

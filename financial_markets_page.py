@@ -164,15 +164,15 @@ def financial_markets_page():
                             body {
                                 margin: 0;
                                 display: flex;
-                                justify-content: left;
-                                align-items: left;
+                                justify-content: centre;
+                                align-items: centre;
                                 height: 100vh;
                             }
 
                             .container {
                                 width: 90%;
                                 max-width: 800px; /* Adjust max-width as per your design */
-                                text-align: left;
+                                text-align: centre;
                             }
                         </style>
                     </head>
@@ -181,7 +181,7 @@ def financial_markets_page():
                             <!-- TradingView Widget BEGIN -->
                             <div class="tradingview-widget-container">
                             <div class="tradingview-widget-container__widget"></div>
-                            <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"><span class="blue-text">Track all markets on TradingView</span></a></div>
+                            <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"></a></div>
                             <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-forex-cross-rates.js" async>
                             {
                             "width": 550,
@@ -195,7 +195,7 @@ def financial_markets_page():
                                 "MYR"
                             ],
                             "isTransparent": false,
-                            "colorTheme": "dark",
+                            "colorTheme": "light",
                             "locale": "en",
                             "backgroundColor": "#000000"
                             }

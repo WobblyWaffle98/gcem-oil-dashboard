@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 import plotly.graph_objs as go
 import time
+import streamlit.components.v1 as components
 
 
 
@@ -151,6 +152,67 @@ def financial_markets_page():
 
 
     with tab3:
+
+        FX_chart = """
+                            <!DOCTYPE html>
+                    <html lang="en">
+                    <head>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <title>Centered Content Example</title>
+                        <style>
+                            body {
+                                margin: 0;
+                                display: flex;
+                                justify-content: left;
+                                align-items: left;
+                                height: 100vh;
+                            }
+
+                            .container {
+                                width: 90%;
+                                max-width: 800px; /* Adjust max-width as per your design */
+                                text-align: left;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            <!-- TradingView Widget BEGIN -->
+                            <div class="tradingview-widget-container">
+                            <div class="tradingview-widget-container__widget"></div>
+                            <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"><span class="blue-text">Track all markets on TradingView</span></a></div>
+                            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-forex-cross-rates.js" async>
+                            {
+                            "width": 550,
+                            "height": 400,
+                            "currencies": [
+                                "EUR",
+                                "USD",
+                                "JPY",
+                                "GBP",
+                                "CAD",
+                                "MYR"
+                            ],
+                            "isTransparent": false,
+                            "colorTheme": "dark",
+                            "locale": "en",
+                            "backgroundColor": "#000000"
+                            }
+                            </script>
+                            </div>
+                            <!-- TradingView Widget END -->
+
+                        </div>
+                    </body>
+                    </html>
+                    """
+
+        st.title('FX Latest Cross Rates)')
+        components.html(FX_chart, height=500, scrolling=False)
+
+
+
         # Define the FX ticker symbols and their corresponding names
         fx_tickers = {
             'BZ=F': 'Brent Crude Oil',

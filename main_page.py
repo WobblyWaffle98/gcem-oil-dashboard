@@ -243,11 +243,11 @@ def main_page():
                     </html>
                     """
 
-        st.subheader('Latest Brent Price')
+        st.subheader('Latest Brent Price (Velocity)')
         components.html(Brent_chart, height=500, scrolling=False)
-        st.subheader('Latest WTI Price')
+        st.subheader('Latest WTI Price (NYMEX)')
         components.html(WTI_chart, height=500, scrolling=False)
-        st.subheader('Latest Henry Hub Price')
+        st.subheader('Latest Henry Hub Price (NYMEX)')
         components.html(NatGas_chart, height=500, scrolling=False)
 
 

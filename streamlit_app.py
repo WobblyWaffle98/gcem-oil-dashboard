@@ -9,7 +9,7 @@ from technical_probability_page import technical_probability_page
 st.set_page_config(page_title="Oil Indicator Dashboard", layout="wide")
 
 # Streamlit app title
-st.title("Oil Indicator Dashboard")
+st.title("GCEM Oil Indicator Dashboard")
 
 # Sidebar for navigation
 st.sidebar.title("Navigation")

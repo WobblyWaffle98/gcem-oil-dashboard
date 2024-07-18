@@ -195,7 +195,7 @@ def financial_markets_page():
                                 "MYR"
                             ],
                             "isTransparent": false,
-                            "colorTheme": "light",
+                            "colorTheme": "dark",
                             "locale": "en",
                             "backgroundColor": "#000000"
                             }
@@ -208,7 +208,7 @@ def financial_markets_page():
                     </html>
                     """
 
-        st.title('FX Latest Cross Rates)')
+        st.title('FX Latest Cross Rates')
         components.html(FX_chart, height=500, scrolling=False)
 
 

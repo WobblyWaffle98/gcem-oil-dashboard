@@ -104,7 +104,7 @@ def main_page():
                             <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
                             {
                             "autosize": true,
-                            "symbol": "ICEEUR:BRN1!",
+                            "symbol": "VELOCITY:BRENT",
                             "interval": "D",
                             "timezone": "Asia/Kuala_Lumpur",
                             "theme": "dark",
@@ -161,7 +161,7 @@ def main_page():
                             <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
                             {
                             "autosize": true,
-                            "symbol": "VELOCITY:BRENT",
+                            "symbol": "NYMEX:CL1!",
                             "interval": "D",
                             "timezone": "Asia/Kuala_Lumpur",
                             "theme": "dark",
@@ -218,7 +218,7 @@ def main_page():
                             <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
                             {
                             "autosize": true,
-                            "symbol": "VELOCITY:BRENT",
+                            "symbol": "NYMEX:NG1!",
                             "interval": "D",
                             "timezone": "Asia/Kuala_Lumpur",
                             "theme": "dark",
@@ -244,6 +244,7 @@ def main_page():
                     """
 
         components.html(Brent_chart, height=500, scrolling=False)
-
+        components.html(WTI_chart, height=500, scrolling=False)
+        components.html(NatGas_chart, height=500, scrolling=False)
 
 

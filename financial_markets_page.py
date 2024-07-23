@@ -180,29 +180,29 @@ def financial_markets_page():
                         <body>
                             <div class="container">
                                 <!-- TradingView Widget BEGIN -->
-                                <div class="tradingview-widget-container">
-                                <div class="tradingview-widget-container__widget"></div>
-                                <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"></a></div>
-                                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-forex-cross-rates.js" async>
-                                {
-                                "width": "100%",
-                                "height": "100%",
-                                "currencies": [
-                                    "EUR",
-                                    "USD",
-                                    "JPY",
-                                    "GBP",
-                                    "CAD",
-                                    "MYR"
-                                ],
-                                "isTransparent": false,
-                                "colorTheme": "dark",
-                                "locale": "en",
-                                "backgroundColor": "#000000"
-                                }
-                                </script>
-                                </div>
-                                <!-- TradingView Widget END -->
+                            <div class="tradingview-widget-container">
+                            <div class="tradingview-widget-container__widget"></div>
+                            <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"><span class="blue-text"></span></a></div>
+                            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-forex-cross-rates.js" async>
+                            {
+                            "width": "100%",
+                            "height": "100%",
+                            "currencies": [
+                                "EUR",
+                                "USD",
+                                "JPY",
+                                "GBP",
+                                "CAD",
+                                "MYR"
+                            ],
+                            "isTransparent": false,
+                            "colorTheme": "dark",
+                            "locale": "en",
+                            "backgroundColor": "#000000"
+                            }
+                            </script>
+                            </div>
+                            <!-- TradingView Widget END -->
 
                             </div>
                         </body>

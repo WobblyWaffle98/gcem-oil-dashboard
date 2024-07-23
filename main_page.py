@@ -49,6 +49,12 @@ def main_page():
 
     with col1:
         st.subheader("Economic Calendar")
+        st.write("""
+                The Economic calendar provides a schedule of significant economic events and data releases, such as GDP figures, employment reports, inflation data, and central bank announcements.​
+                
+                 Users can also filter the data by countries and timeline.​
+                 
+                 """)
         # Define the HTML content for the Investing.com Economic Calendar iframe
         # HTML content for the iframe
         investing_calendar = """

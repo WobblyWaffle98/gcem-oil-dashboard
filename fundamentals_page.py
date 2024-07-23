@@ -21,9 +21,9 @@ def fundamentals_page():
     tab1, tab3, tab4, tab2, tab5, tab6 = st.tabs(["Balances", "Production", "Consumption","Seasonality", "EIA Inventory","EIA Inventory+"])
 
     with tab1:
-        st.subheader("Supply demand balances")
+        st.subheader("Supply-Demand balances")
         st.write("""
-            The Supply Demand Balances provides an analysis of global petroleum production and consumption over time.
+            The Supply-Demand balances provides an analysis of global petroleum production and consumption over time.
             The following charts display trends in production and consumption, as well as oversupply or undersupply.
             Please note that some of the numbers presented are forecasts and may be subject to change.
             

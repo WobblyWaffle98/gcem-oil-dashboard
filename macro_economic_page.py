@@ -7,24 +7,7 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from io import BytesIO
 import plotly.express as px
 
-help_GPR = """
-## Geopolitical Risk index (GPR)
 
-The Measuring Geopolitical Risk index by [Caldara and Iacoviello](https://www.matteoiacoviello.com/gpr_files/GPR_PAPER.pdf) quantifies geopolitical risk using textual analysis of international news. 
-
-It constructs a numerical index from news articles, capturing factors like conflicts, diplomatic tensions, terrorism, and key geopolitical events.
-
-The specific keywords used in the textual analysis to identify geopolitical risk factors might vary, but they likely include terms related to:
-    
-1. **Military conflicts** (e.g., war, conflict, aggression)
-2. **Diplomatic tensions** (e.g., sanctions, negotiations, disputes)
-3. **Security threats** (e.g., terrorism, insurgency, cyberattacks)
-4. **Geopolitical events** (e.g., elections, summits, treaties)
-5. **Regional instability** (e.g., regime change, political unrest, civil unrest)
-6. **Economic sanctions and trade disputes** (e.g., tariffs, embargoes, trade wars)
-7. **Natural disasters with potential geopolitical implications** (e.g., pandemics, environmental disasters, resource scarcity)
-
-"""
 
 def macro_economic_page():
     st.header("Macro-economic Indicators")
@@ -32,8 +15,29 @@ def macro_economic_page():
 
     tab1, tab2, tab3 = st.tabs(['Global data','US Economic data','Geopolitical Risk'],)
 
+    with tab1:
+        st.subheader("Global GDP")
+
+
     with tab3:
-        
+        help_GPR = """
+                ## Geopolitical Risk index (GPR)
+
+                The Measuring Geopolitical Risk index by [Caldara and Iacoviello](https://www.matteoiacoviello.com/gpr_files/GPR_PAPER.pdf) quantifies geopolitical risk using textual analysis of international news. 
+
+                It constructs a numerical index from news articles, capturing factors like conflicts, diplomatic tensions, terrorism, and key geopolitical events.
+
+                The specific keywords used in the textual analysis to identify geopolitical risk factors might vary, but they likely include terms related to:
+                    
+                1. **Military conflicts** (e.g., war, conflict, aggression)
+                2. **Diplomatic tensions** (e.g., sanctions, negotiations, disputes)
+                3. **Security threats** (e.g., terrorism, insurgency, cyberattacks)
+                4. **Geopolitical events** (e.g., elections, summits, treaties)
+                5. **Regional instability** (e.g., regime change, political unrest, civil unrest)
+                6. **Economic sanctions and trade disputes** (e.g., tariffs, embargoes, trade wars)
+                7. **Natural disasters with potential geopolitical implications** (e.g., pandemics, environmental disasters, resource scarcity)
+
+                """
         
         
 

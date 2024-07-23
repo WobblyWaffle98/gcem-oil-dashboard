@@ -20,6 +20,29 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 def main_page():
 
+    st.write("""
+    Welcome to the GECM Oil Indicator Dashboard! This is the main page where you can find upcoming economic events and current market prices for various commodities. 
+
+    Here’s a brief overview of what you’ll find on this main page:
+
+    1. **Economic Calendar**: An embedded calendar displaying upcoming economic events and announcements. This helps you stay updated on important economic indicators that might affect the market.
+
+    2. **Brent Oil Price**: A chart showing the latest prices for Brent crude oil. Brent crude is a major trading classification of crude oil and is used as a benchmark for global oil prices.
+
+    3. **WTI Oil Price**: A chart displaying the latest prices for West Texas Intermediate (WTI) crude oil. WTI is another key benchmark for oil prices and is often compared with Brent crude.
+
+    4. **Henry Hub Natural Gas Price**: A chart for Henry Hub natural gas prices. This is a key indicator for the natural gas market in North America.
+
+    For more detailed analysis, please use the sidebar to navigate to the following sections:
+
+    - **Macro-economic**: Explore detailed macroeconomic data and insights.
+    - **Fundamentals**: Access fundamental analysis for various commodities and markets.
+    - **Financial Markets**: View data and trends from different financial markets.
+    - **Technical and Probability Analysis**: Dive into technical analysis tools and probability-based evaluations.
+
+    """)
+
+
     
 
     col1,col2 = st.columns(2)

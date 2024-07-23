@@ -22,6 +22,11 @@ def fundamentals_page():
 
     with tab1:
         st.subheader("Supply demand balances")
+        st.write("""
+        The graph provides an analysis of global petroleum production and consumption over time.
+        The following charts display trends in production and consumption, as well as oversupply or undersupply.
+        Data is sourced from the [U.S. Energy Information Administration (EIA)](https://www.eia.gov/).
+        """)
 
 
         def fetch_data(api_url, params):

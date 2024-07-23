@@ -152,40 +152,100 @@ def financial_markets_page():
 
 
     with tab3:
+        col1, col2 = st.columns(2)
+        with col1:
+            FX_chart = """
+                                <!DOCTYPE html>
+                        <html lang="en">
+                        <head>
+                            <meta charset="UTF-8">
+                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                            <title>Centered Content Example</title>
+                            <style>
+                                body {
+                                    margin: 0;
+                                    display: flex;
+                                    justify-content: centre;
+                                    align-items: centre;
+                                    height: 100vh;
+                                }
 
-        FX_chart = """
-                            <!DOCTYPE html>
-                    <html lang="en">
-                    <head>
-                        <meta charset="UTF-8">
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                        <title>Centered Content Example</title>
-                        <style>
-                            body {
-                                margin: 0;
-                                display: flex;
-                                justify-content: centre;
-                                align-items: centre;
-                                height: 100vh;
-                            }
+                                .container {
+                                    width: 90%;
+                                    max-width: 800px; /* Adjust max-width as per your design */
+                                    text-align: centre;
+                                }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="container">
+                                <!-- TradingView Widget BEGIN -->
+                                <div class="tradingview-widget-container">
+                                <div class="tradingview-widget-container__widget"></div>
+                                <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"></a></div>
+                                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-forex-cross-rates.js" async>
+                                {
+                                "width": 550,
+                                "height": 400,
+                                "currencies": [
+                                    "EUR",
+                                    "USD",
+                                    "JPY",
+                                    "GBP",
+                                    "CAD",
+                                    "MYR"
+                                ],
+                                "isTransparent": false,
+                                "colorTheme": "dark",
+                                "locale": "en",
+                                "backgroundColor": "#000000"
+                                }
+                                </script>
+                                </div>
+                                <!-- TradingView Widget END -->
 
-                            .container {
-                                width: 90%;
-                                max-width: 800px; /* Adjust max-width as per your design */
-                                text-align: centre;
-                            }
-                        </style>
-                    </head>
-                    <body>
-                        <div class="container">
-                            <!-- TradingView Widget BEGIN -->
+                            </div>
+                        </body>
+                        </html>
+                        """
+
+            st.title('FX Latest Cross Rates')
+            components.html(FX_chart, height=500, scrolling=False)
+
+        with col2:
+            FX_chart = """
+                                <!DOCTYPE html>
+                        <html lang="en">
+                        <head>
+                            <meta charset="UTF-8">
+                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                            <title>Centered Content Example</title>
+                            <style>
+                                body {
+                                    margin: 0;
+                                    display: flex;
+                                    justify-content: centre;
+                                    align-items: centre;
+                                    height: 100vh;
+                                }
+
+                                .container {
+                                    width: 90%;
+                                    max-width: 800px; /* Adjust max-width as per your design */
+                                    text-align: centre;
+                                }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="container">
+                                <!-- TradingView Widget BEGIN -->
                             <div class="tradingview-widget-container">
                             <div class="tradingview-widget-container__widget"></div>
-                            <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"></a></div>
-                            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-forex-cross-rates.js" async>
+                            <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"><span class="blue-text"></span></a></div>
+                            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-forex-heat-map.js" async>
                             {
-                            "width": 550,
-                            "height": 400,
+                            "width": "100%",
+                            "height": "100%",
                             "currencies": [
                                 "EUR",
                                 "USD",
@@ -197,21 +257,19 @@ def financial_markets_page():
                             "isTransparent": false,
                             "colorTheme": "dark",
                             "locale": "en",
-                            "backgroundColor": "#000000"
+                            "backgroundColor": "rgba(0, 0, 0, 1)"
                             }
                             </script>
                             </div>
                             <!-- TradingView Widget END -->
 
-                        </div>
-                    </body>
-                    </html>
-                    """
+                            </div>
+                        </body>
+                        </html>
+                        """
 
-        st.title('FX Latest Cross Rates')
-        components.html(FX_chart, height=500, scrolling=False)
-
-
+            st.title('FX Latest Cross Rates')
+            components.html(FX_chart, height=500, scrolling=False)
 
         # Define the FX ticker symbols and their corresponding names
         fx_tickers = {

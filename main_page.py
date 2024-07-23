@@ -40,7 +40,8 @@ def main_page():
     with col1:
         st.header("Economic Calendar")
         st.write("""
-                The Economic calendar provides a schedule of significant economic events and data releases, such as GDP figures, employment reports, inflation data, and central bank announcements.​
+                The Economic calendar provides a schedule of significant economic events and data releases, 
+                such as GDP figures, employment reports, inflation data, and central bank announcements.​
                 
                  Users can also filter the data by countries and timeline.​
                  

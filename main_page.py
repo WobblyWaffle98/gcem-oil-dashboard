@@ -38,7 +38,7 @@ def main_page():
     col1,col2 = st.columns(2)
 
     with col1:
-        st.subheader("Economic Calendar")
+        st.header("Economic Calendar")
         st.write("""
                 The Economic calendar provides a schedule of significant economic events and data releases, such as GDP figures, employment reports, inflation data, and central bank announcements.​
                 
@@ -261,12 +261,17 @@ def main_page():
                     </body>
                     </html>
                     """
+        st.header("Latest Price")
+        st.write("""
+                 The latest price data is sourced from TradingView. 
 
-        st.subheader('Latest Brent Price (Velocity)')
+                 While there may be slight deviations or delays compared to official price data, this information is generally reliable for tracking price direction and trends. 
+                 """)
+        st.subheader('Brent Price (Velocity)')
         components.html(Brent_chart, height=500, scrolling=False)
-        st.subheader('Latest WTI Price (NYMEX)')
+        st.subheader('WTI Price (NYMEX)')
         components.html(WTI_chart, height=500, scrolling=False)
-        st.subheader('Latest Henry Hub Price (NYMEX)')
+        st.subheader('Henry Hub Price (NYMEX)')
         components.html(NatGas_chart, height=500, scrolling=False)
 
 

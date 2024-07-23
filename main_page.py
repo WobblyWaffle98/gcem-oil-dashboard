@@ -32,7 +32,7 @@ def main_page():
 
     """)
 
-
+    st.divider()
     
 
     col1,col2 = st.columns(2)

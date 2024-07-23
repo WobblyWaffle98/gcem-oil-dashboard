@@ -185,8 +185,8 @@ def financial_markets_page():
                                 <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"></a></div>
                                 <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-forex-cross-rates.js" async>
                                 {
-                                "width": 550,
-                                "height": 400,
+                                "width": "100%",
+                                "height": "100%",
                                 "currencies": [
                                     "EUR",
                                     "USD",

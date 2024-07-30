@@ -157,8 +157,8 @@ def fundamentals_page():
         fig1q.add_trace(go.Scatter(x=df['Period'], y=df['Consumption'], mode='lines+markers', name='Consumption'))
 
         fig1q.update_layout(
-            title='World Petroleum Production vs Consumption',
-            xaxis_title='Period',
+            title='World Petroleum Quarterly Production vs Consumption ',
+            xaxis_title='Quarter',
             yaxis_title='Volume (million barrels per day)',
             template='plotly_white'
         )
@@ -169,8 +169,8 @@ def fundamentals_page():
                             marker_color=df['Oversupply/Undersupply'].apply(lambda x: 'green' if x >= 0 else 'red')))
 
         fig2q.update_layout(
-            title='World Petroleum Oversupply/Undersupply',
-            xaxis_title='Period',
+            title='World Petroleum Quarterly Oversupply/Undersupply',
+            xaxis_title='Quarter',
             yaxis_title='Volume (million barrels per day)',
         )
 

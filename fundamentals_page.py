@@ -818,7 +818,7 @@ def fundamentals_page():
                     line=dict(color='blue', width=2)
                 ))
                 fig.update_layout(
-                    title=f'{series_name} Levels Over Time',
+                    title=f'{series_name} Absolute Levels Over Time',
                     xaxis=dict(title='Date'),
                     yaxis=dict(title='Inventory Levels (Thousand Barrels)'),
                     plot_bgcolor='rgba(0,0,0,0)'
@@ -943,7 +943,7 @@ def fundamentals_page():
             st.metric(label="U.S. Distillate Inventory", value=str(f"Δ {wow_change:,.0f} k barrels"), delta=str(f"{wow_percentage_change:,.02f}")+"%")
             
 
-        
+        st.divider()
 
         st.subheader('Week-on-Week inventory changes and absoulte inventory levels')
 
@@ -978,6 +978,8 @@ def fundamentals_page():
             plot_series('WDISTUS1', 'U.S. Distillate Inventory')
             plot_inventory_levels('WDISTUS1', 'U.S. Distillate Inventory')
         
+        st.divider()
+
         st.subheader('Historical inventory levels')
 
         st.write(

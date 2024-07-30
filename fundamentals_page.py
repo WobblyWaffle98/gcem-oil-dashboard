@@ -942,21 +942,40 @@ def fundamentals_page():
             latest_value, wow_percentage_change, wow_change = calculate_latest_and_wow_percentage(series_data['WCESTUS1'])
             st.metric(label="U.S. Crude Oil Inventory", value=str(f"Δ {wow_change:,.0f} k barrels"), delta=str(f"{wow_percentage_change:,.02f}")+"%")
             # Plot for 'U.S. Ending Stocks excluding SPR of Crude Oil'
-            plot_series('WCESTUS1', 'U.S. Crude Oil Inventory')
-            plot_inventory_levels('WCESTUS1', 'U.S. Crude Oil Inventory')
-            st.plotly_chart(figs['fig1'], use_container_width=True)
+            
 
         with col4:
             latest_value, wow_percentage_change, wow_change = calculate_latest_and_wow_percentage(series_data['WGTSTUS1'])
             st.metric(label="U.S. Gasoline Inventory", value=str(f"Δ {wow_change:,.0f} k barrels"), delta=str(f"{wow_percentage_change:,.02f}")+"%")
+            
+
+        with col5:
+            latest_value, wow_percentage_change, wow_change = calculate_latest_and_wow_percentage(series_data['WDISTUS1'])
+            st.metric(label="U.S. Distillate Inventory", value=str(f"Δ {wow_change:,.0f} k barrels"), delta=str(f"{wow_percentage_change:,.02f}")+"%")
+            
+
+        col6,col7,col8 = st.columns(3)
+
+        st.subheader('Week-on-Week inventory changes and absoulte inventory levels')
+
+        with col6:
+            latest_value, wow_percentage_change, wow_change = calculate_latest_and_wow_percentage(series_data['WCESTUS1'])
+            # Plot for 'U.S. Ending Stocks excluding SPR of Crude Oil'
+            plot_series('WCESTUS1', 'U.S. Crude Oil Inventory')
+            plot_inventory_levels('WCESTUS1', 'U.S. Crude Oil Inventory')
+            st.plotly_chart(figs['fig1'], use_container_width=True)
+
+        with col7:
+            latest_value, wow_percentage_change, wow_change = calculate_latest_and_wow_percentage(series_data['WGTSTUS1'])
+            
             # Plot for 'U.S. Ending Stocks of Total Gasoline'
             plot_series('WGTSTUS1', 'U.S. Gasoline Inventory')
             plot_inventory_levels('WGTSTUS1', 'U.S. Gasoline Inventory')
             st.plotly_chart(figs['fig2'], use_container_width=True)
 
-        with col5:
+        with col8:
             latest_value, wow_percentage_change, wow_change = calculate_latest_and_wow_percentage(series_data['WDISTUS1'])
-            st.metric(label="U.S. Distillate Inventory", value=str(f"Δ {wow_change:,.0f} k barrels"), delta=str(f"{wow_percentage_change:,.02f}")+"%")
+           
             # Plot for 'U.S. Ending Stocks of Distillate Fuel Oil'
             plot_series('WDISTUS1', 'U.S. Distillate Inventory')
             plot_inventory_levels('WDISTUS1', 'U.S. Distillate Inventory')

@@ -242,7 +242,7 @@ def fundamentals_page():
 
 #######################################################################
     with tab3:
-        st.subheader("Oil Productions")
+        st.subheader("World Petroleum and Other Liquid Production Components")
 
         st.write("""This chart provides a detailed breakdown of global petroleum production, 
                  segmented into four main categories. It shows OPEC Crude Oil Production and OPEC Other Liquids Production, which collectively represent the output from OPEC countries, including Saudi Arabia, 
@@ -442,7 +442,7 @@ def fundamentals_page():
             # IMPORTANT: Cache the conversion to prevent computation on every rerun
             return df.to_csv().encode("utf-8")
         
-        st.subheader("Total Oil Productions of OPEC+, US and Non OPEC+")
+        st.subheader("Total World Petroleum and Other Liquid Production by OPEC+, US, and Non-OPEC (ex-US)")
         
         st.write("""This line chart tracks the production volumes of petroleum and 
                  other liquids by major global players: OPEC+, the US, and non-OPEC countries 

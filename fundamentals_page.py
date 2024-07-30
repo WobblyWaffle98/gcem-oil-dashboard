@@ -954,9 +954,11 @@ def fundamentals_page():
             st.metric(label="U.S. Distillate Inventory", value=str(f"Δ {wow_change:,.0f} k barrels"), delta=str(f"{wow_percentage_change:,.02f}")+"%")
             
 
-        col6,col7,col8 = st.columns(3)
+        
 
         st.subheader('Week-on-Week inventory changes and absoulte inventory levels')
+        
+        col6,col7,col8 = st.columns(3)
 
         with col6:
             latest_value, wow_percentage_change, wow_change = calculate_latest_and_wow_percentage(series_data['WCESTUS1'])

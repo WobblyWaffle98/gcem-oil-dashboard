@@ -245,9 +245,9 @@ def fundamentals_page():
         st.subheader("Oil Productions")
 
         st.write("""This chart provides a detailed breakdown of global petroleum production, 
-                 segmented into four main categories. It shows OPEC Crude Oil Production and 
-                 OPEC Other Liquids Production, which collectively represent the output from 
-                 OPEC countries. Additionally, it includes Non-OPEC Crude Oil Production and 
+                 segmented into four main categories. It shows OPEC Crude Oil Production and OPEC Other Liquids Production, which collectively represent the output from OPEC countries, including Saudi Arabia, 
+                 Iraq, UAE, Kuwait, Iran, Nigeria, Angola, Algeria, Venezuela, Libya, Congo, and Gabon.
+                 Additionally, it includes Non-OPEC Crude Oil Production and 
                  Non-OPEC Other Liquids Production to capture contributions from other major 
                  producers outside OPEC.  """)
 
@@ -442,14 +442,18 @@ def fundamentals_page():
             # IMPORTANT: Cache the conversion to prevent computation on every rerun
             return df.to_csv().encode("utf-8")
         
+        st.subheader("Total Oil Productions of OPEC+, US and Non OPEC+")
+        
         st.write("""This line chart tracks the production volumes of petroleum and 
                  other liquids by major global players: OPEC+, the US, and non-OPEC countries 
-                 excluding the US. Each line 
+                 excluding the US. OPEC+ includes the OPEC member countries plus additional producers such as Russia, Kazakhstan, Azerbaijan, Mexico, and Oman.Each line 
                  represents the production trends of these groups, highlighting their 
                  contributions to global supply.   """)
         
 
         st.plotly_chart(fig, use_container_width=True)
+
+        st.subheader("OPEC+ Market Share")
 
         st.write("""The OPEC+ Market Share chart illustrates the percentage of global 
                  petroleum production attributed to OPEC+ over time. It captures 

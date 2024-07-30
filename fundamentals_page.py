@@ -731,6 +731,24 @@ def fundamentals_page():
 ###########################
     with tab5:
         st.subheader("EIA Weekly Inventory numbers")
+
+        st.write(
+            """
+            The metrics provide a quick overview of the most recent changes in U.S. inventory levels for crude oil, gasoline, and distillates. 
+
+            The upper bar plots below displays the week-over-week changes in U.S. inventory levels while the line plot below instead shows absolute inventory levels.. Each plot shows the fluctuations in inventory levels, with
+            inventory buildups indicated in green and inventory drawdowns in red.
+
+            The bottom line graph illustrate the historical inventory levels over time. The plots include actual values, a 5-year range, and a 5-year average, offering a comprehensive view of long-term trends and seasonal patterns.
+
+            Key Insights:
+
+            - Monitor weekly variations and trends in inventory levels.
+            - Identify periods of significant increase or decrease in stock levels.
+
+            """
+        )
+
         # Suppress SSL verification warnings
         requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
@@ -945,7 +963,7 @@ def fundamentals_page():
             st.plotly_chart(figs['fig3'], use_container_width=True)
 
 
-        with tab6:
+    with tab6:
 
             st.subheader("EIA Weekly Inventory numbers")
 

@@ -190,6 +190,18 @@ def fundamentals_page():
     with tab2:
         st.subheader("Seasonality Analysis")
 
+        st.write(
+            """
+            This heatmap illustrates the month-on-month (left) or quarter-on-quarter(right) percentage change in Brent Crude Oil prices over the past decade. Each cell represents the average percentage change for a specific month of each year. The color gradient ranges from red (indicating a decrease) to green (indicating an increase), providing a visual overview of seasonal trends and fluctuations in oil prices.
+            
+            Key Insights:
+
+            - Observe the seasonal patterns where certain months consistently show higher or lower changes.
+            - Identify trends and anomalies in the price changes month by month.
+
+            """
+        )
+
         col1,col2 = st.columns(2)
 
         # Define the ticker symbol for Brent Crude Oil

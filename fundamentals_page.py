@@ -425,7 +425,7 @@ def fundamentals_page():
         })
 
         
-
+        
         # Create a line plot for OPEC+ market share
         fig_market_share = go.Figure()
         fig_market_share.add_trace(go.Scatter(x=periods, y=opec_plus_market_share, mode='lines', name='OPEC+ Market Share'))
@@ -441,8 +441,24 @@ def fundamentals_page():
         def convert_df(df):
             # IMPORTANT: Cache the conversion to prevent computation on every rerun
             return df.to_csv().encode("utf-8")
+        
+        st.write("""This line chart tracks the production volumes of petroleum and 
+                 other liquids by major global players: OPEC+, the US, and non-OPEC countries 
+                 excluding the US. Each line 
+                 represents the production trends of these groups, highlighting their 
+                 contributions to global supply.   """)
+        
 
         st.plotly_chart(fig, use_container_width=True)
+
+        st.write("""The OPEC+ Market Share chart illustrates the percentage of global 
+                 petroleum production attributed to OPEC+ over time. It captures 
+                 fluctuations in OPEC+’s share of the global market, reflecting its influence 
+                 on global supply relative to other producers. This chart highlights how OPEC+’s 
+                 market share evolves, potentially due to changes in production levels, global demand, 
+                 or competition from other major producers. By tracking these changes, the chart provides 
+                 valuable insights into the shifting balance of power within the global oil market.   """)
+        
         
         st.plotly_chart(fig_market_share, use_container_width=True)
 

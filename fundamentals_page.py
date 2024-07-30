@@ -46,6 +46,70 @@ def fundamentals_page():
         api_key = 'gcp5ZkcZhaL5aCVvviD38eMtVEZXEyP28KqMHh4h'
 
         params_template = {
+            "api_key": api_key,
+            "frequency": "annual",
+            "data[]": "value",
+            "start": "2000",
+            "sort[0][column]": "period",
+            "sort[0][direction]": "desc",
+            "offset": 0,
+            "length": 5000
+        }
+
+        # Define series IDs for world production and consumption
+        production_series_id = "PAPR_WORLD"
+        consumption_series_id = "PATC_WORLD"
+
+        # Fetch production data
+        params_production = params_template.copy()
+        params_production["facets[seriesId][]"] = production_series_id
+        production_data = fetch_data(api_url, params_production)
+
+        # Fetch consumption data
+        params_consumption = params_template.copy()
+        params_consumption["facets[seriesId][]"] = consumption_series_id
+        consumption_data = fetch_data(api_url, params_consumption)
+
+        # Extract and organize the data
+        periods = sorted(list(set(int(item['period']) for item in production_data['response']['data'])))
+        production_values = {int(item['period']): float(item['value']) for item in production_data['response']['data']}
+        consumption_values = {int(item['period']): float(item['value']) for item in consumption_data['response']['data']}
+
+        # Calculate oversupply/undersupply
+        oversupply_undersupply = {year: production_values.get(year, 0) - consumption_values.get(year, 0) for year in periods}
+
+        # Create a DataFrame
+        df = pd.DataFrame({
+            'Year': periods,
+            'Production': [production_values.get(year, 0) for year in periods],
+            'Consumption': [consumption_values.get(year, 0) for year in periods],
+            'Oversupply/Undersupply': [oversupply_undersupply.get(year, 0) for year in periods]
+        })
+
+        # Create the first plot for Production and Consumption
+        fig1 = go.Figure()
+        fig1.add_trace(go.Scatter(x=df['Year'], y=df['Production'], mode='lines+markers', name='Production'))
+        fig1.add_trace(go.Scatter(x=df['Year'], y=df['Consumption'], mode='lines+markers', name='Consumption'))
+
+        fig1.update_layout(
+            title='World Petroleum Production vs Consumption',
+            xaxis_title='Year',
+            yaxis_title='Volume (million barrels per day)',
+            template='plotly_white'
+        )
+
+        # Create the second plot for Oversupply/Undersupply
+        fig2 = go.Figure()
+        fig2.add_trace(go.Bar(x=df['Year'], y=df['Oversupply/Undersupply'], name='Oversupply/Undersupply', 
+                            marker_color=df['Oversupply/Undersupply'].apply(lambda x: 'green' if x >= 0 else 'red')))
+
+        fig2.update_layout(
+            title='World Petroleum Oversupply/Undersupply',
+            xaxis_title='Year',
+            yaxis_title='Volume (million barrels per day)',
+        )
+
+        params_template = {
         "api_key": api_key,
         "frequency": "quarterly",
         "data[]": "value",
@@ -88,11 +152,11 @@ def fundamentals_page():
         })
 
         # Create the first plot for Production and Consumption
-        fig1 = go.Figure()
-        fig1.add_trace(go.Scatter(x=df['Period'], y=df['Production'], mode='lines+markers', name='Production'))
-        fig1.add_trace(go.Scatter(x=df['Period'], y=df['Consumption'], mode='lines+markers', name='Consumption'))
+        fig1q = go.Figure()
+        fig1q.add_trace(go.Scatter(x=df['Period'], y=df['Production'], mode='lines+markers', name='Production'))
+        fig1q.add_trace(go.Scatter(x=df['Period'], y=df['Consumption'], mode='lines+markers', name='Consumption'))
 
-        fig1.update_layout(
+        fig1q.update_layout(
             title='World Petroleum Production vs Consumption',
             xaxis_title='Period',
             yaxis_title='Volume (million barrels per day)',
@@ -100,24 +164,26 @@ def fundamentals_page():
         )
 
         # Create the second plot for Oversupply/Undersupply
-        fig2 = go.Figure()
-        fig2.add_trace(go.Bar(x=df['Period'], y=df['Oversupply/Undersupply'], name='Oversupply/Undersupply',
+        fig2q = go.Figure()
+        fig2q.add_trace(go.Bar(x=df['Period'], y=df['Oversupply/Undersupply'], name='Oversupply/Undersupply',
                             marker_color=df['Oversupply/Undersupply'].apply(lambda x: 'green' if x >= 0 else 'red')))
 
-        fig2.update_layout(
+        fig2q.update_layout(
             title='World Petroleum Oversupply/Undersupply',
             xaxis_title='Period',
             yaxis_title='Volume (million barrels per day)',
         )
 
-        # Display the plots
-        col1, col2 = st.columns(2)
+
+        col1, col2= st.columns(2)
+        # Show the DataFrame and the plots
         with col1:
             st.plotly_chart(fig1)
+            st.plotly_chart(fig1q)
         
         with col2:
             st.plotly_chart(fig2)
-
+            st.plotly_chart(fig2q)
 
 
 #####################################

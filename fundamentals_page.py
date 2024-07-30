@@ -507,7 +507,7 @@ def fundamentals_page():
 
         params_template = {
             "api_key": api_key,
-            "frequency": "annual",
+            "frequency": "quarterly",
             "data[]": "value",
             "start": "2000",
             "sort[0][column]": "period",

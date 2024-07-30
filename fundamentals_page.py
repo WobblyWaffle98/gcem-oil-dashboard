@@ -76,7 +76,7 @@ def fundamentals_page():
         consumption_values = {item['period']: float(item['value']) for item in consumption_data['response']['data']}
 
         # Calculate oversupply/undersupply
-        all_periods = sorted(set(production_periods + list(consumption_values.keys())), reverse=True)
+        all_periods = sorted(set(production_periods + list(consumption_values.keys())), reverse=False)
         oversupply_undersupply = {period: production_values.get(period, 0) - consumption_values.get(period, 0) for period in all_periods}
 
         # Create a DataFrame

@@ -735,17 +735,6 @@ def fundamentals_page():
         st.write(
             """
             The metrics provide a quick overview of the most recent changes in U.S. inventory levels for crude oil, gasoline, and distillates. 
-
-            The upper bar plots below displays the week-over-week changes in U.S. inventory levels while the line plot below instead shows absolute inventory levels.. Each plot shows the fluctuations in inventory levels, with
-            inventory buildups indicated in green and inventory drawdowns in red.
-
-            The bottom line graph illustrate the historical inventory levels over time. The plots include actual values, a 5-year range, and a 5-year average, offering a comprehensive view of long-term trends and seasonal patterns.
-
-            Key Insights:
-
-            - Monitor weekly variations and trends in inventory levels.
-            - Identify periods of significant increase or decrease in stock levels.
-
             """
         )
 
@@ -957,7 +946,14 @@ def fundamentals_page():
         
 
         st.subheader('Week-on-Week inventory changes and absoulte inventory levels')
-        
+
+        st.write(
+            """
+            The upper bar plots below displays the week-over-week changes in U.S. inventory levels while the line plot below instead shows absolute inventory levels.. Each plot shows the fluctuations in inventory levels, with
+            inventory buildups indicated in green and inventory drawdowns in red.
+            """
+        )
+
         col6,col7,col8 = st.columns(3)
 
         with col6:
@@ -965,7 +961,7 @@ def fundamentals_page():
             # Plot for 'U.S. Ending Stocks excluding SPR of Crude Oil'
             plot_series('WCESTUS1', 'U.S. Crude Oil Inventory')
             plot_inventory_levels('WCESTUS1', 'U.S. Crude Oil Inventory')
-            st.plotly_chart(figs['fig1'], use_container_width=True)
+            
 
         with col7:
             latest_value, wow_percentage_change, wow_change = calculate_latest_and_wow_percentage(series_data['WGTSTUS1'])
@@ -973,7 +969,7 @@ def fundamentals_page():
             # Plot for 'U.S. Ending Stocks of Total Gasoline'
             plot_series('WGTSTUS1', 'U.S. Gasoline Inventory')
             plot_inventory_levels('WGTSTUS1', 'U.S. Gasoline Inventory')
-            st.plotly_chart(figs['fig2'], use_container_width=True)
+            
 
         with col8:
             latest_value, wow_percentage_change, wow_change = calculate_latest_and_wow_percentage(series_data['WDISTUS1'])
@@ -981,6 +977,28 @@ def fundamentals_page():
             # Plot for 'U.S. Ending Stocks of Distillate Fuel Oil'
             plot_series('WDISTUS1', 'U.S. Distillate Inventory')
             plot_inventory_levels('WDISTUS1', 'U.S. Distillate Inventory')
+        
+        st.subheader('Historical inventory levels')
+
+        st.write(
+            """
+            The line graph illustrate the historical inventory levels over time. The plots include actual values, a 5-year range, and a 5-year average, offering a comprehensive view of long-term trends and seasonal patterns.
+            """
+        )
+
+        col9,col10,col11 = st.columns(3)
+
+        with col9:
+            latest_value, wow_percentage_change, wow_change = calculate_latest_and_wow_percentage(series_data['WCESTUS1'])
+            st.plotly_chart(figs['fig1'], use_container_width=True)
+
+        with col10:
+            latest_value, wow_percentage_change, wow_change = calculate_latest_and_wow_percentage(series_data['WGTSTUS1'])
+            st.plotly_chart(figs['fig2'], use_container_width=True)
+
+        with col11:
+            latest_value, wow_percentage_change, wow_change = calculate_latest_and_wow_percentage(series_data['WDISTUS1'])
+
             st.plotly_chart(figs['fig3'], use_container_width=True)
 
 

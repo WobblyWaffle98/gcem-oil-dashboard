@@ -484,18 +484,14 @@ def fundamentals_page():
     with tab4:
         st.subheader("World Petroleum and Other Liquid Consumption ")
         st.write("""
-        This chart offers a comprehensive overview of global petroleum consumption, 
-                 segmented into various categories. 
+                This chart offers a comprehensive overview of global petroleum consumption, segmented into various categories. 
                  
-                 It includes total consumption figures 
-                 for OECD countries, which are further divided into specific regions such as 
+                 It includes total consumption figures for OECD countries, which are further divided into specific regions such as 
                  Canada, Europe OECD, Japan, the United States, U.S. Territories, and Other OECD 
                  members. Additionally, it captures total consumption by non-OECD countries, 
                  including China, Eurasia, Europe non-OECD, Other Asia, and Other Non-OECD regions. 
                  
-                 
-                 The stacked bar chart displays these components to show how each region’s consumption
-                  contributes to the overall global demand.
+                 The stacked bar chart displays these components to show how each region’s consumption contributes to the overall global demand.
                 """)
         # Suppress SSL verification warnings
         requests.packages.urllib3.disable_warnings(InsecureRequestWarning)

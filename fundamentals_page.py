@@ -188,11 +188,13 @@ def fundamentals_page():
 
 #####################################
     with tab2:
-        st.subheader("Seasonality Analysis")
+        st.subheader("Monthly and Quarterly Seasonality Analysis")
 
         st.write(
             """
-            This heatmap illustrates the month-on-month (left) or quarter-on-quarter(right) percentage change in Brent Crude Oil prices over the past decade. Each cell represents the average percentage change for a specific month of each year. The color gradient ranges from red (indicating a decrease) to green (indicating an increase), providing a visual overview of seasonal trends and fluctuations in oil prices.
+            This heatmap illustrates the month-on-month (left) or quarter-on-quarter(right) percentage 
+            change in Brent Crude Oil prices over the past decade. Each cell represents the average 
+            percentage change for a specific month or quarter of each year. The color gradient ranges from red (indicating a decrease) to green (indicating an increase), providing a visual overview of seasonal trends and fluctuations in oil prices.
             
             Key Insights:
 
@@ -282,6 +284,19 @@ def fundamentals_page():
 
 
         st.divider()
+        st.subheader("Interactive Period Analysis")
+
+        st.write(
+            """
+            Use the slider to select different periods and observe the average month-on-month percentage change in Brent Crude Oil prices. This bar chart aggregates the average changes over the selected years, helping you understand longer-term trends and variations in seasonal patterns.
+            
+            Key Insights:
+
+            - The color-coded bars indicate positive (green) and negative (red) average changes.
+            - Customize the period to examine how seasonality and trends evolve over different time frames.
+
+            """
+        )
         # Streamlit slider for selecting the period
         period = st.slider("Period (in years)", min_value=1, max_value=len(monthly_avg_pct_change), value=12)
 

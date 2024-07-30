@@ -442,6 +442,8 @@ def fundamentals_page():
             # IMPORTANT: Cache the conversion to prevent computation on every rerun
             return df.to_csv().encode("utf-8")
         
+        st.divider()
+
         st.subheader("Total World Petroleum and Other Liquid Production by OPEC+, US, and Non-OPEC (ex-US)")
         
         st.write("""This line chart tracks the production volumes of petroleum and 
@@ -453,6 +455,8 @@ def fundamentals_page():
 
         st.plotly_chart(fig, use_container_width=True)
 
+        st.divider()
+
         st.subheader("OPEC+ Market Share")
 
         st.write("""The OPEC+ Market Share chart illustrates the percentage of global 
@@ -462,6 +466,7 @@ def fundamentals_page():
                  market share evolves, potentially due to changes in production levels, global demand, 
                  or competition from other major producers. By tracking these changes, the chart provides 
                  valuable insights into the shifting balance of power within the global oil market.   """)
+        
         
         
         st.plotly_chart(fig_market_share, use_container_width=True)

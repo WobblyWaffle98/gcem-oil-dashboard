@@ -244,6 +244,13 @@ def fundamentals_page():
     with tab3:
         st.subheader("Oil Productions")
 
+        st.write("""This chart provides a detailed breakdown of global petroleum production, 
+                 segmented into four main categories. It shows OPEC Crude Oil Production and 
+                 OPEC Other Liquids Production, which collectively represent the output from 
+                 OPEC countries. Additionally, it includes Non-OPEC Crude Oil Production and 
+                 Non-OPEC Other Liquids Production to capture contributions from other major 
+                 producers outside OPEC.  """)
+
         # Suppress SSL verification warnings
         requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 

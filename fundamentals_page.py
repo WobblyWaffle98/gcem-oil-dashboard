@@ -448,13 +448,11 @@ def fundamentals_page():
 
         st.subheader("Total World Petroleum and Other Liquid Production by OPEC+, US, and Non-OPEC (ex-US)")
         
-        st.write("""This line chart tracks the production volumes of petroleum and 
-                 other liquids by major global players: OPEC+, the US, and non-OPEC countries 
-                 excluding the US. 
+        st.write("""
+                 This line chart tracks the production volumes of petroleum and other liquids by major global players: OPEC+, the US, and non-OPEC countries excluding the US. 
                  
                  OPEC+ includes the OPEC member countries plus additional producers such as Russia, Kazakhstan, Azerbaijan, Mexico, and Oman.Each line 
-                 represents the production trends of these groups, highlighting their 
-                 contributions to global supply.   """)
+                 represents the production trends of these groups, highlighting their contributions to global supply.   """)
         
 
         st.plotly_chart(fig, use_container_width=True)
@@ -463,15 +461,9 @@ def fundamentals_page():
 
         st.subheader("OPEC+ Market Share")
 
-        st.write("""The OPEC+ Market Share chart illustrates the percentage of global 
-                 petroleum production attributed to OPEC+ over time. It captures 
-                 fluctuations in OPEC+’s share of the global market, reflecting its influence 
-                 on global supply relative to other producers. 
+        st.write("""The OPEC+ Market Share chart illustrates the percentage of global petroleum production attributed to OPEC+ over time. It captures fluctuations in OPEC+’s share of the global market, reflecting its influence on global supply relative to other producers. 
                  
-                 This chart highlights how OPEC+’s 
-                 market share evolves, potentially due to changes in production levels, global demand, 
-                 or competition from other major producers. By tracking these changes, the chart provides 
-                 valuable insights into the shifting balance of power within the global oil market.   """)
+                 This chart highlights how OPEC+’s market share evolves, potentially due to changes in production levels, global demand, or competition from other major producers. By tracking these changes, the chart provides valuable insights into the shifting balance of power within the global oil market.   """)
         
         
         

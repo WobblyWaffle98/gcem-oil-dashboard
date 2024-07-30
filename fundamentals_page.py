@@ -46,14 +46,14 @@ def fundamentals_page():
         api_key = 'gcp5ZkcZhaL5aCVvviD38eMtVEZXEyP28KqMHh4h'
 
         params_template = {
-            "api_key": api_key,
-            "frequency": "monthly",
-            "data[]": "value",
-            "start": "2000",
-            "sort[0][column]": "period",
-            "sort[0][direction]": "desc",
-            "offset": 0,
-            "length": 5000
+        "api_key": api_key,
+        "frequency": "quarterly",
+        "data[]": "value",
+        "start": "2000",
+        "sort[0][column]": "period",
+        "sort[0][direction]": "desc",
+        "offset": 0,
+        "length": 5000
         }
 
         # Define series IDs for world production and consumption
@@ -71,47 +71,47 @@ def fundamentals_page():
         consumption_data = fetch_data(api_url, params_consumption)
 
         # Extract and organize the data
-        periods = sorted(list(set(int(item['period']) for item in production_data['response']['data'])))
-        production_values = {int(item['period']): float(item['value']) for item in production_data['response']['data']}
-        consumption_values = {int(item['period']): float(item['value']) for item in consumption_data['response']['data']}
+        production_periods = [item['period'] for item in production_data['response']['data']]
+        production_values = {item['period']: float(item['value']) for item in production_data['response']['data']}
+        consumption_values = {item['period']: float(item['value']) for item in consumption_data['response']['data']}
 
         # Calculate oversupply/undersupply
-        oversupply_undersupply = {year: production_values.get(year, 0) - consumption_values.get(year, 0) for year in periods}
+        all_periods = sorted(set(production_periods + list(consumption_values.keys())), reverse=True)
+        oversupply_undersupply = {period: production_values.get(period, 0) - consumption_values.get(period, 0) for period in all_periods}
 
         # Create a DataFrame
         df = pd.DataFrame({
-            'Year': periods,
-            'Production': [production_values.get(year, 0) for year in periods],
-            'Consumption': [consumption_values.get(year, 0) for year in periods],
-            'Oversupply/Undersupply': [oversupply_undersupply.get(year, 0) for year in periods]
+            'Period': all_periods,
+            'Production': [production_values.get(period, 0) for period in all_periods],
+            'Consumption': [consumption_values.get(period, 0) for period in all_periods],
+            'Oversupply/Undersupply': [oversupply_undersupply.get(period, 0) for period in all_periods]
         })
 
         # Create the first plot for Production and Consumption
         fig1 = go.Figure()
-        fig1.add_trace(go.Scatter(x=df['Year'], y=df['Production'], mode='lines+markers', name='Production'))
-        fig1.add_trace(go.Scatter(x=df['Year'], y=df['Consumption'], mode='lines+markers', name='Consumption'))
+        fig1.add_trace(go.Scatter(x=df['Period'], y=df['Production'], mode='lines+markers', name='Production'))
+        fig1.add_trace(go.Scatter(x=df['Period'], y=df['Consumption'], mode='lines+markers', name='Consumption'))
 
         fig1.update_layout(
             title='World Petroleum Production vs Consumption',
-            xaxis_title='Year',
+            xaxis_title='Period',
             yaxis_title='Volume (million barrels per day)',
             template='plotly_white'
         )
 
         # Create the second plot for Oversupply/Undersupply
         fig2 = go.Figure()
-        fig2.add_trace(go.Bar(x=df['Year'], y=df['Oversupply/Undersupply'], name='Oversupply/Undersupply', 
+        fig2.add_trace(go.Bar(x=df['Period'], y=df['Oversupply/Undersupply'], name='Oversupply/Undersupply',
                             marker_color=df['Oversupply/Undersupply'].apply(lambda x: 'green' if x >= 0 else 'red')))
 
         fig2.update_layout(
             title='World Petroleum Oversupply/Undersupply',
-            xaxis_title='Year',
+            xaxis_title='Period',
             yaxis_title='Volume (million barrels per day)',
         )
 
-
-        col1, col2= st.columns(2)
-        # Show the DataFrame and the plots
+        # Display the plots
+        col1, col2 = st.columns(2)
         with col1:
             st.plotly_chart(fig1)
         

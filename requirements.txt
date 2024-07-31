@@ -10,3 +10,4 @@ seaborn
 datetime
 xlrd
 prettytable
+bs4

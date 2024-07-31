@@ -6,7 +6,8 @@ import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from io import BytesIO
 import plotly.express as px
-
+from bs4 import BeautifulSoup
+from urllib.request import urlopen, Request
 
 
 def macro_economic_page():
@@ -16,7 +17,78 @@ def macro_economic_page():
     tab1, tab2, tab3 = st.tabs(['Global data','US Economic data','Geopolitical Risk'],)
 
     with tab1:
-        st.subheader("Global GDP")
+        st.subheader("Latest Global Macro indicators")
+        def news_verification():
+            r = Request("https://tradingeconomics.com/matrix?g=top", headers={'User-Agent': 'Mozilla/5.0'})
+            response = urlopen(r).read()
+            soup = BeautifulSoup(response, "html.parser")
+            
+            # Find the table rows containing the data
+            rows = soup.select('tr')
+            
+            data = []
+            for row in rows:
+                columns = row.find_all('td')
+                if len(columns) > 0:
+                    country_data = {
+                        'Country': columns[0].get_text(strip=True),
+                        'GDP': columns[1].get_text(strip=True),
+                        'GDP Growth': columns[2].get_text(strip=True),
+                        'Interest Rate': columns[3].get_text(strip=True),
+                        'Inflation Rate': columns[4].get_text(strip=True),
+                        'Jobless Rate': columns[5].get_text(strip=True),
+                        'Gov. Budget': columns[6].get_text(strip=True),
+                        'Debt/GDP': columns[7].get_text(strip=True),
+                        'Current Account': columns[8].get_text(strip=True),
+                        'Population': columns[9].get_text(strip=True),
+                    }
+                    data.append(country_data)
+            
+            return data
+
+        def format_number(num_str):
+            try:
+                num = float(num_str)
+                return f'{num:,.2f}'
+            except ValueError:
+                return num_str
+
+        st.title("Economic Indicators by Country")
+
+        news_data = news_verification()
+
+        if news_data:
+            # Prepare data for Plotly table
+            countries = [item['Country'] for item in news_data]
+            gdp = [format_number(item['GDP']) for item in news_data]
+            gdp_growth = [format_number(item['GDP Growth']) for item in news_data]
+            interest_rate = [format_number(item['Interest Rate']) for item in news_data]
+            inflation_rate = [format_number(item['Inflation Rate']) for item in news_data]
+            jobless_rate = [format_number(item['Jobless Rate']) for item in news_data]
+            gov_budget = [format_number(item['Gov. Budget']) for item in news_data]
+            debt_gdp = [format_number(item['Debt/GDP']) for item in news_data]
+            current_account = [format_number(item['Current Account']) for item in news_data]
+            population = [format_number(item['Population']) for item in news_data]
+            
+            # Create Plotly table
+            fig = go.Figure(data=[go.Table(
+                header=dict(values=['Country', 'GDP (USD Bil)', 'GDP YoY Growth (%)', 'Interest Rate (%)', 'Inflation Rate (%)',
+                                    'Jobless Rate (%)', 'Gov. Budget (%)', 'Debt/GDP (%)', 'Current Account (%)', 'Population (mil)'],
+                            
+                            align='center',
+                            font=dict(size=12, color='black')),
+                cells=dict(values=[countries, gdp, gdp_growth, interest_rate, inflation_rate, 
+                                jobless_rate, gov_budget, debt_gdp, current_account, population],
+                    
+                        align='center',
+                        font=dict(size=11, color='black')))
+            ])
+
+            fig.update_layout(title='Economic Indicators by Country', title_x=0.5, height=600)
+            st.plotly_chart(fig)
+        else:
+            st.error("Failed to extract data")  
+
 
 
     with tab3:

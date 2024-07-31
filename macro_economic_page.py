@@ -58,36 +58,18 @@ def macro_economic_page():
         news_data = news_verification()
 
         if news_data:
-            # Prepare data for Plotly table
-            countries = [item['Country'] for item in news_data]
-            gdp = [format_number(item['GDP']) for item in news_data]
-            gdp_growth = [format_number(item['GDP Growth']) for item in news_data]
-            interest_rate = [format_number(item['Interest Rate']) for item in news_data]
-            inflation_rate = [format_number(item['Inflation Rate']) for item in news_data]
-            jobless_rate = [format_number(item['Jobless Rate']) for item in news_data]
-            gov_budget = [format_number(item['Gov. Budget']) for item in news_data]
-            debt_gdp = [format_number(item['Debt/GDP']) for item in news_data]
-            current_account = [format_number(item['Current Account']) for item in news_data]
-            population = [format_number(item['Population']) for item in news_data]
+            # Create DataFrame
+            df = pd.DataFrame(news_data)
             
-            # Create Plotly table
-            fig = go.Figure(data=[go.Table(
-                header=dict(values=['Country', 'GDP (USD Bil)', 'GDP YoY Growth (%)', 'Interest Rate (%)', 'Inflation Rate (%)',
-                                    'Jobless Rate (%)', 'Gov. Budget (%)', 'Debt/GDP (%)', 'Current Account (%)', 'Population (mil)'],
-                            
-                            align='center',
-                            font=dict(size=12, color='black')),
-                cells=dict(values=[countries, gdp, gdp_growth, interest_rate, inflation_rate, 
-                                jobless_rate, gov_budget, debt_gdp, current_account, population],
-                    
-                        align='center',
-                        font=dict(size=11, color='black')))
-            ])
-
-            fig.update_layout(title='Economic Indicators by Country', title_x=0.5, height=600)
-            st.plotly_chart(fig)
+            # Format numerical columns
+            for column in ['GDP', 'GDP Growth', 'Interest Rate', 'Inflation Rate', 'Jobless Rate', 
+                        'Gov. Budget', 'Debt/GDP', 'Current Account', 'Population']:
+                df[column] = df[column].apply(format_number)
+            
+            # Display DataFrame
+            st.dataframe(df)
         else:
-            st.error("Failed to extract data")  
+            st.error("Failed to extract data")
 
 
 

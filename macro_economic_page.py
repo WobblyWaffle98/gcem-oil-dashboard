@@ -48,7 +48,7 @@ def macro_economic_page():
 
         def format_number(num_str):
             try:
-                num = float(num_str.replace(',', ''))
+                num = float(num_str)
                 return num  # Keep two decimal places
             except ValueError:
                 return num_str

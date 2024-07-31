@@ -308,15 +308,18 @@ def financial_markets_page():
             data.rename(columns=fx_tickers, inplace=True)
             
             # Calculate the correlation matrix
-            correlation_matrix = data.corr()
+            correlation_matrix = data.corr().round(2)
             
             # Plot the heatmap using Plotly
             fig = px.imshow(correlation_matrix, 
                             text_auto=True, 
                             aspect="auto", 
-                            color_continuous_scale='RdBu_r',
+                            color_continuous_scale='RdBu',
                             labels={'color': 'Correlation Coefficient'},
                             title=f'Correlation Matrix of FX Pairs ({period} Data)',zmin=-1, zmax=1)
+            
+            # Update the hover template to display the correlation value rounded to 2 decimal places
+            fig.update_traces(hovertemplate='Value: %{z:.2f}')
             
             st.plotly_chart(fig, use_container_width=True)
 

@@ -18,7 +18,7 @@ def fundamentals_page():
     st.header("Fundamental Indicators")
     # Add fundamentals page specific code here
 
-    tab1, tab3, tab4, tab2, tab5, tab6 = st.tabs(["Balances", "Production", "Consumption","Seasonality", "EIA Inventory","EIA Inventory+"])
+    tab1, tab3, tab4, tab2, tab5, tab6 = st.tabs(["Balances", "Production", "Consumption","Seasonality", "EIA Inventory","EIA Inventory(SPR)"])
 
     with tab1:
         st.subheader("Supply-Demand balances")
@@ -1012,9 +1012,10 @@ def fundamentals_page():
             """
             The Strategic Petroleum Reserve (SPR) is the world's largest supply of emergency crude oil, maintained by the U.S. Department of Energy. It was established to mitigate the impact of disruptions in the supply of petroleum products and ensure energy security. The SPR provides a critical buffer against unforeseen events that could affect the availability of crude oil, such as natural disasters, geopolitical conflicts, or significant market fluctuations.
 
-            *Strategic Petroleum Reserve (SPR) Inventory Levels Over Time*
+            **Strategic Petroleum Reserve (SPR) Inventory Levels Over Time**
+            
             This line plot illustrates the historical levels of crude oil in the U.S. Strategic Petroleum Reserve (SPR) over time. 
-            The plot includes actual values and a 5-year range offering a comprehensive view of long-term trends and seasonal patterns in the SPR inventory.
+            The plot includes actual values and a 5-year range offering a comprehensive view of US government usage of the SPR inventory.
             """
         )
 

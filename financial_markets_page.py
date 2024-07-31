@@ -82,11 +82,11 @@ def financial_markets_page():
                  
             Hover over specific sectors or companies for detailed insights and a closer look at individual performance.
 
-
-''')
+            ''')
 
         components.html(Equities_overview, height=500, scrolling=False)
 
+        st.divider()
 
         # Define the ticker symbols and their corresponding names
         tickers = {
@@ -139,6 +139,12 @@ def financial_markets_page():
 
         # Streamlit app layout
         st.subheader('Correlation Matrix of Stock Markets and Brent Crude Oil Prices')
+
+        st.write('''
+            This section presents a heatmap displaying the correlation between major stock markets and Brent Crude Oil prices over different time periods. 
+            The results are displayed using a color-coded heatmap, with correlation coefficients ranging from -1(red) to 1(blue).
+            ''')
+
 
         # Dropdown menu for selecting period
         period = st.selectbox('Select Period:', ['1 Year', '5 Years', '10 Years'])
@@ -228,6 +234,10 @@ def financial_markets_page():
 
 
     with tab3:
+        st.header('Realtime FX rates')
+        st.write('''
+            This section displays the latest cross rates and daily percentage change for major currencies, providing real-time exchange rate information for key currency pairs.
+            ''')
         col1, col2 = st.columns(2)
         with col1:
             FX_chart = """
@@ -286,6 +296,7 @@ def financial_markets_page():
                         """
 
             st.subheader('FX Latest Cross Rates')
+            
             components.html(FX_chart, height=500, scrolling=False)
 
         with col2:
@@ -345,6 +356,10 @@ def financial_markets_page():
                         """
 
             st.subheader('FX Daily Percentage Change')
+            st.write('''
+            This section presents a heatmap displaying the correlation between major FX and Brent Crude Oil prices over different time periods. 
+            The results are displayed using a color-coded heatmap, with correlation coefficients ranging from -1(red) to 1(blue).
+            ''')
             components.html(FX_chart, height=500, scrolling=False)
 
         # Define the FX ticker symbols and their corresponding names
@@ -394,7 +409,12 @@ def financial_markets_page():
             st.plotly_chart(fig, use_container_width=True)
 
         # Streamlit app layout
-        st.title('Correlation Matrix of FX Pairs')
+        st.subheader('Correlation Matrix of FX Pairs')
+
+        st.write('''
+            This section presents a heatmap displaying the correlation between major FX and Brent Crude Oil prices over different time periods. 
+            The results are displayed using a color-coded heatmap, with correlation coefficients ranging from -1(red) to 1(blue).
+            ''')
 
         # Dropdown menu for selecting period
         fx_period = st.selectbox('Select Period for FX:', ['1 Year', '5 Years', '10 Years'])
@@ -444,7 +464,16 @@ def financial_markets_page():
             st.plotly_chart(fig_corr, use_container_width=True)
 
         # Streamlit app layout
-        st.title('Time Series of DXY and Brent')
+        st.subheader('Time Series of DXY and Brent')
+
+        st.write('''
+            This section presents both the time series and the rolling 1-year correlation between Brent crude oil prices and the DXY (U.S. Dollar Index).
+                 
+            **Key Observations**:
+            - Traditional Correlation: Historically, a strong inverse correlation existed between Brent crude oil prices and the DXY index—when the dollar strengthened, oil prices typically fell, and vice versa.
+            - Evolving Dynamics: The rolling correlation plot indicates that this traditional relationship has become less predictable.
+            - Complex Interactions: The current correlation reflects increased complexity due to various factors impacting the oil market, suggesting that simple historical patterns are no longer as applicable.
+            ''')
 
         # Plot time series and rolling correlation
         plot_time_series()

@@ -17,7 +17,6 @@ def macro_economic_page():
     tab1, tab2, tab3 = st.tabs(['Global data','US Economic data','Geopolitical Risk'],)
 
     with tab1:
-        st.subheader("Latest Global Macro indicators")
         def news_verification():
             r = Request("https://tradingeconomics.com/matrix?g=top", headers={'User-Agent': 'Mozilla/5.0'})
             response = urlopen(r).read()
@@ -30,8 +29,14 @@ def macro_economic_page():
             for row in rows:
                 columns = row.find_all('td')
                 if len(columns) > 0:
+                    country_name = columns[0].get_text(strip=True)
+                    # Convert country name to country code (ISO 3166-1 alpha-2)
+                    country_code = get_country_code(country_name)  # Implement this function or use a mapping
+                    flag_url = f"https://www.countryflags.io/{country_code}/flat/64.png" if country_code else None
+                    
                     country_data = {
-                        'Country': columns[0].get_text(strip=True),
+                        'Country': country_name,
+                        'Flag': flag_url,
                         'GDP': columns[1].get_text(strip=True),
                         'GDP Growth': columns[2].get_text(strip=True),
                         'Interest Rate': columns[3].get_text(strip=True),
@@ -45,6 +50,18 @@ def macro_economic_page():
                     data.append(country_data)
             
             return data
+
+        def get_country_code(country_name):
+            # Implement a mapping or use a library to get country codes
+            country_mapping = {
+                'United States': 'US',
+                'China': 'CN',
+                'Germany': 'DE',
+                'India': 'IN',
+                'Japan': 'JP',
+                # Add more mappings as needed
+            }
+            return country_mapping.get(country_name, None)
 
         def format_number(num_str):
             try:
@@ -69,6 +86,7 @@ def macro_economic_page():
                 df[column] = pd.to_numeric(df[column], errors='coerce')
             
             # Display DataFrame with formatting
+            df['Flag'] = df['Flag'].apply(lambda x: f'<img src="{x}" width="30" height="20">')
             st.dataframe(df.style.format({
                 'GDP': "{:,.0f}",
                 'GDP Growth': "{:,.2f}",
@@ -79,7 +97,8 @@ def macro_economic_page():
                 'Debt/GDP': "{:,.2f}",
                 'Current Account': "{:,.2f}",
                 'Population': "{:,.0f}", 
-            }), height=800, hide_index = True,use_container_width=True)
+                'Flag': lambda x: x  # Keep flag column as is
+            }).hide_index(), height=800, use_container_width=True)
         else:
             st.error("Failed to extract data")
 

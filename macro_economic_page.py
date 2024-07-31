@@ -21,10 +21,10 @@ def macro_economic_page():
             r = Request("https://tradingeconomics.com/matrix?g=top", headers={'User-Agent': 'Mozilla/5.0'})
             response = urlopen(r).read()
             soup = BeautifulSoup(response, "html.parser")
-            
+
             # Find the table rows containing the data
             rows = soup.select('tr')
-            
+
             data = []
             for row in rows:
                 columns = row.find_all('td')
@@ -48,7 +48,7 @@ def macro_economic_page():
                         'Population': columns[9].get_text(strip=True),
                     }
                     data.append(country_data)
-            
+
             return data
 
         def get_country_code(country_name):
@@ -85,20 +85,12 @@ def macro_economic_page():
                 df[column] = df[column].apply(format_number)
                 df[column] = pd.to_numeric(df[column], errors='coerce')
             
-            # Display DataFrame with formatting
-            df['Flag'] = df['Flag'].apply(lambda x: f'<img src="{x}"')
-            st.dataframe(df.style.format({
-                'GDP': "{:,.0f}",
-                'GDP Growth': "{:,.2f}",
-                'Interest Rate': "{:,.2f}",
-                'Inflation Rate': "{:,.2f}",
-                'Jobless Rate': "{:,.2f}",
-                'Gov. Budget': "{:,.2f}",
-                'Debt/GDP': "{:,.2f}",
-                'Current Account': "{:,.2f}",
-                'Population': "{:,.0f}", 
-                'Flag': st.image(lambda x: x)  # Keep flag column as is
-            }), height=800, use_container_width=True)
+            # Generate HTML for the DataFrame with image URLs
+            df['Flag'] = df['Flag'].apply(lambda x: f'<img src="{x}" width="50" height="30" style="display:inline-block"/>')
+            df_html = df.to_html(escape=False, formatters={'Flag': lambda x: x})
+            
+            # Display DataFrame as HTML
+            st.markdown(df_html, unsafe_allow_html=True)
         else:
             st.error("Failed to extract data")
 

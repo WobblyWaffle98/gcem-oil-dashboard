@@ -36,7 +36,7 @@ def financial_markets_page():
 
                                 .container {
                                     width: 90%;
-                                    max-width: 1500px; /* Adjust max-width as per your design */
+                                    max-width: 1700px; /* Adjust max-width as per your design */
                                     text-align: centre;
                                 }
                             </style>

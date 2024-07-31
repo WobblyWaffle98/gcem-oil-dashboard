@@ -32,7 +32,7 @@ def macro_economic_page():
                     country_name = columns[0].get_text(strip=True)
                     # Convert country name to country code (ISO 3166-1 alpha-2)
                     country_code = get_country_code(country_name)  # Implement this function or use a mapping
-                    flag_url = f"https://www.countryflags.io/{country_code}/flat/64.png" if country_code else None
+                    flag_url = f"https://flagsapi.com/:{country_code}/flat/64.png" if country_code else None
                     
                     country_data = {
                         'Country': country_name,

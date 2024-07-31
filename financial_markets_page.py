@@ -153,6 +153,30 @@ def financial_markets_page():
         fetch_and_plot_correlation(period)
 
     with tab2:
+
+        st.header('Treasury Yield Curve Analysis')
+        st.write('''
+            This section provides an analysis of the Treasury yield curve, showcasing both historical time series and recent changes in yield rates. The data is sourced from the U.S. Department of the Treasury, covering daily treasury rates for the past three years.
+
+            **What is a Yield Curve?**
+            A yield curve is a graphical representation of the interest rates (yields) on government bonds of varying maturities, plotted against their respective time to maturity. It shows the relationship between the yield and the time to maturity of debt securities issued by the government.
+
+            **Key Components:**
+
+            - Yields: The return investors receive for holding a bond until maturity, expressed as an annual percentage.
+            - Maturities: The time remaining until the bond’s principal is repaid, ranging from short-term (a few months) to long-term (30 years or more).
+                 
+                 
+            **Use of Yield Curves**:
+
+            - Economic Indicators: Yield curves are used to gauge economic expectations. A normal upward-sloping curve suggests economic growth, while an inverted curve may signal a recession.
+
+            - Interest Rate Predictions: They help in forecasting future interest rates based on the difference between short-term and long-term rates.
+
+            - Investment Decisions: Investors use yield curves to assess the risk and return of different securities. A steep curve can indicate higher returns for long-term investments compared to short-term ones.
+
+            - Monetary Policy: Central banks use yield curves to understand market expectations of future economic conditions and to set appropriate monetary policies.
+            ''')
         
         current_year = datetime.now().year
         previous_year = current_year - 1
@@ -356,10 +380,6 @@ def financial_markets_page():
                         """
 
             st.subheader('FX Daily Percentage Change')
-            st.write('''
-            This section presents a heatmap displaying the correlation between major FX and Brent Crude Oil prices over different time periods. 
-            The results are displayed using a color-coded heatmap, with correlation coefficients ranging from -1(red) to 1(blue).
-            ''')
             components.html(FX_chart, height=500, scrolling=False)
 
         # Define the FX ticker symbols and their corresponding names
@@ -407,6 +427,8 @@ def financial_markets_page():
             fig.update_traces(hovertemplate='Value: %{z:.2f}')
             
             st.plotly_chart(fig, use_container_width=True)
+
+        st.divider()
 
         # Streamlit app layout
         st.subheader('Correlation Matrix of FX Pairs')
@@ -470,9 +492,9 @@ def financial_markets_page():
             This section presents both the time series and the rolling 1-year correlation between Brent crude oil prices and the DXY (U.S. Dollar Index).
                  
             **Key Observations**:
-            - Traditional Correlation: Historically, a strong inverse correlation existed between Brent crude oil prices and the DXY index—when the dollar strengthened, oil prices typically fell, and vice versa.
-            - Evolving Dynamics: The rolling correlation plot indicates that this traditional relationship has become less predictable.
-            - Complex Interactions: The current correlation reflects increased complexity due to various factors impacting the oil market, suggesting that simple historical patterns are no longer as applicable.
+            - **Traditional Correlation**: Historically, a strong inverse correlation existed between Brent crude oil prices and the DXY index—when the dollar strengthened, oil prices typically fell, and vice versa.
+            - **Evolving Dynamics**: The rolling correlation plot indicates that this traditional relationship has become less predictable.
+            - **Complex Interactions**: The current correlation reflects increased complexity due to various factors impacting the oil market, suggesting that simple historical patterns are no longer as applicable.
             ''')
 
         # Plot time series and rolling correlation

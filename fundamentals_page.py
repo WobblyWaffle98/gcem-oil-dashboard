@@ -1006,7 +1006,7 @@ def fundamentals_page():
 
     with tab6:
 
-            st.subheader("EIA Weekly Inventory numbers (SPR & Jetfuel)")
+            st.subheader("EIA Weekly Inventory numbers (SPR)")
 
 
             # Function to fetch data from the API
@@ -1034,7 +1034,6 @@ def fundamentals_page():
 
             series_list = {
                 'WCSSTUS1': 'U.S. Ending Stocks of Crude Oil in SPR',
-                'WKJSTUS1': 'U.S. Ending Stocks of Kerosene-Type Jet Fuel',
             }
 
 
@@ -1085,14 +1084,6 @@ def fundamentals_page():
                         name='5-Year Range'
                     ))
 
-                    # Add 5-year average line plot
-                    fig.add_trace(go.Scatter(
-                        x=dates, 
-                        y=avg_values, 
-                        mode='lines',
-                        name='5-Year Average',
-                        line=dict(color='orange', dash='dash')
-                    ))
 
                     # Customize layout
                     fig.update_layout(
@@ -1106,15 +1097,9 @@ def fundamentals_page():
                     figs[f'fig{i}'] = fig
 
 
-            col12,col13 =  st.columns(2)
 
-            with col12:
-                latest_value, wow_percentage_change, wow_change = calculate_latest_and_wow_percentage(series_data['WCESTUS1'])
-                st.plotly_chart(figs['fig1'], use_container_width=True)
+            st.plotly_chart(figs['fig1'], use_container_width=True)
 
-            with col13:
-                latest_value, wow_percentage_change, wow_change = calculate_latest_and_wow_percentage(series_data['WGTSTUS1'])
-                st.plotly_chart(figs['fig2'], use_container_width=True)
 
 
 

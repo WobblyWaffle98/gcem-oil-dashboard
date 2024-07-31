@@ -59,7 +59,7 @@ def macro_economic_page():
 
         if news_data:
             # Create DataFrame
-            df = pd.DataFrame(news_data)
+            df = pd.DataFrame(news_data, hide_index = True)
             
             # Convert numerical columns to floats
             numeric_columns = ['GDP', 'GDP Growth', 'Interest Rate', 'Inflation Rate', 'Jobless Rate', 

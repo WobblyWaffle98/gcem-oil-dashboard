@@ -156,26 +156,27 @@ def financial_markets_page():
 
         st.header('Treasury Yield Curve Analysis')
         st.write('''
-            This section provides an analysis of the Treasury yield curve, showcasing both historical time series and recent changes in yield rates. The data is sourced from the U.S. Department of the Treasury, covering daily treasury rates for the past three years.
+            This section provides an analysis of the Treasury yield curve, showcasing both historical time series and recent changes in yield rates. The data is sourced from the **U.S. Department of the Treasury**, covering daily treasury rates for the past three years.
 
             **What is a Yield Curve?**
-            A yield curve is a graphical representation of the interest rates (yields) on government bonds of varying maturities, plotted against their respective time to maturity. It shows the relationship between the yield and the time to maturity of debt securities issued by the government.
+            
+                 A yield curve is a graphical representation of the interest rates (yields) on government bonds of varying maturities, plotted against their respective time to maturity. It shows the relationship between the yield and the time to maturity of debt securities issued by the government.
 
             **Key Components:**
 
-            - Yields: The return investors receive for holding a bond until maturity, expressed as an annual percentage.
+            - **Yields**: The return investors receive for holding a bond until maturity, expressed as an annual percentage.
             - Maturities: The time remaining until the bond’s principal is repaid, ranging from short-term (a few months) to long-term (30 years or more).
                  
                  
             **Use of Yield Curves**:
 
-            - Economic Indicators: Yield curves are used to gauge economic expectations. A normal upward-sloping curve suggests economic growth, while an inverted curve may signal a recession.
+            - **Economic Indicators**: Yield curves are used to gauge economic expectations. A normal upward-sloping curve suggests economic growth, while an inverted curve may signal a recession.
 
-            - Interest Rate Predictions: They help in forecasting future interest rates based on the difference between short-term and long-term rates.
+            - **Interest Rate Predictions**: They help in forecasting future interest rates based on the difference between short-term and long-term rates.
 
-            - Investment Decisions: Investors use yield curves to assess the risk and return of different securities. A steep curve can indicate higher returns for long-term investments compared to short-term ones.
+            - **Investment Decisions**: Investors use yield curves to assess the risk and return of different securities. A steep curve can indicate higher returns for long-term investments compared to short-term ones.
 
-            - Monetary Policy: Central banks use yield curves to understand market expectations of future economic conditions and to set appropriate monetary policies.
+            - **Monetary Policy**: Central banks use yield curves to understand market expectations of future economic conditions and to set appropriate monetary policies.
             ''')
         
         current_year = datetime.now().year

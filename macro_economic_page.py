@@ -32,7 +32,7 @@ def macro_economic_page():
                     country_name = columns[0].get_text(strip=True)
                     # Convert country name to country code (ISO 3166-1 alpha-2)
                     country_code = get_country_code(country_name)  # Implement this function or use a mapping
-                    flag_url = st.image(f"https://flagsapi.com/{country_code}/flat/64.png") if country_code else None
+                    flag_url = f"https://flagsapi.com/{country_code}/flat/64.png" if country_code else None
                     
                     country_data = {
                         'Country': country_name,
@@ -97,7 +97,7 @@ def macro_economic_page():
                 'Debt/GDP': "{:,.2f}",
                 'Current Account': "{:,.2f}",
                 'Population': "{:,.0f}", 
-                'Flag': lambda x: x  # Keep flag column as is
+                'Flag': st.image(lambda x: x)  # Keep flag column as is
             }), height=800, use_container_width=True)
         else:
             st.error("Failed to extract data")

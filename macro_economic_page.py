@@ -48,8 +48,8 @@ def macro_economic_page():
 
         def format_number(num_str):
             try:
-                num = float(num_str.replace(',', '').replace('%', '').strip())  # Remove commas and percentage signs
-                return num
+                num_str = num_str.replace(',', '').replace('%', '').strip()  # Remove commas and percentage signs
+                return float(num_str) if num_str else None
             except ValueError:
                 return num_str
 
@@ -60,17 +60,26 @@ def macro_economic_page():
         if news_data:
             # Create DataFrame
             df = pd.DataFrame(news_data)
-            st.data_editor(df)
             
-            # Convert numerical columns to integers
+            # Convert numerical columns to floats
             numeric_columns = ['GDP', 'GDP Growth', 'Interest Rate', 'Inflation Rate', 'Jobless Rate', 
-                            'Gov. Budget', 'Debt/GDP', 'Current Account', 'Population']
+                                'Gov. Budget', 'Debt/GDP', 'Current Account', 'Population']
             for column in numeric_columns:
                 df[column] = df[column].apply(format_number)
-                df[column] = pd.to_numeric(df[column], errors='coerce').fillna(0).astype(int)
+                df[column] = pd.to_numeric(df[column], errors='coerce')
             
-            # Display DataFrame
-            st.dataframe(df.style.format("{:,.2f}"))
+            # Display DataFrame with formatting
+            st.dataframe(df.style.format({
+                'GDP': "{:,.0f}",
+                'GDP Growth': "{:,.2f}",
+                'Interest Rate': "{:,.2f}",
+                'Inflation Rate': "{:,.2f}",
+                'Jobless Rate': "{:,.2f}",
+                'Gov. Budget': "{:,.2f}",
+                'Debt/GDP': "{:,.2f}",
+                'Current Account': "{:,.2f}",
+                'Population': "{:,.0f}"
+            }))
         else:
             st.error("Failed to extract data")
 

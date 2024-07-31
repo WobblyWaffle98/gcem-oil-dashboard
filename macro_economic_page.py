@@ -60,6 +60,7 @@ def macro_economic_page():
         if news_data:
             # Create DataFrame
             df = pd.DataFrame(news_data)
+            st.data_editor(df)
             
             # Convert numerical columns to integers
             numeric_columns = ['GDP', 'GDP Growth', 'Interest Rate', 'Inflation Rate', 'Jobless Rate', 

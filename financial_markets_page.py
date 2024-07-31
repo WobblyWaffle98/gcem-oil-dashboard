@@ -18,6 +18,66 @@ def financial_markets_page():
     tab1, tab2, tab3 = st.tabs(["Equities","Fixed Income","FX"])
 
     with tab1:
+        Equities_overview = """
+                                <!DOCTYPE html>
+                        <html lang="en">
+                        <head>
+                            <meta charset="UTF-8">
+                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                            <title>Centered Content Example</title>
+                            <style>
+                                body {
+                                    margin: 0;
+                                    display: flex;
+                                    justify-content: centre;
+                                    align-items: centre;
+                                    height: 100vh;
+                                }
+
+                                .container {
+                                    width: 90%;
+                                    max-width: 800px; /* Adjust max-width as per your design */
+                                    text-align: centre;
+                                }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="container">
+                                <!-- TradingView Widget BEGIN -->
+                                    <div class="tradingview-widget-container">
+                                    <div class="tradingview-widget-container__widget"></div>
+                                    <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"><span class="blue-text"></span></a></div>
+                                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-stock-heatmap.js" async>
+                                    {
+                                    "exchanges": [],
+                                    "dataSource": "SPX500",
+                                    "grouping": "sector",
+                                    "blockSize": "market_cap_basic",
+                                    "blockColor": "Perf.W",
+                                    "locale": "en",
+                                    "symbolUrl": "",
+                                    "colorTheme": "dark",
+                                    "hasTopBar": false,
+                                    "isDataSetEnabled": false,
+                                    "isZoomEnabled": true,
+                                    "hasSymbolTooltip": true,
+                                    "isMonoSize": false,
+                                    "width": "100%",
+                                    "height": "100%"
+                                    }
+                                    </script>
+                                    </div>
+                                    <!-- TradingView Widget END -->
+
+                            </div>
+                        </body>
+                        </html>
+                        """
+
+        st.subheader('Market Overview Heatmap')
+        components.html(Equities_overview, height=500, scrolling=False)
+
+
         # Define the ticker symbols and their corresponding names
         tickers = {
             '^GSPC': 'S&P 500',

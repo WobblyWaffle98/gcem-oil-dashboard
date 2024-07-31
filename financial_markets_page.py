@@ -165,7 +165,7 @@ def financial_markets_page():
             **Key Components:**
 
             - **Yields**: The return investors receive for holding a bond until maturity, expressed as an annual percentage.
-            - Maturities: The time remaining until the bond’s principal is repaid, ranging from short-term (a few months) to long-term (30 years or more).
+            - **Maturities**: The time remaining until the bond’s principal is repaid, ranging from short-term (a few months) to long-term (30 years or more).
                  
                  
             **Use of Yield Curves**:

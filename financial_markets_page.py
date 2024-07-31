@@ -160,7 +160,7 @@ def financial_markets_page():
 
             **What is a Yield Curve?**
             
-                 A yield curve is a graphical representation of the interest rates (yields) on government bonds of varying maturities, plotted against their respective time to maturity. It shows the relationship between the yield and the time to maturity of debt securities issued by the government.
+            A yield curve is a graphical representation of the interest rates (yields) on government bonds of varying maturities, plotted against their respective time to maturity. It shows the relationship between the yield and the time to maturity of debt securities issued by the government.
 
             **Key Components:**
 

@@ -48,8 +48,8 @@ def macro_economic_page():
 
         def format_number(num_str):
             try:
-                num = float(num_str)
-                return num  # Keep two decimal places
+                num = float(num_str.replace(',', '').replace('%', '').strip())  # Remove commas and percentage signs
+                return num
             except ValueError:
                 return num_str
 
@@ -69,7 +69,7 @@ def macro_economic_page():
                 df[column] = pd.to_numeric(df[column], errors='coerce').fillna(0).astype(int)
             
             # Display DataFrame
-            st.dataframe(df)
+            st.dataframe(df.style.format("{:,.2f}"))
         else:
             st.error("Failed to extract data")
 

@@ -49,7 +49,7 @@ def macro_economic_page():
         def format_number(num_str):
             try:
                 num = float(num_str.replace(',', ''))
-                return int(num)  # Convert to integer
+                return f'{num:,.2f}'  # Keep two decimal places
             except ValueError:
                 return num_str
 

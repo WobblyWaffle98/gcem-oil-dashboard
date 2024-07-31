@@ -18,7 +18,7 @@ def fundamentals_page():
     st.header("Fundamental Indicators")
     # Add fundamentals page specific code here
 
-    tab1, tab3, tab4, tab2, tab5, tab6 = st.tabs(["Balances", "Production", "Consumption","Seasonality", "EIA Inventory","EIA Inventory(SPR)"])
+    tab1, tab3, tab4, tab2, tab5, tab6 = st.tabs(["Balances", "Production", "Consumption","Seasonality", "EIA Inventory","EIA Inventory (SPR)"])
 
     with tab1:
         st.subheader("Supply-Demand balances")
@@ -1006,7 +1006,7 @@ def fundamentals_page():
 
     with tab6:
 
-            st.subheader("EIA Weekly Inventory numbers (SPR)")
+            st.subheader("EIA Strategic Petroleum Reserve (SPR)")
 
             st.write(
             """
@@ -1017,7 +1017,7 @@ def fundamentals_page():
             This line plot illustrates the historical levels of crude oil in the U.S. Strategic Petroleum Reserve (SPR) over time. 
             The plot includes actual values and a 5-year range offering a comprehensive view of US government usage of the SPR inventory.
             """
-        )
+            )
 
 
             # Function to fetch data from the API

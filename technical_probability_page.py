@@ -8,26 +8,10 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit.components.v1 as components
 
-# Markdown content explaining Monte Carlo simulation
-monte_carlo_explanation = """
-## Predicting Oil Prices with Monte Carlo Simulation
 
-Monte Carlo simulation is a method used to estimate the future price of oil by considering various factors that influence its value. It's like guessing the possible outcomes of a game by rolling dice multiple times.
-
-### How Does it Work?
-
-1. **Understanding Oil Prices**: Oil prices are influenced by factors like supply, demand, geopolitical events, and economic conditions. Monte Carlo simulation models these factors to predict future prices.
-
-2. **Simulating Scenarios**: Using historical data, the simulation generates thousands of possible future scenarios for oil prices based on random variations in these factors.
-
-3. **Calculating Probabilities**: Each scenario represents a possible outcome, and the simulation calculates the likelihood of each scenario occurring.
-
-4. **Analyzing Results**: By analyzing the range of possible outcomes and their probabilities, we can understand the potential risks and make informed decisions about oil-related strategies.
-
-"""
 
 def technical_probability_page():
-    st.header("Technical and Probability Analysis",help= monte_carlo_explanation)
+    st.header("Technical and Probability Analysis")
 
     tab1,tab2,tab3 = st.tabs(['Technical Analysis','MonteCarlo Analysis (Daily)','MonteCarlo Analysis (Monthly)'])
 
@@ -92,6 +76,26 @@ def technical_probability_page():
         components.html(Brent_chart, height=800, scrolling=False)
 
     with tab2:
+        st.subheader("Monte Carlo (Daily Prices)")
+
+        st.write(
+            """
+            **Predicting Oil Prices with Monte Carlo Simulation**
+
+            Monte Carlo simulation is a method used to estimate the future price of oil by considering various factors that influence its value. It's like guessing the possible outcomes of a game by rolling dice multiple times.
+
+            ### How Does it Work?
+
+            1. **Understanding Oil Prices**: Oil prices are influenced by factors like supply, demand, geopolitical events, and economic conditions. Monte Carlo simulation models these factors to predict future prices.
+
+            2. **Simulating Scenarios**: Using historical data, the simulation generates thousands of possible future scenarios for oil prices based on random variations in these factors.
+
+            3. **Calculating Probabilities**: Each scenario represents a possible outcome, and the simulation calculates the likelihood of each scenario occurring.
+
+            4. **Analyzing Results**: By analyzing the range of possible outcomes and their probabilities, we can understand the potential risks and make informed decisions about oil-related strategies.
+            """
+            )
+
         # Inputs for the simulation
         today = datetime.date.today()
         end_date = st.date_input("Select current date", today - datetime.timedelta(days=1), max_value=today - datetime.timedelta(days=1), key="end_date_input")
@@ -264,6 +268,10 @@ def technical_probability_page():
             ############################################
 
     with tab3:
+        st.subheader("Monte Carlo (Monthly Average Prices)")
+
+        
+
         # Inputs for the simulation
         today = datetime.date.today()
         end_date = st.date_input("Select current date", today - datetime.timedelta(days=1), max_value=today - datetime.timedelta(days=1), key="end_date_input_2")

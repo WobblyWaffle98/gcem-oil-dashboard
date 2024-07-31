@@ -19,7 +19,7 @@ def technical_probability_page():
 
     with tab1:
         st.subheader("TradingView Technical Analysis")
-        
+
         st.write(
             """
             In this section, we have integrated a TradingView advanced chart widget to provide you with a comprehensive technical analysis of Brent crude oil prices. 
@@ -27,6 +27,7 @@ def technical_probability_page():
 
             The chart includes the "Pivot Points" study, which helps identify potential support and resistance levels based on historical price data. 
             Pivot points are calculated using the high, low, and close prices from the previous trading session, and are useful for understanding potential price reversals or continuation points.
+            
             """
             )
 

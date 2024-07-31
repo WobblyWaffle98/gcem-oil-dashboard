@@ -13,7 +13,14 @@ import streamlit.components.v1 as components
 def technical_probability_page():
     st.header("Technical and Probability Analysis")
 
-    st.write(
+    
+
+    tab1,tab2,tab3 = st.tabs(['Technical Analysis','MonteCarlo Analysis (Daily)','MonteCarlo Analysis (Monthly)'])
+
+    with tab1:
+        st.subheader("TradingView Technical Analysis")
+        
+        st.write(
             """
             In this section, we have integrated a TradingView advanced chart widget to provide you with a comprehensive technical analysis of Brent crude oil prices. 
             This interactive chart allows you to visualize price movements and apply various technical indicators by hovering over the nameo f the commodity and clicking the triple dots, aiding in better analysis and decision-making.
@@ -23,10 +30,7 @@ def technical_probability_page():
             """
             )
 
-    tab1,tab2,tab3 = st.tabs(['Technical Analysis','MonteCarlo Analysis (Daily)','MonteCarlo Analysis (Monthly)'])
 
-    with tab1:
-        st.subheader("TradingView Technical Analysis")
         Brent_chart = """
             <!DOCTYPE html>
             <html lang="en">

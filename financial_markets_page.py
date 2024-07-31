@@ -75,6 +75,16 @@ def financial_markets_page():
                         """
 
         st.subheader('Market Overview Heatmap')
+        st.write('''
+            The interactive heatmap provides a comprehensive view of all companies in the S&P500 index. 
+            The heatmap is color-coded to reflect each company's weekly performance, with block sizes proportional to their market capitalization.
+             Grouped by sector, it allows you to easily identify trends and performance across different industries. 
+                 
+            Hover over specific sectors or companies for detailed insights and a closer look at individual performance.
+
+
+''')
+
         components.html(Equities_overview, height=500, scrolling=False)
 
 

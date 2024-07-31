@@ -86,7 +86,7 @@ def macro_economic_page():
                 df[column] = pd.to_numeric(df[column], errors='coerce')
             
             # Display DataFrame with formatting
-            df['Flag'] = df['Flag'].apply(lambda x: f'<img src="{x}" width="30" height="20">')
+            df['Flag'] = df['Flag'].apply(lambda x: f'<img src="{x}"')
             st.dataframe(df.style.format({
                 'GDP': "{:,.0f}",
                 'GDP Growth': "{:,.2f}",

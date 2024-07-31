@@ -12,7 +12,7 @@ from urllib.request import urlopen, Request
 
 def macro_economic_page():
     st.header("Macro-economic Indicators")
-    # Add macro-economic page specific code here
+    # Add macro-economic page specific code hedre
 
     tab1, tab2, tab3 = st.tabs(['Global data','US Economic data','Geopolitical Risk'],)
 

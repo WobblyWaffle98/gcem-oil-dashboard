@@ -98,7 +98,7 @@ def macro_economic_page():
                 'Current Account': "{:,.2f}",
                 'Population': "{:,.0f}", 
                 'Flag': lambda x: x  # Keep flag column as is
-            }).hide_index(), height=800, use_container_width=True)
+            }), height=800, use_container_width=True)
         else:
             st.error("Failed to extract data")
 

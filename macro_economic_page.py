@@ -59,7 +59,7 @@ def macro_economic_page():
 
         if news_data:
             # Create DataFrame
-            df = pd.DataFrame(news_data, hide_index = True)
+            df = pd.DataFrame(news_data)
             
             # Convert numerical columns to floats
             numeric_columns = ['GDP', 'GDP Growth', 'Interest Rate', 'Inflation Rate', 'Jobless Rate', 
@@ -78,8 +78,8 @@ def macro_economic_page():
                 'Gov. Budget': "{:,.2f}",
                 'Debt/GDP': "{:,.2f}",
                 'Current Account': "{:,.2f}",
-                'Population': "{:,.0f}"
-            }))
+                'Population': "{:,.0f}", 
+            }, hide_index = True,use_container_width=True))
         else:
             st.error("Failed to extract data")
 

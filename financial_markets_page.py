@@ -154,7 +154,7 @@ def financial_markets_page():
 
     with tab2:
 
-        st.header('Treasury Yield Curve Analysis')
+        st.header('U.S. Treasury Yield Curve Analysis')
         st.write('''
             This section provides an analysis of the Treasury yield curve, showcasing both historical time series and recent changes in yield rates. The data is sourced from the **U.S. Department of the Treasury**, covering daily treasury rates for the past three years.
 

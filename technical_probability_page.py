@@ -86,20 +86,22 @@ def technical_probability_page():
 
             ### How Does it Work?
 
-            1. **Understanding Oil Prices**: Oil prices are influenced by factors like supply, demand, geopolitical events, and economic conditions. Monte Carlo simulation models these factors to predict future prices.
+            1. **Understanding Oil Prices**: While oil prices are influenced by factors such as supply, demand, geopolitical events, and economic conditions, Monte Carlo simulation does not require direct input of these factors. Instead, it uses statistical properties such as historical price distributions and volatility.
 
-            2. **Simulating Scenarios**: Using historical data, the simulation generates thousands of possible future scenarios for oil prices based on random variations in these factors.
+            2. **Simulating Scenarios**: The simulation generates thousands of possible future scenarios for oil prices by applying random variations to the historical price data. This process creates a diverse set of potential future price paths.
 
             3. **Calculating Probabilities**: Each scenario represents a possible outcome, and the simulation calculates the likelihood of each scenario occurring.
 
             4. **Analyzing Results**: By analyzing the range of possible outcomes and their probabilities, we can understand the potential risks and make informed decisions about oil-related strategies.
             """
             )
+        
+        st.divider()
 
         # Inputs for the simulation
         today = datetime.date.today()
         end_date = st.date_input("Select current date", today - datetime.timedelta(days=1), max_value=today - datetime.timedelta(days=1), key="end_date_input")
-        future_end_date = st.date_input("Select future end date", datetime.date(2024, 12, 31), min_value= end_date + datetime.timedelta(days=1), key="future_date_input")
+        future_end_date = st.date_input("Select forecast date", datetime.date(2024, 12, 31), min_value= end_date + datetime.timedelta(days=1), key="future_date_input")
         # Streamlit slider for selecting the number of years of historical data
         years_of_data = st.slider('Select number of years of historical data:', min_value=1, max_value=10, value=10, key="years_of_data_2") 
 
@@ -270,12 +272,20 @@ def technical_probability_page():
     with tab3:
         st.subheader("Monte Carlo (Monthly Average Prices)")
 
-        
+        st.write(
+            """
+            **Predicting Oil Prices with Monte Carlo Simulation (Monthly Average)**
+
+            Similar to the the daily Monte Carlo Analysis, it uses historical price to predict possible future scenarios but uses average historical price of every month instead of daily historical price. This will typically lead to lower volatility and a smaller Monte Carlo band. 
+            """
+            )
+
+
 
         # Inputs for the simulation
         today = datetime.date.today()
         end_date = st.date_input("Select current date", today - datetime.timedelta(days=1), max_value=today - datetime.timedelta(days=1), key="end_date_input_2")
-        future_end_date = st.date_input("Select future end date", datetime.date(2024, 12, 31), min_value= end_date + datetime.timedelta(days=1), key="future_date_input_2")
+        future_end_date = st.date_input("Select forecast date", datetime.date(2024, 12, 31), min_value= end_date + datetime.timedelta(days=1), key="future_date_input_2")
         # Streamlit slider for selecting the number of years of historical data
         years_of_data = st.slider('Select number of years of historical data:', min_value=1, max_value=10, value=10, key="years_of_data") 
 

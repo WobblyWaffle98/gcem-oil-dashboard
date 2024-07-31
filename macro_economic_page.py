@@ -48,8 +48,8 @@ def macro_economic_page():
 
         def format_number(num_str):
             try:
-                num = float(num_str)
-                return f'{num:,.2f}'
+                num = float(num_str.replace(',', ''))
+                return int(num)  # Convert to integer
             except ValueError:
                 return num_str
 
@@ -61,10 +61,12 @@ def macro_economic_page():
             # Create DataFrame
             df = pd.DataFrame(news_data)
             
-            # Format numerical columns
-            for column in ['GDP', 'GDP Growth', 'Interest Rate', 'Inflation Rate', 'Jobless Rate', 
-                        'Gov. Budget', 'Debt/GDP', 'Current Account', 'Population']:
+            # Convert numerical columns to integers
+            numeric_columns = ['GDP', 'GDP Growth', 'Interest Rate', 'Inflation Rate', 'Jobless Rate', 
+                            'Gov. Budget', 'Debt/GDP', 'Current Account', 'Population']
+            for column in numeric_columns:
                 df[column] = df[column].apply(format_number)
+                df[column] = pd.to_numeric(df[column], errors='coerce').fillna(0).astype(int)
             
             # Display DataFrame
             st.dataframe(df)

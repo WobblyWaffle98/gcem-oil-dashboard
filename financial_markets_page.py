@@ -68,7 +68,7 @@ def financial_markets_page():
             st.plotly_chart(fig, use_container_width=True)
 
         # Streamlit app layout
-        st.title('Correlation Matrix of Stock Markets and Brent Crude Oil Prices')
+        st.subheader('Correlation Matrix of Stock Markets and Brent Crude Oil Prices')
 
         # Dropdown menu for selecting period
         period = st.selectbox('Select Period:', ['1 Year', '5 Years', '10 Years'])
@@ -215,7 +215,7 @@ def financial_markets_page():
                         </html>
                         """
 
-            st.title('FX Latest Cross Rates')
+            st.subheader('FX Latest Cross Rates')
             components.html(FX_chart, height=500, scrolling=False)
 
         with col2:
@@ -274,7 +274,7 @@ def financial_markets_page():
                         </html>
                         """
 
-            st.title('FX Latest Cross Rates')
+            st.subheader('FX Daily Percentage Change')
             components.html(FX_chart, height=500, scrolling=False)
 
         # Define the FX ticker symbols and their corresponding names

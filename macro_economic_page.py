@@ -79,7 +79,7 @@ def macro_economic_page():
                 'Debt/GDP': "{:,.2f}",
                 'Current Account': "{:,.2f}",
                 'Population': "{:,.0f}", 
-            }), height=1000, hide_index = True,use_container_width=True)
+            }), height=800, hide_index = True,use_container_width=True)
         else:
             st.error("Failed to extract data")
 

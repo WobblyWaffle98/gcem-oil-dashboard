@@ -56,7 +56,7 @@ def financial_markets_page():
                 correlation_matrix, 
                 text_auto=True, 
                 aspect="auto", 
-                color_continuous_scale=['red', 'white', 'blue'],
+                color_continuous_scale=['red','blue'],
                 labels={'color': 'Correlation Coefficient'},
                 title=f'Correlation Matrix of Stock Markets and Brent Crude Oil Prices ({period} Data)',
                 zmin=-1, zmax=1

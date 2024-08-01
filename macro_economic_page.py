@@ -61,6 +61,27 @@ def macro_economic_page():
 
         st.subheader("Economic Indicators by Country")
 
+        st.write("""
+            This section provides a detailed overview of key economic indicators for various countries. The table below presents data on GDP, GDP Growth, Interest Rate, Inflation Rate, Jobless Rate, Government Budget, Debt to GDP ratio, Current Account balance, and Population. Each of these indicators gives insight into the economic health and performance of a country.
+
+            - **GDP (USD Billion):** The total market value of all final goods and services produced in a country in a given year, measured in billions of US dollars. *Source: World Bank*
+            - **GDP Annualized QoQ Growth (%):** The quarter-over-quarter growth rate of GDP, expressed as an annualized percentage. *Source: Central Bank of each country*
+            - **Interest Rate (%):** The central bank's policy rate, which influences the cost of borrowing and saving in the economy. *Source: Central Bank of each country*
+            - **Inflation Rate (%):** The percentage change in the general price level of goods and services, typically over a year. *Source: Central Bank of each country*
+            - **Jobless Rate (%):** The percentage of the labor force that is unemployed and actively seeking employment. *Source: Central Bank of each country*
+            - **Gov. Budget (%):** The government budget balance as a percentage of GDP, indicating surplus or deficit. *Source: Central Bank of each country*
+            - **Debt/GDP (%):** The ratio of a country's national debt to its GDP, expressed as a percentage. *Source: Central Bank of each country*
+            - **Current Account (%):** The current account balance as a percentage of GDP, showing net exports and income flows. *Source: Central Bank of each country*
+            - **Population (Million):** The total number of people living in the country, measured in millions. *Source: World Bank*
+
+            ### Visualizations
+
+            To help interpret this data, the following visualizations are provided:
+
+            - **GDP, GDP Growth, and Population by Country:** A bubble chart showing the relationship between GDP, GDP Growth, and Population for each country.
+            
+            """)
+
         news_data = news_verification()
 
 

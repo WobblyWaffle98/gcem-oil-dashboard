@@ -37,7 +37,6 @@ def macro_economic_page():
                 
                 # Parse the HTML content with BeautifulSoup
                 soup = BeautifulSoup(response.content, "html.parser")
-                st.write(soup.prettify)
                 # Find the table rows containing the data
                 rows = soup.select('tr')
                 

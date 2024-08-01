@@ -68,14 +68,10 @@ def macro_economic_page():
                 df[column] = df[column].apply(format_number)
                 df[column] = pd.to_numeric(df[column], errors='coerce')
             
-            # Configure AgGrid options
-            gb = GridOptionsBuilder.from_dataframe(df)
-            gb.configure_default_column(editable=True, filter=True, resizable=True, sortable=True)
-            gb.configure_grid_options(domLayout='normal')
-            gridOptions = gb.build()
+
             
             # Display DataFrame with AgGrid
-            AgGrid(df, gridOptions=gridOptions, height=800, fit_columns_on_grid_load=True)
+            AgGrid(df, height=800, fit_columns_on_grid_load=True)
         else:
             st.error("Failed to extract data")
 

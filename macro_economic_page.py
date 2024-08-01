@@ -56,7 +56,8 @@ def macro_economic_page():
         def highlight_extremes(s, n=3):
             is_max = s.nlargest(n).index
             is_min = s.nsmallest(n).index
-            return ['background-color: yellow' if i in is_max or i in is_min else '' for i in range(len(s))]
+            return ['background-color: lightgreen' if i in is_max else 'background-color: salmon' if i in is_min else '' for i in range(len(s))]
+
 
         st.subheader("Economic Indicators by Country")
 

@@ -52,13 +52,16 @@ def macro_economic_page():
                 return float(num_str) if num_str else None
             except ValueError:
                 return num_str
+            
+        def highlight_extremes(s, n=3):
+            is_max = s.nlargest(n).index
+            is_min = s.nsmallest(n).index
+            return ['background-color: yellow' if i in is_max or i in is_min else '' for i in range(len(s))]
 
         st.subheader("Economic Indicators by Country")
 
         news_data = news_verification()
 
-        header = ['Country', 'GDP (USD Bil)', 'GDP YoY Growth (%)', 'Interest Rate (%)', 'Inflation Rate (%)',
-          'Jobless Rate (%)', 'Gov. Budget (%)', 'Debt/GDP (%)', 'Current Account (%)', 'Population (mil)']
 
         if news_data:
             # Create DataFrame
@@ -89,9 +92,12 @@ def macro_economic_page():
             for column in numeric_columns:
                 df[column] = df[column].apply(format_number)
                 df[column] = pd.to_numeric(df[column], errors='coerce')
+
+            # Apply highlighting
+            df_styled = df.style.apply(highlight_extremes, subset=numeric_columns, axis=0)
             
              # Display DataFrame with formatting
-            st.dataframe(df.style.format({
+            st.dataframe(df_styled.format({
                 'GDP (USD Bil)': "{:,.0f}",
                 'GDP YoY Growth (%)': "{:,.2f}",
                 'Interest Rate (%)': "{:,.2f}",

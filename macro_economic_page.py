@@ -110,13 +110,6 @@ def macro_economic_page():
                 'Population (mil)': "{:,.0f}",
             }), height=800, hide_index=True, use_container_width=True)
 
-            # Plotly Visualization
-            st.subheader("GDP Comparison by Country")
-            
-            fig = px.bar(df, x='Country', y='GDP (USD Bil)', title='GDP (USD Billion) by Country',
-                        labels={'GDP (USD Bil)': 'GDP (USD Billion)'}, height=600)
-            
-            st.plotly_chart(fig, use_container_width=True)
 
             fig = px.scatter(df, x='GDP (USD Bil)', y='GDP Annualized QoQ Growth (%)', size='Population (mil)', color='Country',
                  title='GDP, GDP Growth, and Population by Country',

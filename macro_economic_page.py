@@ -71,7 +71,7 @@ def macro_economic_page():
 
             
             # Display DataFrame with AgGrid
-            AgGrid(df, custom_css= "Media/ag-grid-theme-builder.css")
+            AgGrid(df, custom_css= r"Media/ag-grid-theme-builder.css")
         else:
             st.error("Failed to extract data")
 

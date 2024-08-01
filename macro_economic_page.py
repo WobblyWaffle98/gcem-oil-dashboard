@@ -53,6 +53,10 @@ def macro_economic_page():
                         data.append(country_data)
                 
                 return data
+            
+            except Exception as e:
+                print(f"An error occurred: {e}")
+                return None
 
         def format_number(num_str):
             try:

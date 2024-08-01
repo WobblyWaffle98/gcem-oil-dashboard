@@ -53,33 +53,56 @@ def macro_economic_page():
             except ValueError:
                 return num_str
 
-        st.title("Economic Indicators by Country")
+        st.subheader+("Economic Indicators by Country")
 
         news_data = news_verification()
+
+        header = ['Country', 'GDP (USD Bil)', 'GDP YoY Growth (%)', 'Interest Rate (%)', 'Inflation Rate (%)',
+          'Jobless Rate (%)', 'Gov. Budget (%)', 'Debt/GDP (%)', 'Current Account (%)', 'Population (mil)']
 
         if news_data:
             # Create DataFrame
             df = pd.DataFrame(news_data)
+
+            # Define a mapping from original column names to new header names
+            column_mapping = {
+                'Country': 'Country',
+                'GDP': 'GDP (USD Bil)',
+                'GDP Growth': 'GDP YoY Growth (%)',
+                'Interest Rate': 'Interest Rate (%)',
+                'Inflation Rate': 'Inflation Rate (%)',
+                'Jobless Rate': 'Jobless Rate (%)',
+                'Gov. Budget': 'Gov. Budget (%)',
+                'Debt/GDP': 'Debt/GDP (%)',
+                'Current Account': 'Current Account (%)',
+                'Population': 'Population (mil)'
+            }
+            
+            # Rename columns in the DataFrame
+            df.rename(columns=column_mapping, inplace=True)
             
             # Convert numerical columns to floats
-            numeric_columns = ['GDP', 'GDP Growth', 'Interest Rate', 'Inflation Rate', 'Jobless Rate', 
-                                'Gov. Budget', 'Debt/GDP', 'Current Account', 'Population']
+            numeric_columns = ['GDP (USD Bil)', 'GDP YoY Growth (%)', 'Interest Rate (%)', 'Inflation Rate (%)', 
+                            'Jobless Rate (%)', 'Gov. Budget (%)', 'Debt/GDP (%)', 'Current Account (%)', 
+                            'Population (mil)']
+            
             for column in numeric_columns:
                 df[column] = df[column].apply(format_number)
                 df[column] = pd.to_numeric(df[column], errors='coerce')
             
-            # Display DataFrame with formatting
+             # Display DataFrame with formatting
             st.dataframe(df.style.format({
-                'GDP': "{:,.0f}",
-                'GDP Growth': "{:,.2f}",
-                'Interest Rate': "{:,.2f}",
-                'Inflation Rate': "{:,.2f}",
-                'Jobless Rate': "{:,.2f}",
-                'Gov. Budget': "{:,.2f}",
-                'Debt/GDP': "{:,.2f}",
-                'Current Account': "{:,.2f}",
-                'Population': "{:,.0f}", 
-            }), height=800, hide_index = True,use_container_width=True)
+                'GDP (USD Bil)': "{:,.0f}",
+                'GDP YoY Growth (%)': "{:,.2f}",
+                'Interest Rate (%)': "{:,.2f}",
+                'Inflation Rate (%)': "{:,.2f}",
+                'Jobless Rate (%)': "{:,.2f}",
+                'Gov. Budget (%)': "{:,.2f}",
+                'Debt/GDP (%)': "{:,.2f}",
+                'Current Account (%)': "{:,.2f}",
+                'Population (mil)': "{:,.0f}",
+            }), height=800, hide_index=True, use_container_width=True)
+            
         else:
             st.error("Failed to extract data")
 

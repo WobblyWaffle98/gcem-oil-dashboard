@@ -219,7 +219,7 @@ def macro_economic_page():
             # Toggle the flag
             toggle = not toggle
 
-
+        st.divider()
         st.plotly_chart(fig, use_container_width=True)
 
         @st.cache_data

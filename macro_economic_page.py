@@ -62,7 +62,7 @@ def macro_economic_page():
         st.subheader("Economic Indicators by Country")
 
         st.write("""
-            This section provides a detailed overview of key economic indicators for various countries. The table below presents data on GDP, GDP Growth, Interest Rate, Inflation Rate, Jobless Rate, Government Budget, Debt to GDP ratio, Current Account balance, and Population. Each of these indicators gives insight into the economic health and performance of a country.
+            This section provides a detailed snapshot of key economic indicators for various countries to give insights into the economic health and performance of a country. The table below presents the following data:
 
             - **GDP (USD Billion):** The total market value of all final goods and services produced in a country in a given year, measured in billions of US dollars. *Source: World Bank*
             - **GDP Annualized QoQ Growth (%):** The quarter-over-quarter growth rate of GDP, expressed as an annualized percentage. *Source: Central Bank of each country*
@@ -125,7 +125,10 @@ def macro_economic_page():
                 'Population (mil)': "{:,.0f}",
             }), height=800, hide_index=True, use_container_width=True)
 
+
+            st.subheader('Bubble Chart')
             st.write("""
+                     
             **GDP, GDP Growth, and Population by Country:** A bubble chart showing the relationship between GDP, GDP Growth, and Population for each country.
             
             """)

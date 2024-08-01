@@ -129,7 +129,7 @@ def macro_economic_page():
             st.subheader('Bubble Chart')
             st.write("""
                      
-            **GDP, GDP Growth, and Population by Country:** A bubble chart showing the relationship between GDP, GDP Growth, and Population for each country.
+            A bubble chart showing the relationship between GDP, GDP Growth, and Population for each country.
             
             """)
 

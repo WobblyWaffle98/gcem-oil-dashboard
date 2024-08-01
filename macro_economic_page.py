@@ -51,6 +51,8 @@ def macro_economic_page():
                             'Population': columns[9].get_text(strip=True),
                         }
                         data.append(country_data)
+
+                st.write(data)        
                 
                 return data
             

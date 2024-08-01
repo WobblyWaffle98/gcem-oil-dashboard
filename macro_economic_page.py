@@ -51,8 +51,6 @@ def macro_economic_page():
                             'Population': columns[9].get_text(strip=True),
                         }
                         data.append(country_data)
-
-                st.write(data)        
                 
                 return data
             
@@ -66,13 +64,13 @@ def macro_economic_page():
                 return float(num_str) if num_str else None
             except ValueError:
                 return num_str
-            
+
         def highlight_extremes(s, n=3):
             is_max = s.nlargest(n).index
             is_min = s.nsmallest(n).index
             return ['background-color: lightgreen' if i in is_max else 'background-color: salmon' if i in is_min else '' for i in range(len(s))]
 
-
+        # Streamlit layout
         st.subheader("Economic Indicators by Country")
 
         st.write("""
@@ -87,13 +85,11 @@ def macro_economic_page():
             - **Debt/GDP (%):** The ratio of a country's national debt to its GDP, expressed as a percentage. *Source: Central Bank of each country*
             - **Current Account (%):** The current account balance as a percentage of GDP, showing net exports and income flows. *Source: Central Bank of each country*
             - **Population (Million):** The total number of people living in the country, measured in millions. *Source: World Bank*
-                 
-            In the table, the top three highest values for each indicator are highlighted in green, and the top three lowest values are highlighted in red. This color coding does not signify whether the values are good or bad; it is simply to visually distinguish the extremes.
 
-            """)
+            In the table, the top three highest values for each indicator are highlighted in green, and the top three lowest values are highlighted in red. This color coding does not signify whether the values are good or bad; it is simply to visually distinguish the extremes.
+        """)
 
         news_data = news_verification()
-
 
         if news_data:
             # Create DataFrame
@@ -118,8 +114,7 @@ def macro_economic_page():
             
             # Convert numerical columns to floats
             numeric_columns = ['GDP (USD Bil)', 'GDP Annualized QoQ Growth (%)', 'Interest Rate (%)', 'Inflation Rate (%)', 
-                            'Jobless Rate (%)', 'Gov. Budget (%)', 'Debt/GDP (%)', 'Current Account (%)', 
-                            'Population (mil)']
+                            'Jobless Rate (%)', 'Gov. Budget (%)', 'Debt/GDP (%)', 'Current Account (%)', 'Population (mil)']
             
             for column in numeric_columns:
                 df[column] = df[column].apply(format_number)
@@ -128,7 +123,7 @@ def macro_economic_page():
             # Apply highlighting
             df_styled = df.style.apply(highlight_extremes, subset=numeric_columns, axis=0)
             
-             # Display DataFrame with formatting
+            # Display DataFrame with formatting
             st.dataframe(df_styled.format({
                 'GDP (USD Bil)': "{:,.0f}",
                 'GDP Annualized QoQ Growth (%)': "{:,.2f}",
@@ -141,20 +136,15 @@ def macro_economic_page():
                 'Population (mil)': "{:,.0f}",
             }), height=800, hide_index=True, use_container_width=True)
 
-
             st.subheader('Bubble Chart')
             st.write("""
-                     
             A bubble chart showing the relationship between GDP, GDP Growth, and Population for each country.
-            
             """)
 
-
             fig = px.scatter(df, y='GDP (USD Bil)', x='GDP Annualized QoQ Growth (%)', size='Population (mil)', color='Country',
-                 title='GDP, GDP Growth, and Population by Country',
-                 labels={'GDP (USD Bil)': 'GDP (USD Billion)', 'GDP Annualized QoQ Growth (%)': 'GDP Growth (%)', 'Population (mil)': 'Population (Million)'})
+                            title='GDP, GDP Growth, and Population by Country',
+                            labels={'GDP (USD Bil)': 'GDP (USD Billion)', 'GDP Annualized QoQ Growth (%)': 'GDP Growth (%)', 'Population (mil)': 'Population (Million)'})
             st.plotly_chart(fig, use_container_width=True)
-
 
         else:
             st.error("Failed to extract data")

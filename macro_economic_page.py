@@ -19,32 +19,40 @@ def macro_economic_page():
 
     with tab1:
         def news_verification():
-            r = Request("https://tradingeconomics.com/matrix?g=top", headers={'User-Agent': 'Mozilla/5.0'})
-            response = urlopen(r).read()
-            soup = BeautifulSoup(response, "html.parser")
+            url = "https://tradingeconomics.com/matrix?g=top"
+            headers = {'User-Agent': 'Mozilla/5.0'}
             
-            # Find the table rows containing the data
-            rows = soup.select('tr')
-            
-            data = []
-            for row in rows:
-                columns = row.find_all('td')
-                if len(columns) > 0:
-                    country_data = {
-                        'Country': columns[0].get_text(strip=True),
-                        'GDP': columns[1].get_text(strip=True),
-                        'GDP Growth': columns[2].get_text(strip=True),
-                        'Interest Rate': columns[3].get_text(strip=True),
-                        'Inflation Rate': columns[4].get_text(strip=True),
-                        'Jobless Rate': columns[5].get_text(strip=True),
-                        'Gov. Budget': columns[6].get_text(strip=True),
-                        'Debt/GDP': columns[7].get_text(strip=True),
-                        'Current Account': columns[8].get_text(strip=True),
-                        'Population': columns[9].get_text(strip=True),
-                    }
-                    data.append(country_data)
-            
-            return data
+            try:
+                # Open the URL and read the content
+                r = Request(url, headers=headers)
+                response = urlopen(r).read()
+                
+                # Parse the HTML content with BeautifulSoup
+                soup = BeautifulSoup(response, "html.parser")
+                
+                # Find the table rows containing the data
+                rows = soup.select('tr')
+                
+                # Extract data from each row
+                data = []
+                for row in rows:
+                    columns = row.find_all('td')
+                    if len(columns) > 0:
+                        country_data = {
+                            'Country': columns[0].get_text(strip=True),
+                            'GDP': columns[1].get_text(strip=True),
+                            'GDP Growth': columns[2].get_text(strip=True),
+                            'Interest Rate': columns[3].get_text(strip=True),
+                            'Inflation Rate': columns[4].get_text(strip=True),
+                            'Jobless Rate': columns[5].get_text(strip=True),
+                            'Gov. Budget': columns[6].get_text(strip=True),
+                            'Debt/GDP': columns[7].get_text(strip=True),
+                            'Current Account': columns[8].get_text(strip=True),
+                            'Population': columns[9].get_text(strip=True),
+                        }
+                        data.append(country_data)
+                
+                return data
 
         def format_number(num_str):
             try:

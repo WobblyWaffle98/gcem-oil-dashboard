@@ -134,7 +134,7 @@ def macro_economic_page():
             """)
 
 
-            fig = px.scatter(df, x='GDP (USD Bil)', y='GDP Annualized QoQ Growth (%)', size='Population (mil)', color='Country',
+            fig = px.scatter(df, y='GDP (USD Bil)', x='GDP Annualized QoQ Growth (%)', size='Population (mil)', color='Country',
                  title='GDP, GDP Growth, and Population by Country',
                  labels={'GDP (USD Bil)': 'GDP (USD Billion)', 'GDP Annualized QoQ Growth (%)': 'GDP Growth (%)', 'Population (mil)': 'Population (Million)'})
             st.plotly_chart(fig, use_container_width=True)

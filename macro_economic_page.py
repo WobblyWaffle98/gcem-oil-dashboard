@@ -29,14 +29,15 @@ def macro_economic_page():
                 'Upgrade-Insecure-Requests': '1',
             }
             
+
             try:
                 # Open the URL and read the content
-                r = Request(url, headers=headers)
-                response = urlopen(r).read()
+                session = requests.Session()
+                response = session.get(url, headers=headers)
                 
                 # Parse the HTML content with BeautifulSoup
-                soup = BeautifulSoup(response, "html.parser")
-                
+                soup = BeautifulSoup(response.content, "html.parser")
+                st.write(soup.prettify)
                 # Find the table rows containing the data
                 rows = soup.select('tr')
                 

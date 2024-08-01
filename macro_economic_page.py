@@ -74,12 +74,6 @@ def macro_economic_page():
             - **Current Account (%):** The current account balance as a percentage of GDP, showing net exports and income flows. *Source: Central Bank of each country*
             - **Population (Million):** The total number of people living in the country, measured in millions. *Source: World Bank*
 
-            ### Visualizations
-
-            To help interpret this data, the following visualizations are provided:
-
-            - **GDP, GDP Growth, and Population by Country:** A bubble chart showing the relationship between GDP, GDP Growth, and Population for each country.
-            
             """)
 
         news_data = news_verification()
@@ -130,6 +124,11 @@ def macro_economic_page():
                 'Current Account (%)': "{:,.2f}",
                 'Population (mil)': "{:,.0f}",
             }), height=800, hide_index=True, use_container_width=True)
+
+            st.write("""
+            **GDP, GDP Growth, and Population by Country:** A bubble chart showing the relationship between GDP, GDP Growth, and Population for each country.
+            
+            """)
 
 
             fig = px.scatter(df, x='GDP (USD Bil)', y='GDP Annualized QoQ Growth (%)', size='Population (mil)', color='Country',

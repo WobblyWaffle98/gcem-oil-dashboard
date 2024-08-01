@@ -21,22 +21,16 @@ def macro_economic_page():
             r = Request("https://tradingeconomics.com/matrix?g=top", headers={'User-Agent': 'Mozilla/5.0'})
             response = urlopen(r).read()
             soup = BeautifulSoup(response, "html.parser")
-
+            
             # Find the table rows containing the data
             rows = soup.select('tr')
-
+            
             data = []
             for row in rows:
                 columns = row.find_all('td')
                 if len(columns) > 0:
-                    country_name = columns[0].get_text(strip=True)
-                    # Convert country name to country code (ISO 3166-1 alpha-2)
-                    country_code = get_country_code(country_name)  # Implement this function or use a mapping
-                    flag_url = f"https://flagsapi.com/{country_code}/flat/64.png" if country_code else None
-                    
                     country_data = {
-                        'Country': country_name,
-                        'Flag': flag_url,
+                        'Country': columns[0].get_text(strip=True),
                         'GDP': columns[1].get_text(strip=True),
                         'GDP Growth': columns[2].get_text(strip=True),
                         'Interest Rate': columns[3].get_text(strip=True),
@@ -48,20 +42,8 @@ def macro_economic_page():
                         'Population': columns[9].get_text(strip=True),
                     }
                     data.append(country_data)
-
+            
             return data
-
-        def get_country_code(country_name):
-            # Implement a mapping or use a library to get country codes
-            country_mapping = {
-                'United States': 'US',
-                'China': 'CN',
-                'Germany': 'DE',
-                'India': 'IN',
-                'Japan': 'JP',
-                # Add more mappings as needed
-            }
-            return country_mapping.get(country_name, None)
 
         def format_number(num_str):
             try:
@@ -85,12 +67,18 @@ def macro_economic_page():
                 df[column] = df[column].apply(format_number)
                 df[column] = pd.to_numeric(df[column], errors='coerce')
             
-            # Generate HTML for the DataFrame with image URLs
-            df['Flag'] = df['Flag'].apply(lambda x: f'<img src="{x}" width="50" height="30" style="display:inline-block"/>')
-            df_html = df.to_html(escape=False, formatters={'Flag': lambda x: x})
-            
-            # Display DataFrame as HTML
-            st.markdown(df_html, unsafe_allow_html=True)
+            # Display DataFrame with formatting
+            st.dataframe(df.style.format({
+                'GDP': "{:,.0f}",
+                'GDP Growth': "{:,.2f}",
+                'Interest Rate': "{:,.2f}",
+                'Inflation Rate': "{:,.2f}",
+                'Jobless Rate': "{:,.2f}",
+                'Gov. Budget': "{:,.2f}",
+                'Debt/GDP': "{:,.2f}",
+                'Current Account': "{:,.2f}",
+                'Population': "{:,.0f}", 
+            }), height=800, hide_index = True,use_container_width=True)
         else:
             st.error("Failed to extract data")
 

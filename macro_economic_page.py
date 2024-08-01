@@ -53,7 +53,7 @@ def macro_economic_page():
             except ValueError:
                 return num_str
 
-        st.subheader+("Economic Indicators by Country")
+        st.subheader("Economic Indicators by Country")
 
         news_data = news_verification()
 
@@ -102,7 +102,7 @@ def macro_economic_page():
                 'Current Account (%)': "{:,.2f}",
                 'Population (mil)': "{:,.0f}",
             }), height=800, hide_index=True, use_container_width=True)
-            
+
         else:
             st.error("Failed to extract data")
 

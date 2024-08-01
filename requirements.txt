@@ -11,3 +11,4 @@ datetime
 xlrd
 prettytable
 bs4
+streamlit-aggrid

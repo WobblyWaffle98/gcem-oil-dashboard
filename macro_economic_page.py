@@ -8,7 +8,7 @@ from io import BytesIO
 import plotly.express as px
 from bs4 import BeautifulSoup
 from urllib.request import urlopen, Request
-from st_aggrid import AgGrid, GridOptionsBuilder
+
 
 
 def macro_economic_page():
@@ -68,10 +68,18 @@ def macro_economic_page():
                 df[column] = df[column].apply(format_number)
                 df[column] = pd.to_numeric(df[column], errors='coerce')
             
-
-            
-            # Display DataFrame with AgGrid
-            AgGrid(df, custom_css= r"Media/ag-grid-theme-builder.css")
+            # Display DataFrame with formatting
+            st.dataframe(df.style.format({
+                'GDP': "{:,.0f}",
+                'GDP Growth': "{:,.2f}",
+                'Interest Rate': "{:,.2f}",
+                'Inflation Rate': "{:,.2f}",
+                'Jobless Rate': "{:,.2f}",
+                'Gov. Budget': "{:,.2f}",
+                'Debt/GDP': "{:,.2f}",
+                'Current Account': "{:,.2f}",
+                'Population': "{:,.0f}", 
+            }), height=800, hide_index = True,use_container_width=True)
         else:
             st.error("Failed to extract data")
 

@@ -72,7 +72,7 @@ def macro_economic_page():
             column_mapping = {
                 'Country': 'Country',
                 'GDP': 'GDP (USD Bil)',
-                'GDP Growth': 'GDP YoY Growth (%)',
+                'GDP Growth': 'GDP Annualized QoQ Growth (%)',
                 'Interest Rate': 'Interest Rate (%)',
                 'Inflation Rate': 'Inflation Rate (%)',
                 'Jobless Rate': 'Jobless Rate (%)',
@@ -86,7 +86,7 @@ def macro_economic_page():
             df.rename(columns=column_mapping, inplace=True)
             
             # Convert numerical columns to floats
-            numeric_columns = ['GDP (USD Bil)', 'GDP YoY Growth (%)', 'Interest Rate (%)', 'Inflation Rate (%)', 
+            numeric_columns = ['GDP (USD Bil)', 'GDP Annualized QoQ (%)', 'Interest Rate (%)', 'Inflation Rate (%)', 
                             'Jobless Rate (%)', 'Gov. Budget (%)', 'Debt/GDP (%)', 'Current Account (%)', 
                             'Population (mil)']
             
@@ -100,7 +100,7 @@ def macro_economic_page():
              # Display DataFrame with formatting
             st.dataframe(df_styled.format({
                 'GDP (USD Bil)': "{:,.0f}",
-                'GDP YoY Growth (%)': "{:,.2f}",
+                'GDP Annualized QoQ (%)': "{:,.2f}",
                 'Interest Rate (%)': "{:,.2f}",
                 'Inflation Rate (%)': "{:,.2f}",
                 'Jobless Rate (%)': "{:,.2f}",

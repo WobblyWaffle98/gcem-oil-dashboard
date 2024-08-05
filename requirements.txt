@@ -12,3 +12,4 @@ xlrd
 prettytable
 bs4
 streamlit-aggrid
+futures

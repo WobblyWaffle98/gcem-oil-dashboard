@@ -144,70 +144,6 @@ def macro_economic_page():
                 'Population (mil)': "{:,.0f}",
             }), height=800, hide_index=True, use_container_width=True)
 
-            st.subheader("GDP time series chart")
-
-            # Define the base URL and endpoint format
-            base_url = "https://api.db.nomics.world/v22/series/WB/WDI/A-NY.GDP.MKTP.CD-{country_code}?&observations=1"
-
-            # List of top 20 countries with their DBnomics country codes
-            country_codes = {
-                "United States": "USA",
-                "China": "CHN",
-                "Japan": "JPN",
-                "Eurozone": "EMU",
-                "India": "IND",
-                "United Kingdom": "GBR",
-                "Italy": "ITA",
-                "Canada": "CAN",
-
-            }
-
-            # Prepare a dictionary to hold GDP data
-            gdp_data = {}
-
-            # Function to fetch and process data for a single country
-            def fetch_country_data(country, code):
-                url = base_url.format(country_code=code)
-                response = requests.get(url)
-                response.raise_for_status()  # Check if the request was successful
-                
-                json_data = response.json()
-                series = json_data.get("series", {}).get("docs", [])[0]
-                
-                # Extract relevant information
-                if series:
-                    years = series.get("period", [])
-                    values = series.get("value", [])
-                    
-                    # Filter data from 2000 onwards
-                    filtered_data = {year: value for year, value in zip(years, values) if int(year) >= 2000}
-                    return country, filtered_data
-                return country, {}
-
-            # Use ThreadPoolExecutor to parallelize requests
-            with ThreadPoolExecutor(max_workers=5) as executor:
-                future_to_country = {executor.submit(fetch_country_data, country, code): country for country, code in country_codes.items()}
-                
-                for future in as_completed(future_to_country):
-                    country, data = future.result()
-                    gdp_data[country] = data
-
-            # Convert the filtered data to a pandas DataFrame
-            df = pd.DataFrame(gdp_data).T  # Transpose to have countries as rows and years as columns
-
-            # Reset index to have country names as a column
-            df = df.reset_index()
-            df = df.melt(id_vars="index", var_name="Year", value_name="GDP")
-            df.columns = ["Country", "Year", "GDP"]
-
-            # Plot using Plotly Express
-            fig = px.line(df, x="Year", y="GDP", color="Country",
-                        title="GDP of Top Countries (2000 onwards)",
-                        labels={"GDP": "GDP (Current US$)", "Year": "Year"},
-                        markers=True)
-
-            # Show the plot
-            fig.show()
 
             st.subheader('Bubble Chart')
             st.write("""
@@ -221,6 +157,71 @@ def macro_economic_page():
 
         else:
             st.error("Failed to extract data")
+
+        st.subheader("GDP time series chart")
+
+        # Define the base URL and endpoint format
+        base_url = "https://api.db.nomics.world/v22/series/WB/WDI/A-NY.GDP.MKTP.CD-{country_code}?&observations=1"
+
+        # List of top 20 countries with their DBnomics country codes
+        country_codes = {
+            "United States": "USA",
+            "China": "CHN",
+            "Japan": "JPN",
+            "Eurozone": "EMU",
+            "India": "IND",
+            "United Kingdom": "GBR",
+            "Italy": "ITA",
+            "Canada": "CAN",
+
+        }
+
+        # Prepare a dictionary to hold GDP data
+        gdp_data = {}
+
+        # Function to fetch and process data for a single country
+        def fetch_country_data(country, code):
+            url = base_url.format(country_code=code)
+            response = requests.get(url)
+            response.raise_for_status()  # Check if the request was successful
+            
+            json_data = response.json()
+            series = json_data.get("series", {}).get("docs", [])[0]
+            
+            # Extract relevant information
+            if series:
+                years = series.get("period", [])
+                values = series.get("value", [])
+                
+                # Filter data from 2000 onwards
+                filtered_data = {year: value for year, value in zip(years, values) if int(year) >= 2000}
+                return country, filtered_data
+            return country, {}
+
+        # Use ThreadPoolExecutor to parallelize requests
+        with ThreadPoolExecutor(max_workers=5) as executor:
+            future_to_country = {executor.submit(fetch_country_data, country, code): country for country, code in country_codes.items()}
+            
+            for future in as_completed(future_to_country):
+                country, data = future.result()
+                gdp_data[country] = data
+
+        # Convert the filtered data to a pandas DataFrame
+        df = pd.DataFrame(gdp_data).T  # Transpose to have countries as rows and years as columns
+
+        # Reset index to have country names as a column
+        df = df.reset_index()
+        df = df.melt(id_vars="index", var_name="Year", value_name="GDP")
+        df.columns = ["Country", "Year", "GDP"]
+
+        # Plot using Plotly Express
+        fig = px.line(df, x="Year", y="GDP", color="Country",
+                    title="GDP of Top Countries (2000 onwards)",
+                    labels={"GDP": "GDP (Current US$)", "Year": "Year"},
+                    markers=True)
+
+        # Show the plot
+        fig.show()
 
 
 

@@ -230,7 +230,7 @@ def macro_economic_page():
 
         st.subheader("HOPE Analysis")
         st.write("""
-            The HOPE model, developed by [Michael Kantrowitz] (https://www.advisorperspectives.com/articles/2023/02/15/the-leading-indicators-are-signaling-recession) of Piper Sandler, is an economic indicator model that focuses on four key components. HOPE is an acronym describing the sequence in which economic activity weakens due to a FED tightening cycle before a recession namely Housing, New Orders, Corporate Profits and Employment which typically happen in sequence. 
+            The HOPE model, developed by (Michael Kantrowitz) [https://www.advisorperspectives.com/articles/2023/02/15/the-leading-indicators-are-signaling-recession] of Piper Sandler, is an economic indicator model that focuses on four key components. HOPE is an acronym describing the sequence in which economic activity weakens due to a FED tightening cycle before a recession namely Housing, New Orders, Corporate Profits and Employment which typically happen in sequence. 
             Economically speaking, the HOPE framework is driven by the realization that the most interest rate sensitive sectors are the first to feel the effects of tightening monetary policy.
                  
             These sectors often act as leading economic indicators. Consequently, as tightening monetary policy slows down economic activity in interest rate sensitive sectors, other sectors of the economy start to feel the impact of higher rates. 

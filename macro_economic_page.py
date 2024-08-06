@@ -348,7 +348,8 @@ def macro_economic_page():
                 dtick='M1',           # Minor tick every month
                 gridcolor='rgba(0,0,0,0.2)',  # Color of the minor grid lines
                 gridwidth=0.5         # Width of the minor grid lines
-            )
+            ))
+        
             )
             
             st.plotly_chart(fig, use_container_width=True)

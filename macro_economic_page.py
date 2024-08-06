@@ -245,7 +245,7 @@ def macro_economic_page():
                      """)
             
         with col2:
-            st.subheader("4. Orders")
+            st.subheader("2. Orders")
             st.write("""
                      New orders for durable goods and manufacturing indicate future production activity. 
                      An increase in new orders suggests that businesses are experiencing higher demand and are preparing to increase production, which is a positive sign for economic growth.

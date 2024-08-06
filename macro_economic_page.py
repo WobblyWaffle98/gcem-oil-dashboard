@@ -564,14 +564,6 @@ def macro_economic_page():
             fig.add_trace(go.Scatter(x=df["date"], y=df["value"], mode='lines', name='Unemployment Rate'))
             
             
-            # Add a zero line
-            fig.add_trace(go.Scatter(
-                x=[df["date"].min(), df["date"].max()],
-                y=[0, 0],
-                mode='lines',
-                line=dict(color='orange', dash='dash'),
-                name='0 Line'
-            ))
 
             # Add shaded regions for recession periods
             recession_periods = [

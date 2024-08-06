@@ -233,7 +233,7 @@ def macro_economic_page():
             HOPE sequences the lags between rate hikes and their effect on economic activity for each sector.                 
                  """)
 
-        col1, col2 = st.columns[2]
+        col1, col2 = st.columns(2)
 
         with col1:
             st.subheader("Housing")

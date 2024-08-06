@@ -592,7 +592,7 @@ def macro_economic_page():
             fig.update_layout(
                 title="Corporate Profits After Tax (without IVA and CCAdj) - Percent Change from Previous Data Point",
                 xaxis_title="Date",
-                yaxis_title="Percent Change",
+                yaxis_title='Unemployment Rate',
                 xaxis_rangeslider_visible=False
             )
             

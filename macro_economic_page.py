@@ -555,18 +555,13 @@ def macro_economic_page():
             
             df["value"] = pd.to_numeric(df["value"], errors="coerce").round(2)
             
-            df["percent_change"] = df["value"].pct_change() * 100
             
-            # Calculate the 2 standard deviation confidence interval
-            std_dev = df["percent_change"].std()
-            df["upper_std_dev"] = df["percent_change"] + 2 * std_dev
-            df["lower_std_dev"] = df["percent_change"] - 2 * std_dev 
 
             # Create a Plotly figure
             fig = go.Figure()
             
             # Add the percent change line
-            fig.add_trace(go.Scatter(x=df["date"], y=df["percent_change"], mode='lines', name='Percent Change'))
+            fig.add_trace(go.Scatter(x=df["date"], y=df["value"], mode='lines', name='Unemployment Rate'))
             
             
             # Add a zero line

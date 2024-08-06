@@ -334,7 +334,7 @@ def macro_economic_page():
                     xaxis_rangeslider_visible=False
                 )
                 
-                st.plotly_chart(fig)
+                st.plotly_chart(fig, use_container_width=True)
             else:
                 print(f"Failed to retrieve data. Status code: {response.status_code}")
             

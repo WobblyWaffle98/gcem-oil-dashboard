@@ -237,7 +237,7 @@ def macro_economic_page():
 
         with col1:
             st.subheader("1. Housing")
-            st.write(""""
+            st.write("""
                      The housing market is a crucial component of the economy, as it impacts consumer spending, construction activity, and overall economic sentiment. 
                      The Case-Shiller Home Price Index is a widely recognized U.S. housing market indicator that tracks changes in residential real estate prices.
 
@@ -246,7 +246,7 @@ def macro_economic_page():
             
         with col2:
             st.subheader("4. Orders")
-            st.write(""""
+            st.write("""
                      New orders for durable goods and manufacturing indicate future production activity. 
                      An increase in new orders suggests that businesses are experiencing higher demand and are preparing to increase production, which is a positive sign for economic growth.
                      Manufacturers’ New Orders is a key economic indicator and measures the total value of new orders placed with manufacturers. It reflects the demand for goods produced by the manufacturing sector and serves as a gauge of economic health and future industrial activity. 
@@ -259,7 +259,7 @@ def macro_economic_page():
         col3, col4 = st.columns(2)
         with col3:
             st.subheader("3. Profits")
-            st.write(""""
+            st.write("""
                      Corporate profits reflect the financial health of companies and their ability to invest, hire, and expand. Rising profits typically lead to increased business investment and hiring, supporting economic growth.
                      Corporate Profits After Tax is a critical economic metric provided by the U.S. Federal Reserve. It quantifies the net profits of corporations after deducting taxes with some adjustments. 
 
@@ -268,7 +268,7 @@ def macro_economic_page():
             
         with col4:
             st.subheader("4. Employment")
-            st.write(""""
+            st.write("""
                     Employment levels are a direct measure of economic health. High employment means more people have income to spend, which drives consumer demand and overall economic activity. Conversely, rising unemployment can signal economic distress.
                     The Unemployment Rate is a key economic indicator that measures the percentage of the labor force that is unemployed and actively seeking employment. It provides insights into a country’s economic health and labor market conditions. 
 

@@ -237,137 +237,134 @@ def macro_economic_page():
             HOPE sequences the lags between rate hikes and their effect on economic activity for each sector.                 
                  """)
 
-        col1, col2 = st.columns(2)
 
-        with col1:
-            st.subheader("1. Housing")
-            st.write("""
-                     The housing market is a crucial component of the economy, as it impacts consumer spending, construction activity, and overall economic sentiment. 
-                     The Case-Shiller Home Price Index is a widely recognized U.S. housing market indicator that tracks changes in residential real estate prices.
+        st.subheader("1. Housing")
+        st.write("""
+                    The housing market is a crucial component of the economy, as it impacts consumer spending, construction activity, and overall economic sentiment. 
+                    The Case-Shiller Home Price Index is a widely recognized U.S. housing market indicator that tracks changes in residential real estate prices.
 
-                     Within the HOPE framework, it tends to be the earliest indicator to turn negative hence serves as a leading indicator. 
-                     """)
+                    Within the HOPE framework, it tends to be the earliest indicator to turn negative hence serves as a leading indicator. 
+                    """)
+        
+        series_id = "CSUSHPINSA"
+        params = {
+            "series_id": series_id,
+            "api_key": api_key,
+            "file_type": "json",
+            "observation_start": "2004-01-01", 
+        }
+
+        # Make the API request
+        response = requests.get(url, params=params)
+
+        # Check if the request was successful (status code 200)
+        if response.status_code == 200:
+            data = response.json()
             
-            series_id = "CSUSHPINSA"
-            params = {
-                "series_id": series_id,
-                "api_key": api_key,
-                "file_type": "json",
-                "observation_start": "2004-01-01", 
-            }
+            # Extract the data and create a DataFrame
+            data = data["observations"]
+            df = pd.DataFrame(data)
+            
+            df["date"] = pd.to_datetime(df["date"])
+            
+            df["value"] = pd.to_numeric(df["value"], errors="coerce").round(2)
+            
+            df["percent_change"] = df["value"].pct_change(periods=12) * 100
+            
+            # Calculate the 2 standard deviation confidence interval
+            std_dev = df["percent_change"].std()
+            df["upper_std_dev"] = df["percent_change"] + 2 * std_dev
+            df["lower_std_dev"] = df["percent_change"] - 2 * std_dev 
 
-            # Make the API request
-            response = requests.get(url, params=params)
+            # Create a Plotly figure
+            fig = go.Figure()
+            
+            # Add the percent change line
+            fig.add_trace(go.Scatter(x=df["date"], y=df["percent_change"], mode='lines', name='Percent Change'))
+            
+            # Add the confidence interval as a shaded region
+            fig.add_trace(go.Scatter(
+                x=df["date"],
+                y=df["upper_std_dev"],
+                mode='lines',
+                line=dict(width=0),
+                showlegend=False
+            ))
+            fig.add_trace(go.Scatter(
+                x=df["date"],
+                y=df["lower_std_dev"],
+                mode='lines',
+                fill='tonexty',
+                fillcolor='rgba(128, 128, 128, 0.2)',
+                line=dict(width=0),
+                name='2 Standard Deviation Confidence Interval'
+            ))
+            
+            # Add a zero line
+            fig.add_trace(go.Scatter(
+                x=[df["date"].min(), df["date"].max()],
+                y=[0, 0],
+                mode='lines',
+                line=dict(color='orange', dash='dash'),
+                name='0 Line'
+            ))
 
-            # Check if the request was successful (status code 200)
-            if response.status_code == 200:
-                data = response.json()
-                
-                # Extract the data and create a DataFrame
-                data = data["observations"]
-                df = pd.DataFrame(data)
-                
-                df["date"] = pd.to_datetime(df["date"])
-                
-                df["value"] = pd.to_numeric(df["value"], errors="coerce").round(2)
-                
-                df["percent_change"] = df["value"].pct_change(periods=12) * 100
-                
-                # Calculate the 2 standard deviation confidence interval
-                std_dev = df["percent_change"].std()
-                df["upper_std_dev"] = df["percent_change"] + 2 * std_dev
-                df["lower_std_dev"] = df["percent_change"] - 2 * std_dev 
-
-                # Create a Plotly figure
-                fig = go.Figure()
-                
-                # Add the percent change line
-                fig.add_trace(go.Scatter(x=df["date"], y=df["percent_change"], mode='lines', name='Percent Change'))
-                
-                # Add the confidence interval as a shaded region
-                fig.add_trace(go.Scatter(
-                    x=df["date"],
-                    y=df["upper_std_dev"],
-                    mode='lines',
-                    line=dict(width=0),
-                    showlegend=False
-                ))
-                fig.add_trace(go.Scatter(
-                    x=df["date"],
-                    y=df["lower_std_dev"],
-                    mode='lines',
-                    fill='tonexty',
-                    fillcolor='rgba(128, 128, 128, 0.2)',
-                    line=dict(width=0),
-                    name='2 Standard Deviation Confidence Interval'
-                ))
-                
-                # Add a zero line
-                fig.add_trace(go.Scatter(
-                    x=[df["date"].min(), df["date"].max()],
-                    y=[0, 0],
-                    mode='lines',
-                    line=dict(color='orange', dash='dash'),
-                    name='0 Line'
-                ))
-
-                # Add shaded regions for recession periods
-                recession_periods = [
-                    ('2007-12-01', '2009-06-30'),  # Great Recession
-                    ('2020-02-01', '2020-11-30'),  # COVID-19 Recession
-                ]
-                for start, end in recession_periods:
-                    fig.add_vrect(
-                        x0=start,
-                        x1=end,
-                        fillcolor="red",
-                        opacity=0.2,
-                        layer="below",
-                        line_width=0,
-                        name="Recession Period"
-                    )
-
-                fig.update_layout(
-                    title="Case-Shiller Home Price Index - Percent Change from Last Year",
-                    xaxis_title="Date",
-                    yaxis_title="Percent Change",
-                    xaxis_rangeslider_visible=False
+            # Add shaded regions for recession periods
+            recession_periods = [
+                ('2007-12-01', '2009-06-30'),  # Great Recession
+                ('2020-02-01', '2020-11-30'),  # COVID-19 Recession
+            ]
+            for start, end in recession_periods:
+                fig.add_vrect(
+                    x0=start,
+                    x1=end,
+                    fillcolor="red",
+                    opacity=0.2,
+                    layer="below",
+                    line_width=0,
+                    name="Recession Period"
                 )
-                
-                st.plotly_chart(fig, use_container_width=True)
-            else:
-                print(f"Failed to retrieve data. Status code: {response.status_code}")
-            
-        with col2:
-            st.subheader("2. Orders")
-            st.write("""
-                     New orders for durable goods and manufacturing indicate future production activity. 
-                     An increase in new orders suggests that businesses are experiencing higher demand and are preparing to increase production, which is a positive sign for economic growth.
-                     Manufacturers’ New Orders is a key economic indicator and measures the total value of new orders placed with manufacturers. It reflects the demand for goods produced by the manufacturing sector and serves as a gauge of economic health and future industrial activity. 
 
-                     The HOPE framework indicates that it will be the next indicator to show a downturn after housing.
-                     """)
+            fig.update_layout(
+                title="Case-Shiller Home Price Index - Percent Change from Last Year",
+                xaxis_title="Date",
+                yaxis_title="Percent Change",
+                xaxis_rangeslider_visible=False
+            )
             
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            print(f"Failed to retrieve data. Status code: {response.status_code}")
+        
         st.divider()
+        st.subheader("2. Orders")
+        st.write("""
+                    New orders for durable goods and manufacturing indicate future production activity. 
+                    An increase in new orders suggests that businesses are experiencing higher demand and are preparing to increase production, which is a positive sign for economic growth.
+                    Manufacturers’ New Orders is a key economic indicator and measures the total value of new orders placed with manufacturers. It reflects the demand for goods produced by the manufacturing sector and serves as a gauge of economic health and future industrial activity. 
 
-        col3, col4 = st.columns(2)
-        with col3:
-            st.subheader("3. Profits")
-            st.write("""
-                     Corporate profits reflect the financial health of companies and their ability to invest, hire, and expand. Rising profits typically lead to increased business investment and hiring, supporting economic growth.
-                     Corporate Profits After Tax is a critical economic metric provided by the U.S. Federal Reserve. It quantifies the net profits of corporations after deducting taxes with some adjustments. 
+                    The HOPE framework indicates that it will be the next indicator to show a downturn after housing.
+                    """)
+        
 
-                     It serves as a significant indicator of corporate financial performance, economic vitality, and investment potential and is the third economic indicator in the HOPE indicator sequence
-                     """)
-            
-        with col4:
-            st.subheader("4. Employment")
-            st.write("""
-                    Employment levels are a direct measure of economic health. High employment means more people have income to spend, which drives consumer demand and overall economic activity. Conversely, rising unemployment can signal economic distress.
-                    The Unemployment Rate is a key economic indicator that measures the percentage of the labor force that is unemployed and actively seeking employment. It provides insights into a country’s economic health and labor market conditions. 
+        st.divider()
+        st.subheader("3. Profits")
+        st.write("""
+                    Corporate profits reflect the financial health of companies and their ability to invest, hire, and expand. Rising profits typically lead to increased business investment and hiring, supporting economic growth.
+                    Corporate Profits After Tax is a critical economic metric provided by the U.S. Federal Reserve. It quantifies the net profits of corporations after deducting taxes with some adjustments. 
 
-                    The HOPE framework suggests that this is the last indicator to show weakness, and sometimes shows weakness only after the recession has started in earnest.
-                     """)
+                    It serves as a significant indicator of corporate financial performance, economic vitality, and investment potential and is the third economic indicator in the HOPE indicator sequence
+                    """)
+        
+
+        st.divider()
+        st.subheader("4. Employment")
+        st.write("""
+                Employment levels are a direct measure of economic health. High employment means more people have income to spend, which drives consumer demand and overall economic activity. Conversely, rising unemployment can signal economic distress.
+                The Unemployment Rate is a key economic indicator that measures the percentage of the labor force that is unemployed and actively seeking employment. It provides insights into a country’s economic health and labor market conditions. 
+
+                The HOPE framework suggests that this is the last indicator to show weakness, and sometimes shows weakness only after the recession has started in earnest.
+                    """)
 
 
 

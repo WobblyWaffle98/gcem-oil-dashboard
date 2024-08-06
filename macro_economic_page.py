@@ -250,7 +250,7 @@ def macro_economic_page():
                      New orders for durable goods and manufacturing indicate future production activity. 
                      An increase in new orders suggests that businesses are experiencing higher demand and are preparing to increase production, which is a positive sign for economic growth.
                      Manufacturers’ New Orders is a key economic indicator and measures the total value of new orders placed with manufacturers. It reflects the demand for goods produced by the manufacturing sector and serves as a gauge of economic health and future industrial activity. 
-                    
+
                      The HOPE framework indicates that it will be the next indicator to show a downturn after housing.
                      """)
             
@@ -262,7 +262,7 @@ def macro_economic_page():
             st.write(""""
                      Corporate profits reflect the financial health of companies and their ability to invest, hire, and expand. Rising profits typically lead to increased business investment and hiring, supporting economic growth.
                      Corporate Profits After Tax is a critical economic metric provided by the U.S. Federal Reserve. It quantifies the net profits of corporations after deducting taxes with some adjustments. 
-                     
+
                      It serves as a significant indicator of corporate financial performance, economic vitality, and investment potential and is the third economic indicator in the HOPE indicator sequence
                      """)
             
@@ -271,7 +271,7 @@ def macro_economic_page():
             st.write(""""
                     Employment levels are a direct measure of economic health. High employment means more people have income to spend, which drives consumer demand and overall economic activity. Conversely, rising unemployment can signal economic distress.
                     The Unemployment Rate is a key economic indicator that measures the percentage of the labor force that is unemployed and actively seeking employment. It provides insights into a country’s economic health and labor market conditions. 
-                     
+
                     The HOPE framework suggests that this is the last indicator to show weakness, and sometimes shows weakness only after the recession has started in earnest.
                      """)
 

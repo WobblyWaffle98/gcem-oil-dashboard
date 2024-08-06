@@ -449,7 +449,7 @@ def macro_economic_page():
 
                 # Set y-axes titles
                 fig.update_yaxes(title_text='Housing Market Index', secondary_y=False)
-                fig.update_yaxes(title_text='Single-Family Starts', secondary_y=True)
+                fig.update_yaxes(title_text='Single-Family Starts (Thousands of Units)', secondary_y=True)
 
 
                 # Show the plot

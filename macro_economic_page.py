@@ -248,6 +248,7 @@ def macro_economic_page():
                      Within the HOPE framework, it tends to be the earliest indicator to turn negative hence serves as a leading indicator. 
                      """)
             
+            series_id = "CSUSHPINSA"
             params = {
                 "series_id": series_id,
                 "api_key": api_key,

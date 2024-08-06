@@ -9,6 +9,7 @@ import plotly.express as px
 from bs4 import BeautifulSoup
 from urllib.request import urlopen, Request
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from plotly.subplots import make_subplots
 
 
 
@@ -350,6 +351,110 @@ def macro_economic_page():
             st.plotly_chart(fig, use_container_width=True)
         else:
             print(f"Failed to retrieve data. Status code: {response.status_code}")
+
+        # URL of the webpage containing the link to the Excel file
+        page_url = "https://www.nahb.org/news-and-economics/housing-economics/indices/housing-market-index"
+
+        # Send a GET request to the webpage
+        response = requests.get(page_url)
+        response.raise_for_status()  # Check that the request was successful
+
+        # Parse the webpage content
+        soup = BeautifulSoup(response.content, "html.parser")
+
+
+        # Find the <li> element containing the Excel link
+        li_element = soup.find("li", string="Chart: NAHB/Wells Fargo HMI and Single-Family Housing Starts")
+
+        if li_element:
+            a_tag = li_element.find("a", href=True)
+            if a_tag:
+                file_url = a_tag['href']
+                if not file_url.startswith('http'):
+                    file_url = "https://www.nahb.org" + file_url
+
+                # Download the Excel file
+                file_response = requests.get(file_url)
+                file_response.raise_for_status()  # Check that the request was successful
+
+                # Save the file locally
+                with open("nahb_hmi_data.xls", "wb") as file:
+                    file.write(file_response.content)
+
+                # Load the Excel file into a pandas DataFrame
+                df = pd.read_excel("nahb_hmi_data.xls")
+
+
+                # Assuming df is your DataFrame
+                # Convert the first value in the 'Unnamed: 0' column to a datetime object
+                start_date = pd.to_datetime(df['Unnamed: 0'].iloc[0])
+
+                # Generate a date range starting from the start_date with monthly frequency
+                date_range = pd.date_range(start=start_date, periods=len(df), freq='M')
+
+                # Assign the date range to the new 'Dates' column
+                df['date'] = date_range
+
+                df = df.drop(columns=['Unnamed: 0'])
+                # Filter the DataFrame to include data from 2004 onwards
+                df = df[df['date'] >= '2004-01-01']
+
+                # Create a figure
+                fig = make_subplots(specs=[[{"secondary_y": True}]])
+
+                # Add a trace for the Housing Market Index
+                fig.add_trace(go.Scatter(x=df['date'], y=df['Housing Market Index'], 
+                                        mode='lines', name='Housing Market Index'), 
+                                        secondary_y=False,)
+
+                # Add a trace for the Single-Family Starts
+                fig.add_trace(go.Scatter(x=df['date'], y=df['Single-Family Starts'], 
+                                        mode='lines', name='Single-Family Starts'),
+                                        secondary_y=True,)
+                
+                # Add shaded regions for recession periods
+                recession_periods = [
+                    ('2007-12-01', '2009-06-30'),  # Great Recession
+                    ('2020-02-01', '2020-11-30'),  # COVID-19 Recession
+                ]
+                for start, end in recession_periods:
+                    fig.add_vrect(
+                        x0=start,
+                        x1=end,
+                        fillcolor="red",
+                        opacity=0.2,
+                        layer="below",
+                        line_width=0,
+                        name="Recession Period"
+                    )
+                
+                # Add figure title
+                fig.update_layout(
+                    title_text='Housing Market Index and Single-Family Starts Over Time',
+                    xaxis_rangeslider_visible=False,
+                        legend=dict(
+                    orientation="h",  # Horizontal orientation
+                    yanchor="top",    # Position at the top
+                    y=-0.2,           # Move below the plot
+                    xanchor="center", # Center horizontally
+                    x=0.5,
+                    # Center horizontally
+                ))
+
+                
+                # Set x-axis title
+                fig.update_xaxes(title_text="date")
+
+                # Set y-axes titles
+                fig.update_yaxes(title_text='Housing Market Index', secondary_y=False)
+                fig.update_yaxes(title_text='Single-Family Starts', secondary_y=True)
+
+
+                # Show the plot
+                st.plotly_chart(fig, use_container_width=True)
+
+        else:
+            print("No <li> element with the specified content found.")
         
         st.divider()
         st.subheader("2. Orders")
@@ -700,9 +805,6 @@ def macro_economic_page():
         # Show the plot 
 
     with tab3:
-
-        
-        
 
         st.subheader("Geopolitical Risk Daily Index")
 

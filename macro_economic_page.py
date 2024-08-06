@@ -436,7 +436,14 @@ def macro_economic_page():
                 title="Manufacturers' New Orders: Total Manufacturing - Percent Change from Last Year",
                 xaxis_title="Date",
                 yaxis_title="Percent Change",
-                xaxis_rangeslider_visible=False
+                xaxis_rangeslider_visible=False,
+                legend=dict(
+            orientation="h",  # Horizontal orientation
+            yanchor="top",    # Position at the top
+            y=-0.2,           # Move below the plot
+            xanchor="center", # Center horizontally
+            x=0.5             # Center horizontally
+        )
             )
             
             st.plotly_chart(fig, use_container_width=True)
@@ -521,7 +528,14 @@ def macro_economic_page():
                 title="Corporate Profits After Tax (without IVA and CCAdj) - Percent Change from Previous Data Point",
                 xaxis_title="Date",
                 yaxis_title="Percent Change",
-                xaxis_rangeslider_visible=False
+                xaxis_rangeslider_visible=False,
+                legend=dict(
+            orientation="h",  # Horizontal orientation
+            yanchor="top",    # Position at the top
+            y=-0.2,           # Move below the plot
+            xanchor="center", # Center horizontally
+            x=0.5             # Center horizontally
+        )
             )
             
             st.plotly_chart(fig, use_container_width=True)
@@ -592,7 +606,14 @@ def macro_economic_page():
                 title="Corporate Profits After Tax (without IVA and CCAdj) - Percent Change from Previous Data Point",
                 xaxis_title="Date",
                 yaxis_title='Unemployment Rate',
-                xaxis_rangeslider_visible=False
+                xaxis_rangeslider_visible=False,
+                legend=dict(
+            orientation="h",  # Horizontal orientation
+            yanchor="top",    # Position at the top
+            y=-0.2,           # Move below the plot
+            xanchor="center", # Center horizontally
+            x=0.5             # Center horizontally
+        )
             )
             
             st.plotly_chart(fig, use_container_width=True)

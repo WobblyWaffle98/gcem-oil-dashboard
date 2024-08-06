@@ -16,7 +16,7 @@ def macro_economic_page():
     st.header("Macro-economic Indicators")
     # Add macro-economic page specific code hedre
 
-    tab1, tab2, tab3 = st.tabs(['Global data','US Economic data','Geopolitical Risk'],)
+    tab1, tab2, tab3 = st.tabs(['Global data','HOPE Analysis','Geopolitical Risk'],)
 
     with tab1:
         def news_verification():
@@ -223,6 +223,61 @@ def macro_economic_page():
         st.plotly_chart(fig, use_container_width=True)
 
     with tab2:
+
+        st.subheader("HOPE analysis")
+        st.write("""
+            HOPE is an acronym describing the sequence in which economic activity weakens due to a FED tightening cycle before a recession namely Housing, New Orders, Corporate Profits and Employment which typically happen in sequence. 
+            Economically speaking, the HOPE framework is driven by the realization that the most interest rate sensitive sectors are the first to feel the effects of tightening monetary policy.
+                 
+            These sectors often act as leading economic indicators. Consequently, as tightening monetary policy slows down economic activity in interest rate sensitive sectors, other sectors of the economy start to feel the impact of higher rates. 
+            HOPE sequences the lags between rate hikes and their effect on economic activity for each sector.                 
+                 """)
+
+        col1, col2 = st.columns[2]
+
+        with col1:
+            st.subheader("Housing")
+            st.write(""""
+                     The housing market is a crucial component of the economy, as it impacts consumer spending, construction activity, and overall economic sentiment. 
+                     The Case-Shiller Home Price Index is a widely recognized U.S. housing market indicator that tracks changes in residential real estate prices.
+
+                     Within the HOPE framework, it tends to be the earliest indicator to turn negative hence serves as a leading indicator. 
+                     """)
+            
+
+            st.divider()
+            st.subheader("New Orders")
+            st.write(""""
+                     New orders for durable goods and manufacturing indicate future production activity. 
+                     An increase in new orders suggests that businesses are experiencing higher demand and are preparing to increase production, which is a positive sign for economic growth.
+                     Manufacturers’ New Orders is a key economic indicator and measures the total value of new orders placed with manufacturers. It reflects the demand for goods produced by the manufacturing sector and serves as a gauge of economic health and future industrial activity. 
+                     
+                     The HOPE framework indicates that it will be the next indicator to show a downturn after housing.
+                     """)
+            
+        with col2:
+            st.subheader("Corporate Profits")
+            st.write(""""
+                     Corporate profits reflect the financial health of companies and their ability to invest, hire, and expand. Rising profits typically lead to increased business investment and hiring, supporting economic growth.
+                     Corporate Profits After Tax is a critical economic metric provided by the U.S. Federal Reserve. It quantifies the net profits of corporations after deducting taxes with some adjustments. 
+                     
+                     It serves as a significant indicator of corporate financial performance, economic vitality, and investment potential and is the third economic indicator in the HOPE indicator sequence
+                     """)
+            
+
+            st.divider()
+            st.subheader("Employment")
+            st.write(""""
+                    Employment levels are a direct measure of economic health. High employment means more people have income to spend, which drives consumer demand and overall economic activity. Conversely, rising unemployment can signal economic distress.
+                    The Unemployment Rate is a key economic indicator that measures the percentage of the labor force that is unemployed and actively seeking employment. It provides insights into a country’s economic health and labor market conditions. 
+                     
+                    The HOPE framework suggests that this is the last indicator to show weakness, and sometimes shows weakness only after the recession has started in earnest.
+                     """)
+
+
+
+
+
         # Define the ISM PMI data URL
         pmi_url = "https://api.db.nomics.world/v22/series/ISM/pmi?facets=1&format=json&limit=1000&observations=1"
 

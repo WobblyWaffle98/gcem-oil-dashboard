@@ -250,7 +250,7 @@ def macro_economic_page():
                      New orders for durable goods and manufacturing indicate future production activity. 
                      An increase in new orders suggests that businesses are experiencing higher demand and are preparing to increase production, which is a positive sign for economic growth.
                      Manufacturers’ New Orders is a key economic indicator and measures the total value of new orders placed with manufacturers. It reflects the demand for goods produced by the manufacturing sector and serves as a gauge of economic health and future industrial activity. 
-                     
+                    
                      The HOPE framework indicates that it will be the next indicator to show a downturn after housing.
                      """)
             

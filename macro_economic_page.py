@@ -223,6 +223,10 @@ def macro_economic_page():
         st.plotly_chart(fig, use_container_width=True)
 
     with tab2:
+        # Define your FRED API key (replace with your actual API key)
+        api_key = "0ba1761f1d82d23194c202620bb7d7f9"
+        # Define the URL for the FRED API
+        url = f"https://api.stlouisfed.org/fred/series/observations"
 
         st.subheader("HOPE Analysis")
         st.write("""
@@ -243,6 +247,95 @@ def macro_economic_page():
 
                      Within the HOPE framework, it tends to be the earliest indicator to turn negative hence serves as a leading indicator. 
                      """)
+            
+            params = {
+                "series_id": series_id,
+                "api_key": api_key,
+                "file_type": "json",
+                "observation_start": "2004-01-01", 
+            }
+
+            # Make the API request
+            response = requests.get(url, params=params)
+
+            # Check if the request was successful (status code 200)
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Extract the data and create a DataFrame
+                data = data["observations"]
+                df = pd.DataFrame(data)
+                
+                df["date"] = pd.to_datetime(df["date"])
+                
+                df["value"] = pd.to_numeric(df["value"], errors="coerce").round(2)
+                
+                df["percent_change"] = df["value"].pct_change(periods=12) * 100
+                
+                # Calculate the 2 standard deviation confidence interval
+                std_dev = df["percent_change"].std()
+                df["upper_std_dev"] = df["percent_change"] + 2 * std_dev
+                df["lower_std_dev"] = df["percent_change"] - 2 * std_dev 
+
+                # Create a Plotly figure
+                fig = go.Figure()
+                
+                # Add the percent change line
+                fig.add_trace(go.Scatter(x=df["date"], y=df["percent_change"], mode='lines', name='Percent Change'))
+                
+                # Add the confidence interval as a shaded region
+                fig.add_trace(go.Scatter(
+                    x=df["date"],
+                    y=df["upper_std_dev"],
+                    mode='lines',
+                    line=dict(width=0),
+                    showlegend=False
+                ))
+                fig.add_trace(go.Scatter(
+                    x=df["date"],
+                    y=df["lower_std_dev"],
+                    mode='lines',
+                    fill='tonexty',
+                    fillcolor='rgba(128, 128, 128, 0.2)',
+                    line=dict(width=0),
+                    name='2 Standard Deviation Confidence Interval'
+                ))
+                
+                # Add a zero line
+                fig.add_trace(go.Scatter(
+                    x=[df["date"].min(), df["date"].max()],
+                    y=[0, 0],
+                    mode='lines',
+                    line=dict(color='orange', dash='dash'),
+                    name='0 Line'
+                ))
+
+                # Add shaded regions for recession periods
+                recession_periods = [
+                    ('2007-12-01', '2009-06-30'),  # Great Recession
+                    ('2020-02-01', '2020-11-30'),  # COVID-19 Recession
+                ]
+                for start, end in recession_periods:
+                    fig.add_vrect(
+                        x0=start,
+                        x1=end,
+                        fillcolor="red",
+                        opacity=0.2,
+                        layer="below",
+                        line_width=0,
+                        name="Recession Period"
+                    )
+
+                fig.update_layout(
+                    title="Case-Shiller Home Price Index - Percent Change from Last Year",
+                    xaxis_title="Date",
+                    yaxis_title="Percent Change",
+                    xaxis_rangeslider_visible=False
+                )
+                
+                st.plotly_chart(fig)
+            else:
+                print(f"Failed to retrieve data. Status code: {response.status_code}")
             
         with col2:
             st.subheader("2. Orders")

@@ -451,7 +451,14 @@ def macro_economic_page():
             y=-0.2,           # Move below the plot
             xanchor="center", # Center horizontally
             x=0.5             # Center horizontally
-        )
+        ),
+        xaxis=dict(
+            gridcolor='rgba(0,0,0,0.2)',    # Color of the grid lines
+            gridwidth=1,              # Width of the major grid lines
+            tickmode='linear',        # Mode for tick placement
+            tick0=df["date"].min(),   # Start tick at the minimum date
+            dtick='M12',              # Major tick every year (12 months)
+            )
             )
             
             st.plotly_chart(fig, use_container_width=True)
@@ -543,7 +550,14 @@ def macro_economic_page():
             y=-0.2,           # Move below the plot
             xanchor="center", # Center horizontally
             x=0.5             # Center horizontally
-        )
+        ),
+        xaxis=dict(
+            gridcolor='rgba(0,0,0,0.2)',    # Color of the grid lines
+            gridwidth=1,              # Width of the major grid lines
+            tickmode='linear',        # Mode for tick placement
+            tick0=df["date"].min(),   # Start tick at the minimum date
+            dtick='M12',              # Major tick every year (12 months)
+            )
             )
             
             st.plotly_chart(fig, use_container_width=True)
@@ -621,7 +635,14 @@ def macro_economic_page():
             y=-0.2,           # Move below the plot
             xanchor="center", # Center horizontally
             x=0.5             # Center horizontally
-        )
+        ),
+        xaxis=dict(
+            gridcolor='rgba(0,0,0,0.2)',    # Color of the grid lines
+            gridwidth=1,              # Width of the major grid lines
+            tickmode='linear',        # Mode for tick placement
+            tick0=df["date"].min(),   # Start tick at the minimum date
+            dtick='M12',              # Major tick every year (12 months)
+            )
             )
             
             st.plotly_chart(fig, use_container_width=True)

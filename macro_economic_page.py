@@ -224,7 +224,7 @@ def macro_economic_page():
 
     with tab2:
 
-        st.subheader("HOPE analysis")
+        st.subheader("HOPE Analysis")
         st.write("""
             HOPE is an acronym describing the sequence in which economic activity weakens due to a FED tightening cycle before a recession namely Housing, New Orders, Corporate Profits and Employment which typically happen in sequence. 
             Economically speaking, the HOPE framework is driven by the realization that the most interest rate sensitive sectors are the first to feel the effects of tightening monetary policy.

@@ -338,7 +338,7 @@ def macro_economic_page():
             x=0.5             # Center horizontally
         ),
         xaxis=dict(
-            gridcolor='lightgrey',    # Color of the grid lines
+            gridcolor='rgba(0,0,0,0.2)',    # Color of the grid lines
             gridwidth=1,              # Width of the major grid lines
             tickmode='linear',        # Mode for tick placement
             tick0=df["date"].min(),   # Start tick at the minimum date

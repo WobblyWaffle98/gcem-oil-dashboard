@@ -531,11 +531,87 @@ def macro_economic_page():
 
                 The HOPE framework suggests that this is the last indicator to show weakness, and sometimes shows weakness only after the recession has started in earnest.
                     """)
+        
+        series_id = "UNRATE"
+        params = {
+            "series_id": series_id,
+            "api_key": api_key,
+            "file_type": "json",
+            "observation_start": "2004-01-01", 
+        }
+
+        # Make the API request
+        response = requests.get(url, params=params)
+
+        # Check if the request was successful (status code 200)
+        if response.status_code == 200:
+            data = response.json()
+            
+            # Extract the data and create a DataFrame
+            data = data["observations"]
+            df = pd.DataFrame(data)
+            
+            df["date"] = pd.to_datetime(df["date"])
+            
+            df["value"] = pd.to_numeric(df["value"], errors="coerce").round(2)
+            
+            df["percent_change"] = df["value"].pct_change() * 100
+            
+            # Calculate the 2 standard deviation confidence interval
+            std_dev = df["percent_change"].std()
+            df["upper_std_dev"] = df["percent_change"] + 2 * std_dev
+            df["lower_std_dev"] = df["percent_change"] - 2 * std_dev 
+
+            # Create a Plotly figure
+            fig = go.Figure()
+            
+            # Add the percent change line
+            fig.add_trace(go.Scatter(x=df["date"], y=df["percent_change"], mode='lines', name='Percent Change'))
+            
+            
+            # Add a zero line
+            fig.add_trace(go.Scatter(
+                x=[df["date"].min(), df["date"].max()],
+                y=[0, 0],
+                mode='lines',
+                line=dict(color='orange', dash='dash'),
+                name='0 Line'
+            ))
+
+            # Add shaded regions for recession periods
+            recession_periods = [
+                ('2007-12-01', '2009-06-30'),  # Great Recession
+                ('2020-02-01', '2020-11-30'),  # COVID-19 Recession
+            ]
+            for start, end in recession_periods:
+                fig.add_vrect(
+                    x0=start,
+                    x1=end,
+                    fillcolor="red",
+                    opacity=0.2,
+                    layer="below",
+                    line_width=0,
+                    name="Recession Period"
+                )
+
+            fig.update_layout(
+                title="Corporate Profits After Tax (without IVA and CCAdj) - Percent Change from Previous Data Point",
+                xaxis_title="Date",
+                yaxis_title="Percent Change",
+                xaxis_rangeslider_visible=False
+            )
+            
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            print(f"Failed to retrieve data. Status code: {response.status_code}") 
 
 
 
 
 
+
+        st.divider()
+        st.subheader("PMI")
         # Define the ISM PMI data URL
         pmi_url = "https://api.db.nomics.world/v22/series/ISM/pmi?facets=1&format=json&limit=1000&observations=1"
 
@@ -698,5 +774,6 @@ def macro_economic_page():
             file_name="GPR.csv",
             mime="text/csv",
             )
+
 
 

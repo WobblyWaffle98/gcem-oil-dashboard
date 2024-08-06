@@ -343,12 +343,7 @@ def macro_economic_page():
             tickmode='linear',        # Mode for tick placement
             tick0=df["date"].min(),   # Start tick at the minimum date
             dtick='M12',              # Major tick every year (12 months)
-            minor=dict(
-                tickmode='linear',    # Mode for minor ticks
-                dtick='M1',           # Minor tick every month
-                gridcolor='rgba(0,0,0,0.2)',  # Color of the minor grid lines
-                gridwidth=0.5         # Width of the minor grid lines
-            ))
+            )
         
             )
             

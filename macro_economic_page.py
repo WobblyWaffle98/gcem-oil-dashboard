@@ -306,7 +306,7 @@ def macro_economic_page():
                 y=[0, 0],
                 mode='lines',
                 line=dict(color='orange', dash='dash'),
-                name='0 Line'
+                name='Zero Line'
             ))
 
             # Add shaded regions for recession periods
@@ -413,7 +413,7 @@ def macro_economic_page():
                 y=[0, 0],
                 mode='lines',
                 line=dict(color='orange', dash='dash'),
-                name='0 Line'
+                name='Zero Line'
             ))
 
             # Add shaded regions for recession periods
@@ -505,7 +505,7 @@ def macro_economic_page():
                 y=[0, 0],
                 mode='lines',
                 line=dict(color='orange', dash='dash'),
-                name='0 Line'
+                name='Zero Line'
             ))
 
             # Add shaded regions for recession periods

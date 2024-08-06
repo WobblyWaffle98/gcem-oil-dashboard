@@ -236,7 +236,7 @@ def macro_economic_page():
         col1, col2 = st.columns(2)
 
         with col1:
-            st.subheader("Housing")
+            st.subheader("1. Housing")
             st.write(""""
                      The housing market is a crucial component of the economy, as it impacts consumer spending, construction activity, and overall economic sentiment. 
                      The Case-Shiller Home Price Index is a widely recognized U.S. housing market indicator that tracks changes in residential real estate prices.
@@ -244,9 +244,8 @@ def macro_economic_page():
                      Within the HOPE framework, it tends to be the earliest indicator to turn negative hence serves as a leading indicator. 
                      """)
             
-
-            st.divider()
-            st.subheader("New Orders")
+        with col2:
+            st.subheader("4. Orders")
             st.write(""""
                      New orders for durable goods and manufacturing indicate future production activity. 
                      An increase in new orders suggests that businesses are experiencing higher demand and are preparing to increase production, which is a positive sign for economic growth.
@@ -255,8 +254,11 @@ def macro_economic_page():
                      The HOPE framework indicates that it will be the next indicator to show a downturn after housing.
                      """)
             
-        with col2:
-            st.subheader("Corporate Profits")
+        st.divider()
+
+        col3, col4 = st.columns(2)
+        with col3:
+            st.subheader("3. Profits")
             st.write(""""
                      Corporate profits reflect the financial health of companies and their ability to invest, hire, and expand. Rising profits typically lead to increased business investment and hiring, supporting economic growth.
                      Corporate Profits After Tax is a critical economic metric provided by the U.S. Federal Reserve. It quantifies the net profits of corporations after deducting taxes with some adjustments. 
@@ -264,9 +266,8 @@ def macro_economic_page():
                      It serves as a significant indicator of corporate financial performance, economic vitality, and investment potential and is the third economic indicator in the HOPE indicator sequence
                      """)
             
-
-            st.divider()
-            st.subheader("Employment")
+        with col4:
+            st.subheader("4. Employment")
             st.write(""""
                     Employment levels are a direct measure of economic health. High employment means more people have income to spend, which drives consumer demand and overall economic activity. Conversely, rising unemployment can signal economic distress.
                     The Unemployment Rate is a key economic indicator that measures the percentage of the labor force that is unemployed and actively seeking employment. It provides insights into a country’s economic health and labor market conditions. 

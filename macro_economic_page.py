@@ -242,7 +242,9 @@ def macro_economic_page():
         st.subheader("1. Housing")
         st.write("""
                     The housing market is a crucial component of the economy, as it impacts consumer spending, construction activity, and overall economic sentiment. 
-                    The Case-Shiller Home Price Index is a widely recognized U.S. housing market indicator that tracks changes in residential real estate prices.
+                    The Case-Shiller Home Price Index is a widely recognized U.S. housing market indicator that tracks changes in residential real estate prices. On the other hand, the National Association of Home Builders (NAHB) Housing Market Index (HMI) rates the relative level of current and 
+                    future single-family home sales compiled from a survey of around 900 home builders while while Single-Family Starts count the number of new single-family homes under construction.
+                    A reading above 50 for the HMI indicates a favorable outlook on home sales; below indicates a negative outlook.
 
                     Within the HOPE framework, it tends to be the earliest indicator to turn negative hence serves as a leading indicator. 
                     """)
@@ -409,7 +411,7 @@ def macro_economic_page():
 
                 # Add a trace for the Single-Family Starts
                 fig.add_trace(go.Scatter(x=df['date'], y=df['Single-Family Starts'], 
-                                        mode='lines', name='Single-Family Starts'),
+                                        mode='lines', name='Single-Family Starts (Thousands of Units)'),
                                         secondary_y=True,)
                 
                 # Add shaded regions for recession periods

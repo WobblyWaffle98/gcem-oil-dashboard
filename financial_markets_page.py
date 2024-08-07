@@ -201,7 +201,9 @@ def financial_markets_page():
         )
 
         # Show the figure
-        st.plotly_chart(fig)
+        st.altair_chart(fig,use_container_width=True)
+
+        st.divider()
 
         # Streamlit app layout
         st.subheader('Correlation Matrix of Stock Markets and Brent Crude Oil Prices')

@@ -137,6 +137,72 @@ def financial_markets_page():
             
             st.plotly_chart(fig, use_container_width=True)
 
+        st.subheader("VIX index")
+
+        st.write("""
+                The VIX Index, often referred to as the "Fear Gauge," is a measure of market volatility and investor sentiment. Officially known as the CBOE Volatility Index, it is calculated and published by the Chicago Board Options Exchange (CBOE). 
+                The VIX Index represents the market's expectations of 30-day future volatility based on options prices for the S&P 500 Index (SPX).
+                 """)
+
+        # Define the start date 5 years ago
+        end_date = datetime.now()
+
+        # Download the VIX and S&P 500 data
+        vix_data = yf.download("^VIX", start='2004-01-01', end=end_date)
+        sp500_data = yf.download("^GSPC", start='2004-01-01', end=end_date)
+
+        # Create a plotly figure
+        fig = go.Figure()
+
+        # Add the VIX data to the figure
+        fig.add_trace(go.Scatter(x=vix_data.index, y=vix_data['Close'], mode='lines', name='VIX'))
+
+        # Add the S&P 500 data to the figure
+        fig.add_trace(go.Scatter(x=sp500_data.index, y=sp500_data['Close'], mode='lines', name='S&P 500', yaxis='y2'))
+
+        # Add shaded regions for recession periods
+        recession_periods = [
+            ('2007-12-01', '2009-06-30'),  # Great Recession
+            ('2020-02-01', '2020-11-30'),  # COVID-19 Recession
+        ]
+        for start, end in recession_periods:
+            fig.add_vrect(
+                x0=start,
+                x1=end,
+                fillcolor="red",
+                opacity=0.2,
+                layer="below",
+                line_width=0,
+                name="Recession Period"
+            )
+
+        # Update the layout for dual y-axes
+        fig.update_layout(
+            title="CBOE Volatility Index and S&P 500",
+            xaxis_title="Date",
+            yaxis=dict(
+                title="VIX Value",
+
+            ),
+            yaxis2=dict(
+                title="S&P 500 Value",
+
+                overlaying='y',
+                side='right'
+            ),
+            legend=dict(
+                    orientation="h",  # Horizontal orientation
+                    yanchor="top",    # Position at the top
+                    y=-0.2,           # Move below the plot
+                    xanchor="center", # Center horizontally
+                    x=0.5)
+                    # Center horizontally
+            
+        )
+
+        # Show the figure
+        st.plotly_chart(fig)
+
         # Streamlit app layout
         st.subheader('Correlation Matrix of Stock Markets and Brent Crude Oil Prices')
 

@@ -185,6 +185,13 @@ def fundamentals_page():
             st.plotly_chart(fig2)
             st.plotly_chart(fig2q)
 
+        st.subheader("Other Supply-Demand Balances")
+        st.write("""
+        1. (The OPEC Monthly Oil Market Report (MOMR) )[https://www.opec.org/opec_web/en/publications/338.htm] covers major issues affecting the world oil market and provides an outlook for crude oil market developments for the coming year. 
+        The report provides a detailed analysis of key developments impacting oil market trends in world oil demand, supply as well as the oil market balance.
+
+        """)
+
 
 #####################################
     with tab2:

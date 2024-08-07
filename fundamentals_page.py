@@ -189,6 +189,9 @@ def fundamentals_page():
         st.write("""
         1. The [OPEC Monthly Oil Market Report (MOMR)](https://www.opec.org/opec_web/en/publications/338.htm) covers major issues affecting the world oil market and provides an outlook for crude oil market developments for the coming year. 
         The report provides a detailed analysis of key developments impacting oil market trends in world oil demand, supply as well as the oil market balance.
+        
+        2. The [IEA Oil Market Report (OMR)](https://www.iea.org/energy-system/fossil-fuels/oil)is one of the world's most authoritative and timely sources of data, forecasts and analysis on the global oil market – 
+        including detailed statistics and commentary on oil supply, demand, inventories, prices and refining activity, as well as oil trade for IEA and selected non-IEA countries.
 
         """)
 

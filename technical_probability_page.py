@@ -215,10 +215,10 @@ def technical_probability_page():
                 st.divider()
                 st.metric(label="Quantile (30%)", value=round(np.percentile(price_list, 30), 2))
                 st.metric(label="Quantile (80%)", value=round(np.percentile(price_list, 80), 2))
-                st.metric(label=f"Lower VaR (1% confidence level)", value=round(var_3, 2))
-                st.metric(label=f"Lower VaR (5% confidence level)", value=round(var, 2))
-                st.metric(label=f"Upper VaR (95% confidence level)", value=round(var_2, 2))
-                st.metric(label=f"Upper VaR (99% confidence level)", value=round(var_4, 2))
+                st.metric(label=f"1% confidence level", value=round(var_3, 2))
+                st.metric(label=f"5% confidence level", value=round(var, 2))
+                st.metric(label=f"95% confidence level", value=round(var_2, 2))
+                st.metric(label=f"99% confidence level", value=round(var_4, 2))
             
             #############################################
             col4, col5 = st.columns(2)
@@ -405,10 +405,10 @@ def technical_probability_page():
                 st.divider()
                 st.metric(label="Quantile (30%)", value=round(np.percentile(price_list_monthly, 30), 2))
                 st.metric(label="Quantile (80%)", value=round(np.percentile(price_list_monthly, 80), 2))
-                st.metric(label=f"Lower VaR (1% confidence level)", value=round(var_3, 2))
-                st.metric(label=f"Lower VaR (5% confidence level)", value=round(var, 2))
-                st.metric(label=f"Upper VaR (95% confidence level)", value=round(var_2, 2))
-                st.metric(label=f"Upper VaR (99% confidence level)", value=round(var_4, 2))
+                st.metric(label=f"1% confidence level", value=round(var_3, 2))
+                st.metric(label=f"5% confidence level", value=round(var, 2))
+                st.metric(label=f"95% confidence level", value=round(var_2, 2))
+                st.metric(label=f"99% confidence level", value=round(var_4, 2))
             
             #############################################
             col4, col5 = st.columns(2)

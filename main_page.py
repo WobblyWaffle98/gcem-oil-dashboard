@@ -20,6 +20,9 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 def main_page():
 
+    # Streamlit app layout
+    st.set_page_config(page_title="Oil Indicator Dashboard", layout="wide",page_icon=r'Images\Theta_icon_changed.png')
+
     st.write("""
     Welcome to the GECM Oil Indicator Dashboard! This is the main page where you can find upcoming economic events and current market prices for various commodities. 
 

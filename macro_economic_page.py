@@ -14,6 +14,10 @@ from plotly.subplots import make_subplots
 
 
 def macro_economic_page():
+
+    # Streamlit app layout
+    st.set_page_config(page_title="Oil Indicator Dashboard", layout="wide",page_icon=r'Images\Theta_icon_changed.png')
+    
     st.header("Macro-economic Indicators")
     # Add macro-economic page specific code hedre
 

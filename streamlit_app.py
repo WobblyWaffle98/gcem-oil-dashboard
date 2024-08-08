@@ -6,7 +6,7 @@ from financial_markets_page import financial_markets_page
 from technical_probability_page import technical_probability_page
 
 # Streamlit app layout
-st.set_page_config(page_title="Oil Indicator Dashboard", layout="wide")
+st.set_page_config(page_title="Oil Indicator Dashboard", layout="wide",page_icon='Images\Theta_icon_changed.png')
 
 # Streamlit app title
 st.title("GCEM Oil Indicator Dashboard")

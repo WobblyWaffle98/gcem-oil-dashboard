@@ -16,8 +16,7 @@ from prettytable import PrettyTable
 # Suppress SSL verification warnings
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-# Streamlit app layout
-st.set_page_config(page_title="Oil Indicator Dashboard", layout="wide",page_icon=r'Images\Theta_icon_changed.png')
+
 
 
 

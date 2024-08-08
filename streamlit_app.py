@@ -10,8 +10,12 @@ from technical_probability_page import technical_probability_page
 # Streamlit app title
 st.title("GCEM Oil Indicator Dashboard")
 
+# Streamlit app layout
+st.set_page_config(page_title="Oil Indicator Dashboard", layout="wide",page_icon=r'Images\Theta_icon_changed.png')
+
 # Sidebar for navigation
 st.sidebar.title("Navigation")
+st.sidebar.image(r'Images\Theta_icon_changed.png')
 page = st.sidebar.radio("Go to", ["Main", "Macro-economic", "Fundamentals", "Financial Markets", "Technical and Probability Analysis"])
 
 # Render selected page

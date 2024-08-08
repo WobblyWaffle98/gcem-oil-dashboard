@@ -761,7 +761,7 @@ def macro_economic_page():
 
 
 
-    with tab4:
+    with tab3:
         # Define your FRED API key (replace with your actual API key)
         api_key = "0ba1761f1d82d23194c202620bb7d7f9"
 
@@ -849,7 +849,7 @@ def macro_economic_page():
         )
 
         # Show the plot
-        st.plotly_chart(fig)
+        st.plotly_chart(fig,use_container_width=True)
 
 
 

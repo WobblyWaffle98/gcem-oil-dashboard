@@ -762,6 +762,14 @@ def macro_economic_page():
 
 
     with tab3:
+        st.subheader("SAHM indicator")
+        st.write(
+        """
+        Sahm Recession Indicator signals the start of a recession when the three-month moving average of the national unemployment rate (U3) rises by 0.50 percentage points or more relative to the minimum of the three-month averages from the previous 12 months.
+        This indicator aims to provide timely warnings of economic downturns, offering a more immediate gauge of recession risk compared to traditional methods.
+        """
+
+        )
         # Define your FRED API key (replace with your actual API key)
         api_key = "0ba1761f1d82d23194c202620bb7d7f9"
 

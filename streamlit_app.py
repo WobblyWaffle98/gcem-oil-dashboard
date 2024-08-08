@@ -7,7 +7,7 @@ from technical_probability_page import technical_probability_page
 
 
 # Streamlit app layout
-st.set_page_config(page_title="Oil Indicator Dashboard", layout="wide",page_icon=r'Images\Theta_icon_changed.png')
+st.set_page_config(page_title="Oil Indicator Dashboard", layout="wide",page_icon=r'Images/Theta_icon_changed.png')
 # Streamlit app title
 st.title("GCEM Oil Indicator Dashboard")
 

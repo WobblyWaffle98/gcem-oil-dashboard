@@ -20,7 +20,7 @@ def macro_economic_page():
     st.header("Macro-economic Indicators")
     # Add macro-economic page specific code hedre
 
-    tab1, tab2, tab3 = st.tabs(['Global data','HOPE Analysis','Geopolitical Risk'],)
+    tab1, tab2, tab3, tab4 = st.tabs(['Global data','HOPE Analysis','Recession','Geopolitical Risk'],)
 
     with tab1:
         def news_verification():
@@ -761,11 +761,100 @@ def macro_economic_page():
 
 
 
+    with tab4:
+        # Define your FRED API key (replace with your actual API key)
+        api_key = "0ba1761f1d82d23194c202620bb7d7f9"
+
+        # Function to get data from FRED
+        def get_fred_data(series_id, api_key):
+            url = f"https://api.stlouisfed.org/fred/series/observations"
+            params = {
+                "series_id": series_id,
+                "api_key": api_key,
+                "file_type": "json",
+                "observation_start": "2000-01-01"
+            }
+            response = requests.get(url, params=params)
+            if response.status_code == 200:
+                data = response.json()["observations"]
+                df = pd.DataFrame(data)
+                df["date"] = pd.to_datetime(df["date"])
+                df["value"] = pd.to_numeric(df["value"], errors="coerce")
+                return df
+            else:
+                print(f"Failed to retrieve data for {series_id}. Status code: {response.status_code}")
+                return pd.DataFrame()
+
+        # Get Sahm Rule Recession Indicator data
+        sahm_df = get_fred_data("SAHMREALTIME", api_key)
+
+        # Get US Recession Dates data
+        usrecd_df = get_fred_data("USRECD", api_key)
+
+        # Create the plot with secondary y-axis
+        fig = make_subplots(specs=[[{"secondary_y": True}]])
+
+        # Add the line trace for the real-time Sahm Rule Recession Indicator
+        fig.add_trace(
+            go.Scatter(x=sahm_df["date"], y=sahm_df["value"], mode='lines', name='Real-time Sahm Rule Recession Indicator'),
+            secondary_y=False,
+        )
+
+        # Add the US Recession Dates data as a filled area on the secondary y-axis
+        fig.add_trace(
+            go.Scatter(
+                x=usrecd_df["date"], y=usrecd_df["value"],
+                mode='lines', name='US Recession Dates',
+                line=dict(color='rgba(255, 102, 102, 0.5)'),
+                fill='tozeroy',
+                fillcolor='rgba(255, 102, 102, 0.5)',
+            ),
+            secondary_y=True,
+        )
+
+        # Add the horizontal line as a trace on the primary y-axis
+        fig.add_trace(
+            go.Scatter(
+                x=[sahm_df["date"].min(), sahm_df["date"].max()],
+                y=[0.5, 0.5],
+                mode="lines",
+                line=dict(color="Red", width=2, dash="dash"),
+                name="Threshold Line"
+            ),
+            secondary_y=False,
+        )
+
+        # Update layout
+        fig.update_layout(
+            title="Real-time Sahm Rule Recession Indicator with US Recession Dates",
+            xaxis_title="Date",
+            yaxis_title="Sahm Rule Indicator (% Points)",
+            yaxis2_title="US Recession Indicator",
+            xaxis_tickangle=45,
+            yaxis2=dict(showgrid=False, showticklabels=False),
+            legend=dict(
+                orientation="h",  # Horizontal orientation
+                yanchor="top",    # Position at the top
+                y=-0.2,           # Move below the plot
+                xanchor="center", # Center horizontally
+                x=0.5             # Center horizontally
+            ),
+            xaxis=dict(
+                gridcolor='rgba(0,0,0,0.2)',    # Color of the grid lines
+                gridwidth=1,                    # Width of the major grid lines
+                tickmode='linear',              # Mode for tick placement
+                tick0=sahm_df["date"].min(),    # Start tick at the minimum date
+                dtick='M12',                    # Major tick every 12 months
+            )
+        )
+
+        # Show the plot
+        st.plotly_chart(fig)
 
 
 
     
-    with tab3:
+    with tab4:
 
         st.subheader("Geopolitical Risk Daily Index")
 

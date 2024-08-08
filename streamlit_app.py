@@ -16,7 +16,7 @@ st.title("GCEM Oil Indicator Dashboard")
 # Sidebar for navigation
 
 st.sidebar.title("Navigation")
-st.sidebar.image(r'Images/Heading (1).png',width= 200)
+st.sidebar.image(r'Images/Heading (1).png',width= 1500)
 page = st.sidebar.radio("Go to", ["Main", "Macro-economic", "Fundamentals", "Financial Markets", "Technical and Probability Analysis"])
 
 # Render selected page

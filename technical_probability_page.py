@@ -12,8 +12,7 @@ import streamlit.components.v1 as components
 
 def technical_probability_page():
 
-        # Streamlit app layout
-    st.set_page_config(page_title="Oil Indicator Dashboard", layout="wide",page_icon=r'Images\Theta_icon_changed.png')
+
     st.header("Technical and Probability Analysis")
 
     

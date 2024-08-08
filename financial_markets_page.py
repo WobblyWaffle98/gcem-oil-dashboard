@@ -13,8 +13,7 @@ import streamlit.components.v1 as components
 
 
 def financial_markets_page():
-    # Streamlit app layout
-    st.set_page_config(page_title="Oil Indicator Dashboard", layout="wide",page_icon=r'Images\Theta_icon_changed.png')
+
 
     st.header("Financial Market Indicators")
     # Add financial markets page specific code here

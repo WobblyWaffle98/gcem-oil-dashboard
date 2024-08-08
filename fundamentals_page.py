@@ -16,8 +16,6 @@ from dateutil.relativedelta import relativedelta
 
 def fundamentals_page():
 
-        # Streamlit app layout
-    st.set_page_config(page_title="Oil Indicator Dashboard", layout="wide",page_icon=r'Images\Theta_icon_changed.png')
     st.header("Fundamental Indicators")
     # Add fundamentals page specific code here
 

@@ -13,10 +13,9 @@ def displayLocalGIF2(placeholder, localImagePath, caption):
     imgFile.close()
     
     # Define CSS styles for the container and caption
-    container_style = (
-        "position: relative;"       # Enable relative positioning
-        "display: inline-block;"    # Display as inline-block to align with placeholder
-    )
+    # Define CSS styles
+    container_style = "max-width: 100%; text-align: center; margin: auto;"
+    caption_style = "font-size: 14px; color: #555; margin-top: 10px;"
     
     caption_style = (
         "font-size: 14px;"      # Adjust the font size as needed
@@ -24,11 +23,16 @@ def displayLocalGIF2(placeholder, localImagePath, caption):
         "text-align: center;"   # Center the caption text
     )
     
-    # Display the GIF and caption with positioning relative to the placeholder
-    placeholder.markdown(f"""<div style="{container_style}">
-                    <img src="data:image/gif;base64,{imgData}" >
-                    <p style="{caption_style}">{caption}</p>
-                    </div>""", unsafe_allow_html=True)
+    # Display the GIF and caption within the placeholder
+    placeholder.markdown(
+        f"""
+        <div style="{container_style}">
+            <img src="data:image/gif;base64,{imgData}" style="width: 100%; height: auto;">
+            <p style="{caption_style}">{caption}</p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
     
 
 

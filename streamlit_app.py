@@ -45,7 +45,7 @@ st.set_page_config(page_title="Oil Indicator Dashboard", layout="wide",page_icon
 st.title("GCEM Oil Indicator Dashboard")
 image_placeholder2 = st.empty()
 imagePath2 = "Images/GCEM.gif"
-displayLocalGIF2(image_placeholder2, imagePath2,"Local Image")
+displayLocalGIF2(image_placeholder2, imagePath2,"")
 
 
 

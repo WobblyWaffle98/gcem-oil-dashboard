@@ -44,7 +44,7 @@ st.set_page_config(page_title="Oil Indicator Dashboard", layout="wide",page_icon
 # Streamlit app title
 st.title("GCEM Oil Indicator Dashboard")
 image_placeholder2 = st.empty()
-imagePath2 = "Images/GCEM.gif"
+imagePath2 = "Images/DASHBOARD_GIF.gif
 displayLocalGIF2(image_placeholder2, imagePath2,"")
 
 

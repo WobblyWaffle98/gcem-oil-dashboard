@@ -43,7 +43,7 @@ def displayLocalGIF2(placeholder, localImagePath, caption):
 st.set_page_config(page_title="Oil Indicator Dashboard", layout="wide",page_icon=r'Images/Theta_icon_changed.png')
 # Streamlit app title
 image_placeholder2 = st.empty()
-imagePath2 = "Images/DASHBOARD_GIF_optimized.gif"
+imagePath2 = "Images/DASHBOARD_GIF_2optimized.gif"
 displayLocalGIF2(image_placeholder2, imagePath2,"")
 
 

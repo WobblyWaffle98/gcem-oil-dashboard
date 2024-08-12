@@ -12,11 +12,12 @@ import os, sys
 from urllib.request import urlopen, Request
 from bs4 import BeautifulSoup
 from prettytable import PrettyTable
+import base64
 
 # Suppress SSL verification warnings
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-import base64
+
 
 def displayLocalGIF2(placeholder, localImagePath, caption):
     imgFile  = open(localImagePath, "rb")

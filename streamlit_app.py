@@ -6,13 +6,8 @@ from financial_markets_page import financial_markets_page
 from technical_probability_page import technical_probability_page
 
 
-
-
-
 # Streamlit app layout
 st.set_page_config(page_title="Oil Indicator Dashboard", layout="wide",page_icon=r'Images/Theta_icon_changed.png')
-
-
 
 
 # Sidebar for navigation

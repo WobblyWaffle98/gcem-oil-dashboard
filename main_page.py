@@ -130,6 +130,10 @@ def main_page():
 
         
         components.html(investing_calendar, height=800, scrolling=False)
+        st.markdown(
+        "<p style='text-align: right;'>Text_content</p>",
+        unsafe_allow_html=True
+)
 
     with col2:
         

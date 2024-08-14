@@ -130,10 +130,24 @@ def main_page():
 
         
         components.html(investing_calendar, height=800, scrolling=False)
-        st.markdown(
-        "<p style='text-align: right;'>Text_content</p>",
-        unsafe_allow_html=True
-)
+
+        # Import IBM Plex Sans font
+        st.markdown("""
+            <style>
+            @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+            body {
+                font-family: 'IBM Plex Sans', sans-serif;
+            }
+            .right-align {
+                text-align: right;
+                font-family: 'IBM Plex Sans', sans-serif;
+            }
+            </style>
+            """, unsafe_allow_html=True)
+        
+        # Use the font with right-aligned text
+        st.markdown("<p class='right-align'>Text_content</p>", unsafe_allow_html=True)
 
     with col2:
         

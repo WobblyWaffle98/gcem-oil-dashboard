@@ -139,15 +139,15 @@ def main_page():
             body {
                 font-family: 'IBM Plex Sans', sans-serif;
             }
-            .right-align {
-                text-align: right;
+            .left-align {
+                text-align: left;
                 font-family: 'IBM Plex Sans', sans-serif;
             }
             </style>
             """, unsafe_allow_html=True)
         
         # Use the font with right-aligned text
-        st.markdown("<p class='right-align'>Text_content</p>", unsafe_allow_html=True)
+        st.markdown("<p class='left-align'>source: Investing.com</p>", unsafe_allow_html=True)
 
     with col2:
         

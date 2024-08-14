@@ -147,7 +147,7 @@ def main_page():
             """, unsafe_allow_html=True)
         
         # Use the font with right-aligned text
-        st.markdown("<p class='left-align'>source: Investing.com</p>", unsafe_allow_html=True)
+        st.markdown("<p class='left-align'>Source: Investing.com</p>", unsafe_allow_html=True)
 
     with col2:
         

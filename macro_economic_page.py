@@ -389,6 +389,8 @@ def macro_economic_page():
             )
             
             st.plotly_chart(fig, use_container_width=True)
+            # Use the font with right-aligned text
+            st.markdown("<p class='left-align'>Source: US Federal Reserves</p>", unsafe_allow_html=True)
         else:
             print(f"Failed to retrieve data. Status code: {response.status_code}")
 
@@ -492,6 +494,8 @@ def macro_economic_page():
 
                 # Show the plot
                 st.plotly_chart(fig, use_container_width=True)
+                # Use the font with right-aligned text
+                st.markdown("<p class='left-align'>Source: US National Association of Home Builders</p>", unsafe_allow_html=True)
 
         else:
             print("No <li> element with the specified content found.")
@@ -607,6 +611,8 @@ def macro_economic_page():
             )
             
             st.plotly_chart(fig, use_container_width=True)
+            # Use the font with right-aligned text
+            st.markdown("<p class='left-align'>Source: US Federal Reserves</p>", unsafe_allow_html=True)
         else:
             print(f"Failed to retrieve data. Status code: {response.status_code}")        
 
@@ -706,6 +712,7 @@ def macro_economic_page():
             )
             
             st.plotly_chart(fig, use_container_width=True)
+            st.markdown("<p class='left-align'>Source: US Federal Reserves</p>", unsafe_allow_html=True)
         else:
             print(f"Failed to retrieve data. Status code: {response.status_code}") 
 
@@ -791,6 +798,7 @@ def macro_economic_page():
             )
             
             st.plotly_chart(fig, use_container_width=True)
+            st.markdown("<p class='left-align'>Source: US Federal Reserves</p>", unsafe_allow_html=True)
         else:
             print(f"Failed to retrieve data. Status code: {response.status_code}") 
 

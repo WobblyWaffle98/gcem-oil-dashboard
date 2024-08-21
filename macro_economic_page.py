@@ -175,6 +175,9 @@ def macro_economic_page():
                 'Population (mil)': "{:,.0f}",
             }), height=800, hide_index=True, use_container_width=True)
 
+            # Use the font with right-aligned text
+            st.markdown("<p class='left-align'>Source: World Bank, US Federal Reserves, Central Banks, Trading Economics</p>", unsafe_allow_html=True)
+
 
             st.subheader('Bubble Chart')
             st.write("""
@@ -187,7 +190,7 @@ def macro_economic_page():
             st.plotly_chart(fig, use_container_width=True)
 
             # Use the font with right-aligned text
-            st.markdown("<p class='left-align'>Source: World Bank,US Federal Reserves, Central Banks, Trading Economics</p>", unsafe_allow_html=True)
+            st.markdown("<p class='left-align'>Source: World Bank</p>", unsafe_allow_html=True)
 
         else:
             st.error("Failed to extract data")
@@ -255,6 +258,8 @@ def macro_economic_page():
                     markers=True)
 
         st.plotly_chart(fig, use_container_width=True)
+        # Use the font with right-aligned text
+        st.markdown("<p class='left-align'>Source: World Bank</p>", unsafe_allow_html=True)
 
     with tab2:
         # Define your FRED API key (replace with your actual API key)

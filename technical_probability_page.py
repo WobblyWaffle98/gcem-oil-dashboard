@@ -12,6 +12,21 @@ import streamlit.components.v1 as components
 
 def technical_probability_page():
 
+    # Import IBM Plex Sans font
+    st.markdown("""
+        <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+        }
+        .left-align {
+            text-align: left;
+            font-family: 'IBM Plex Sans', sans-serif;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
 
     st.header("Technical and Probability Analysis")
 
@@ -91,6 +106,8 @@ def technical_probability_page():
                 """
 
         components.html(Brent_chart, height=800, scrolling=False)
+        # Use the font with right-aligned text
+        st.markdown("<p class='left-align'>Source: TradingView</p>", unsafe_allow_html=True)
 
     with tab2:
         st.subheader("Monte Carlo (Daily Prices)")

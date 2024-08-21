@@ -901,6 +901,7 @@ def macro_economic_page():
 
         # Show the plot
         st.plotly_chart(fig,use_container_width=True)
+        st.markdown("<p class='left-align'>Source: US Federal Reserves</p>", unsafe_allow_html=True)
 
 
 
@@ -1008,6 +1009,7 @@ def macro_economic_page():
 
         st.divider()
         st.plotly_chart(fig, use_container_width=True)
+        st.markdown("<p class='left-align'>Source: www.matteoiacoviello.com</p>", unsafe_allow_html=True)
 
         @st.cache_data
         def convert_df(df):

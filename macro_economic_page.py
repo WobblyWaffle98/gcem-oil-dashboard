@@ -98,8 +98,11 @@ def macro_economic_page():
             - **Current Account (%):** The current account balance as a percentage of GDP, showing net exports and income flows. *Source: Central Bank of each country*
             - **Population (Million):** The total number of people living in the country, measured in millions. *Source: World Bank*
 
-            In the table, the top three highest values for each indicator are highlighted in green, and the top three lowest values are highlighted in red. This color coding does not signify whether the values are good or bad; it is simply to visually distinguish the extremes.
+            The checkbox below highlights the top three highest values in green and the top three lowest values in red for each indicator. This color coding is purely for visual distinction and does not indicate whether the values are favorable or unfavorable.
         """)
+
+        # Toggle to activate highlighting
+        highlight_toggle = st.checkbox('Highlight Min/Max')
 
         news_data = news_verification()
 
@@ -132,8 +135,11 @@ def macro_economic_page():
                 df[column] = df[column].apply(format_number)
                 df[column] = pd.to_numeric(df[column], errors='coerce')
 
-            # Apply highlighting
-            df_styled = df.style.apply(highlight_extremes, subset=numeric_columns, axis=0)
+            # Apply highlighting based on the toggle
+            if highlight_toggle:
+                df_styled = df.style.apply(highlight_extremes, subset=numeric_columns, axis=0)
+            else:
+                df_styled = df  # No styling applied
             
             # Display DataFrame with formatting
             st.dataframe(df_styled.format({

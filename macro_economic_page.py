@@ -86,6 +86,21 @@ def macro_economic_page():
         # No-op function (does nothing)
         def no_op(s):
             return ['' for _ in s]
+        
+        # Import IBM Plex Sans font
+        st.markdown("""
+            <style>
+            @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+            body {
+                font-family: 'IBM Plex Sans', sans-serif;
+            }
+            .left-align {
+                text-align: left;
+                font-family: 'IBM Plex Sans', sans-serif;
+            }
+            </style>
+            """, unsafe_allow_html=True)
 
         # Streamlit layout
         st.subheader("Economic Indicators Snapshot")
@@ -170,6 +185,9 @@ def macro_economic_page():
                             title='GDP, GDP Growth, and Population by Country',
                             labels={'GDP (USD Bil)': 'GDP (USD Billion)', 'GDP Annualized QoQ Growth (%)': 'GDP Growth (%)', 'Population (mil)': 'Population (Million)'})
             st.plotly_chart(fig, use_container_width=True)
+
+            # Use the font with right-aligned text
+            st.markdown("<p class='left-align'>Source: World Bank,US Federal Reserves, Central Banks, Trading Economics</p>", unsafe_allow_html=True)
 
         else:
             st.error("Failed to extract data")

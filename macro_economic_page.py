@@ -138,8 +138,7 @@ def macro_economic_page():
             # Apply highlighting based on the toggle
             if highlight_toggle:
                 df_styled = df.style.apply(highlight_extremes, subset=numeric_columns, axis=0)
-            else:
-                df_styled = df_styled  # No styling applied
+            
             
             # Display DataFrame with formatting
             st.dataframe(df_styled.format({

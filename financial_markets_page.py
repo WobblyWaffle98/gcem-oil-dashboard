@@ -154,8 +154,7 @@ def financial_markets_page():
             fig.update_traces(hovertemplate='Value: %{z:.2f}')
             
             st.plotly_chart(fig, use_container_width=True)
-            # Use the font with right-aligned text
-            st.markdown("<p class='left-align'>Source: Yahoo Finance</p>", unsafe_allow_html=True)
+
 
         st.subheader("VIX index")
 

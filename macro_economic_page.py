@@ -82,6 +82,11 @@ def macro_economic_page():
             is_min = s.nsmallest(n).index
             return ['background-color: lightgreen' if i in is_max else 'background-color: salmon' if i in is_min else '' for i in range(len(s))]
 
+
+        # No-op function (does nothing)
+        def no_op(s):
+            return ['' for _ in s]
+
         # Streamlit layout
         st.subheader("Economic Indicators Snapshot")
 
@@ -138,6 +143,8 @@ def macro_economic_page():
             # Apply highlighting based on the toggle
             if highlight_toggle:
                 df_styled = df.style.apply(highlight_extremes, subset=numeric_columns, axis=0)
+            else:
+                df_styled = df.style.apply(no_op, subset=numeric_columns, axis=0)
             
             
             # Display DataFrame with formatting

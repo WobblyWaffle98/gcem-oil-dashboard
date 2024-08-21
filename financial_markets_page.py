@@ -13,6 +13,20 @@ import streamlit.components.v1 as components
 
 
 def financial_markets_page():
+    # Import IBM Plex Sans font
+    st.markdown("""
+        <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+        }
+        .left-align {
+            text-align: left;
+            font-family: 'IBM Plex Sans', sans-serif;
+        }
+        </style>
+        """, unsafe_allow_html=True)
 
 
     st.header("Financial Market Indicators")
@@ -87,6 +101,8 @@ def financial_markets_page():
             ''')
 
         components.html(Equities_overview, height=500, scrolling=False)
+        # Use the font with right-aligned text
+        st.markdown("<p class='left-align'>Source: TradingView</p>", unsafe_allow_html=True)
 
         st.divider()
 
@@ -138,6 +154,8 @@ def financial_markets_page():
             fig.update_traces(hovertemplate='Value: %{z:.2f}')
             
             st.plotly_chart(fig, use_container_width=True)
+            # Use the font with right-aligned text
+            st.markdown("<p class='left-align'>Source: Yahoo Finance</p>", unsafe_allow_html=True)
 
         st.subheader("VIX index")
 
@@ -204,6 +222,8 @@ def financial_markets_page():
 
         # Show the figure
         st.plotly_chart(fig,use_container_width=True)
+        # Use the font with right-aligned text
+        st.markdown("<p class='left-align'>Source: Yahoo Finance</p>", unsafe_allow_html=True)
 
         st.divider()
 
@@ -221,6 +241,8 @@ def financial_markets_page():
 
         # Fetch data and plot correlation matrix
         fetch_and_plot_correlation(period)
+        # Use the font with right-aligned text
+        st.markdown("<p class='left-align'>Source: Yahoo Finance</p>", unsafe_allow_html=True)
 
     with tab2:
 

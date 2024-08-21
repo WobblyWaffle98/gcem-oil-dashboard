@@ -347,6 +347,7 @@ def financial_markets_page():
 
         # Show the plot
         st.plotly_chart(fig, use_container_width=True)
+        st.markdown("<p class='left-align'>Source: US Treasury</p>", unsafe_allow_html=True)
 
 
     with tab3:
@@ -414,6 +415,7 @@ def financial_markets_page():
             st.subheader('FX Latest Cross Rates')
             
             components.html(FX_chart, height=500, scrolling=False)
+            st.markdown("<p class='left-align'>Source: TradingView</p>", unsafe_allow_html=True)
 
         with col2:
             FX_chart = """
@@ -473,6 +475,7 @@ def financial_markets_page():
 
             st.subheader('FX Daily Percentage Change')
             components.html(FX_chart, height=500, scrolling=False)
+            st.markdown("<p class='left-align'>Source: TradingView</p>", unsafe_allow_html=True)
 
         # Define the FX ticker symbols and their corresponding names
         fx_tickers = {
@@ -535,6 +538,7 @@ def financial_markets_page():
 
         # Fetch data and plot correlation matrix
         fetch_and_plot_fx_correlation(fx_period)
+        st.markdown("<p class='left-align'>Source: Yahoo Finance</p>", unsafe_allow_html=True)
 
      # Function to plot time series of DXY and Brent
         def plot_time_series():
@@ -591,3 +595,5 @@ def financial_markets_page():
 
         # Plot time series and rolling correlation
         plot_time_series()
+        st.markdown("<p class='left-align'>Source: Yahoo Finance</p>", unsafe_allow_html=True)
+        

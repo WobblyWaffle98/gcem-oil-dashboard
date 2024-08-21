@@ -314,6 +314,7 @@ def financial_markets_page():
         fig = go.Figure(data=traces, layout=layout)
 
         st.plotly_chart(fig, use_container_width=True)
+        st.markdown("<p class='left-align'>Source: US Treasury</p>", unsafe_allow_html=True)
 
         #########################
 

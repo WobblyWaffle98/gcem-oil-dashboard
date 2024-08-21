@@ -16,6 +16,21 @@ from dateutil.relativedelta import relativedelta
 
 def fundamentals_page():
 
+    # Import IBM Plex Sans font
+    st.markdown("""
+        <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+        }
+        .left-align {
+            text-align: left;
+            font-family: 'IBM Plex Sans', sans-serif;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
     st.header("Fundamental Indicators")
     # Add fundamentals page specific code here
 
@@ -99,6 +114,7 @@ def fundamentals_page():
             template='plotly_white'
         )
 
+
         # Create the second plot for Oversupply/Undersupply
         fig2 = go.Figure()
         fig2.add_trace(go.Bar(x=df['Year'], y=df['Oversupply/Undersupply'], name='Oversupply/Undersupply', 
@@ -109,6 +125,7 @@ def fundamentals_page():
             xaxis_title='Year',
             yaxis_title='Volume (million barrels per day)',
         )
+
 
         params_template = {
         "api_key": api_key,
@@ -164,6 +181,7 @@ def fundamentals_page():
             template='plotly_white'
         )
 
+
         # Create the second plot for Oversupply/Undersupply
         fig2q = go.Figure()
         fig2q.add_trace(go.Bar(x=df['Period'], y=df['Oversupply/Undersupply'], name='Oversupply/Undersupply',
@@ -180,11 +198,19 @@ def fundamentals_page():
         # Show the DataFrame and the plots
         with col1:
             st.plotly_chart(fig1)
+            # Use the font with right-aligned text
+            st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
             st.plotly_chart(fig1q)
+            # Use the font with right-aligned text
+            st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
         
         with col2:
             st.plotly_chart(fig2)
+            # Use the font with right-aligned text
+            st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
             st.plotly_chart(fig2q)
+            # Use the font with right-aligned text
+            st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
 
         st.subheader("Other sources of Supply-Demand Balances")
         st.write("""

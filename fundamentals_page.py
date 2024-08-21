@@ -295,6 +295,7 @@ def fundamentals_page():
             )
             
             st.plotly_chart(fig_monthly)
+            st.markdown("<p class='left-align'>Source: Yahoo Finance</p>", unsafe_allow_html=True)
         with col2:
             # Plotly heatmap for quarter-on-quarter change
             fig_quarterly = go.Figure(data=go.Heatmap(
@@ -315,6 +316,7 @@ def fundamentals_page():
             )
             
             st.plotly_chart(fig_quarterly)
+            st.markdown("<p class='left-align'>Source: Yahoo Finance</p>", unsafe_allow_html=True)
 
         #####################
 
@@ -365,6 +367,7 @@ def fundamentals_page():
                 xaxis=dict(tickmode='array', tickvals=list(range(1, 13)), ticktext=['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'])
             )
             st.plotly_chart(fig, use_container_width=True)
+            st.markdown("<p class='left-align'>Source: Yahoo Finance</p>", unsafe_allow_html=True)
 
         # Call the update plot function with the initial period value
         update_plot(period)
@@ -468,6 +471,7 @@ def fundamentals_page():
         )
 
         st.plotly_chart(fig, use_container_width=True)
+        st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
 
         @st.cache_data
         def convert_df(df):
@@ -582,6 +586,7 @@ def fundamentals_page():
         
 
         st.plotly_chart(fig, use_container_width=True)
+        st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
 
         st.divider()
 
@@ -749,6 +754,7 @@ def fundamentals_page():
         )
 
         st.plotly_chart(fig, use_container_width=True)
+        st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
 
         @st.cache_data
         def convert_df(df):
@@ -997,7 +1003,9 @@ def fundamentals_page():
             latest_value, wow_percentage_change, wow_change = calculate_latest_and_wow_percentage(series_data['WCESTUS1'])
             # Plot for 'U.S. Ending Stocks excluding SPR of Crude Oil'
             plot_series('WCESTUS1', 'U.S. Crude Oil Inventory')
+            st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
             plot_inventory_levels('WCESTUS1', 'U.S. Crude Oil Inventory')
+            st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
             
 
         with col7:
@@ -1005,7 +1013,9 @@ def fundamentals_page():
             
             # Plot for 'U.S. Ending Stocks of Total Gasoline'
             plot_series('WGTSTUS1', 'U.S. Gasoline Inventory')
+            st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
             plot_inventory_levels('WGTSTUS1', 'U.S. Gasoline Inventory')
+            st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
             
 
         with col8:
@@ -1013,7 +1023,9 @@ def fundamentals_page():
            
             # Plot for 'U.S. Ending Stocks of Distillate Fuel Oil'
             plot_series('WDISTUS1', 'U.S. Distillate Inventory')
+            st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
             plot_inventory_levels('WDISTUS1', 'U.S. Distillate Inventory')
+            st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
         
         st.divider()
 
@@ -1030,15 +1042,18 @@ def fundamentals_page():
         with col9:
             latest_value, wow_percentage_change, wow_change = calculate_latest_and_wow_percentage(series_data['WCESTUS1'])
             st.plotly_chart(figs['fig1'], use_container_width=True)
+            st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
 
         with col10:
             latest_value, wow_percentage_change, wow_change = calculate_latest_and_wow_percentage(series_data['WGTSTUS1'])
             st.plotly_chart(figs['fig2'], use_container_width=True)
+            st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
 
         with col11:
             latest_value, wow_percentage_change, wow_change = calculate_latest_and_wow_percentage(series_data['WDISTUS1'])
 
             st.plotly_chart(figs['fig3'], use_container_width=True)
+            st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
 
 
     with tab6:
@@ -1147,6 +1162,7 @@ def fundamentals_page():
 
 
             st.plotly_chart(figs['fig1'], use_container_width=True)
+            st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
 
 
 

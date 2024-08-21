@@ -197,18 +197,18 @@ def fundamentals_page():
         col1, col2= st.columns(2)
         # Show the DataFrame and the plots
         with col1:
-            st.plotly_chart(fig1)
+            st.plotly_chart(fig1,use_container_width=True)
             # Use the font with right-aligned text
             st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
-            st.plotly_chart(fig1q)
+            st.plotly_chart(fig1q,use_container_width=True)
             # Use the font with right-aligned text
             st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
         
         with col2:
-            st.plotly_chart(fig2)
+            st.plotly_chart(fig2,use_container_width=True)
             # Use the font with right-aligned text
             st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
-            st.plotly_chart(fig2q)
+            st.plotly_chart(fig2q,use_container_width=True)
             # Use the font with right-aligned text
             st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
 

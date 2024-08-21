@@ -294,7 +294,7 @@ def fundamentals_page():
                 yaxis_title='Year',
             )
             
-            st.plotly_chart(fig_monthly)
+            st.plotly_chart(fig_monthly,use_container_width=True)
             st.markdown("<p class='left-align'>Source: Yahoo Finance</p>", unsafe_allow_html=True)
         with col2:
             # Plotly heatmap for quarter-on-quarter change
@@ -315,7 +315,7 @@ def fundamentals_page():
                 yaxis_title='Year'
             )
             
-            st.plotly_chart(fig_quarterly)
+            st.plotly_chart(fig_quarterly,use_container_width=True)
             st.markdown("<p class='left-align'>Source: Yahoo Finance</p>", unsafe_allow_html=True)
 
         #####################
@@ -600,6 +600,7 @@ def fundamentals_page():
         
         
         st.plotly_chart(fig_market_share, use_container_width=True)
+        st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
 
         st.download_button(
             label="Download data as CSV",

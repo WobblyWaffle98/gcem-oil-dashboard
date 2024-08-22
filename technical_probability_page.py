@@ -135,7 +135,7 @@ def technical_probability_page():
         # Inputs for the simulation
         today = datetime.date.today()
         end_date = st.date_input("Select current date", today - datetime.timedelta(days=1), max_value=today - datetime.timedelta(days=1), key="end_date_input")
-        future_end_date = st.date_input("Select forecast date", datetime.date(2024, 12, 31), min_value= end_date + datetime.timedelta(days=1), key="future_date_input")
+        future_end_date = st.date_input("Select forecast date", datetime.date(2025, 12, 31), min_value= end_date + datetime.timedelta(days=1), key="future_date_input")
         # Streamlit slider for selecting the number of years of historical data
         years_of_data = st.slider('Select number of years of historical data:', min_value=1, max_value=10, value=10, key="years_of_data_2") 
 
@@ -319,7 +319,7 @@ def technical_probability_page():
         # Inputs for the simulation
         today = datetime.date.today()
         end_date = st.date_input("Select current date", today - datetime.timedelta(days=1), max_value=today - datetime.timedelta(days=1), key="end_date_input_2")
-        future_end_date = st.date_input("Select forecast date", datetime.date(2024, 12, 31), min_value= end_date + datetime.timedelta(days=1), key="future_date_input_2")
+        future_end_date = st.date_input("Select forecast date", datetime.date(2025, 12, 31), min_value= end_date + datetime.timedelta(days=1), key="future_date_input_2")
         # Streamlit slider for selecting the number of years of historical data
         years_of_data = st.slider('Select number of years of historical data:', min_value=1, max_value=10, value=10, key="years_of_data") 
 

@@ -39,8 +39,11 @@ def technical_probability_page():
 
         st.write(
             """
+            In this section, we have integrated a TradingView advanced chart widget to provide you with a comprehensive technical analysis of Brent crude oil prices. 
+            This interactive chart allows you to visualize price movements and apply various technical indicators by hovering over the name of the commodity and clicking the triple dots, aiding in better analysis and decision-making.
+
             The chart includes the "RSI (Relative Strength Index)" and "MACD (Moving Average Convergence Divergence)" studies, which help identify potential market trends and momentum based on historical price data. Typically, if the RSI is above 50 and the MACD is above zero, the asset is considered to have positive momentum, while an RSI below 50 and a MACD below zero indicate negative momentum. However, it's also important to look for RSI divergence, 
-            which can signal a potential reversal despite the current momentum
+            which can signal a potential reversal despite the current momentum.
             """
             )
 

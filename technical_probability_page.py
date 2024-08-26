@@ -82,7 +82,7 @@ def technical_probability_page():
                     {
                     "autosize": true,
                     "symbol": "VELOCITY:BRENT",
-                    "interval": "D",
+                    "range":"1M",
                     "timezone": "Asia/Kuala_Lumpur",
                     "theme": "dark",
                     "style": "1",
@@ -91,8 +91,9 @@ def technical_probability_page():
                     "allow_symbol_change": false,
                     "calendar": false,
                     "studies": [
-                        "STD;Pivot%1Points%1Standard"
-                
+                        "STD;MACD",
+                        "STD;RSI"
+            
                     ],
                     "hide_volume": true,
                     "support_host": "https://www.tradingview.com"

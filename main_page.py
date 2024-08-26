@@ -196,9 +196,7 @@ def main_page():
                             "withdateranges": true,
                             "allow_symbol_change": false,
                             "calendar": false,
-                            "studies": [
-                                "STD;Pivot%1Points%1High%1Low"
-                            ],
+                            
                             "hide_volume": true,
                             "support_host": "https://www.tradingview.com"
                             }
@@ -253,9 +251,7 @@ def main_page():
                             "withdateranges": true,
                             "allow_symbol_change": false,
                             "calendar": false,
-                            "studies": [
-                                "STD;Pivot%1Points%1High%1Low"
-                            ],
+
                             "hide_volume": true,
                             "support_host": "https://www.tradingview.com"
                             }
@@ -310,9 +306,7 @@ def main_page():
                             "withdateranges": true,
                             "allow_symbol_change": false,
                             "calendar": false,
-                            "studies": [
-                                "STD;Pivot%1Points%1High%1Low"
-                            ],
+
                             "hide_volume": true,
                             "support_host": "https://www.tradingview.com"
                             }

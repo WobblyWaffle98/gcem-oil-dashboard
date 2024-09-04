@@ -614,7 +614,50 @@ def macro_economic_page():
             # Use the font with right-aligned text
             st.markdown("<p class='left-align'>Source: US Federal Reserves</p>", unsafe_allow_html=True)
         else:
-            print(f"Failed to retrieve data. Status code: {response.status_code}")        
+            print(f"Failed to retrieve data. Status code: {response.status_code}")
+
+        # Define the ISM PMI data URL
+        pmi_url = "https://api.db.nomics.world/v22/series/ISM/pmi?facets=1&format=json&limit=1000&observations=1"
+
+        # Fetch the PMI data
+        response = requests.get(pmi_url)
+        response.raise_for_status()  # Check if the request was successful
+
+        # Parse the JSON response
+        json_data = response.json()
+        series = json_data.get("series", {}).get("docs", [])
+
+        # Prepare a list to hold PMI data
+        pmi_data = []
+
+        # Extract relevant information
+        if series:
+            entry = series[0]  # Since we have only one series in this response
+            years = entry.get("period", [])
+            values = entry.get("value", [])
+            
+            # Organize data into a list of dictionaries
+            for year, value in zip(years, values):
+                pmi_data.append({
+                    "Date": year,
+                    "PMI": value
+                })
+
+        # Convert the data to a pandas DataFrame
+        df_pmi = pd.DataFrame(pmi_data)
+
+        # Convert 'Date' to datetime
+        df_pmi['Date'] = pd.to_datetime(df_pmi['Date'], format='%Y-%m')
+
+        # Plot using Plotly Express
+        fig_pmi = px.line(df_pmi, x="Date", y="PMI",
+                        title="ISM PMI Data",
+                        labels={"PMI": "PMI", "Date": "Date"},
+                        markers=True)
+
+        # Show the plot
+        st.plotly_chart(fig_pmi, use_container_width=True)
+        st.markdown("<p class='left-align'>U.S. Institute of Manufacturing</p>", unsafe_allow_html=True)      
 
 
 

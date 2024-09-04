@@ -683,7 +683,7 @@ def macro_economic_page():
 
         # Show the plot
         st.plotly_chart(fig_pmi, use_container_width=True)
-        st.markdown("<p class='left-align'>U.S. Institute of Manufacturing</p>", unsafe_allow_html=True)      
+        st.markdown("<p class='left-align'>Source: U.S. Institute of Manufacturing</p>", unsafe_allow_html=True)      
 
 
 

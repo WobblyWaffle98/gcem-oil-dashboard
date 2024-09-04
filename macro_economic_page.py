@@ -674,8 +674,8 @@ def macro_economic_page():
 
         # Add a zero line
             fig_pmi.add_trace(go.Scatter(
-                x=[df["date"].min(), df["date"].max()],
-                y=[50, 0],
+                x=[df_pmi['Date'].min(), df_pmi['Date'].max()],
+                y=[50, 50],
                 mode='lines',
                 line=dict(color='orange', dash='dash'),
                 name='Zero Line'

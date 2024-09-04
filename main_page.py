@@ -326,9 +326,12 @@ def main_page():
                  """)
         st.subheader('Brent Price (Velocity)')
         components.html(Brent_chart, height=500, scrolling=False)
+        st.markdown("<p class='left-align'>Source:TradingView (Velocity)</p>", unsafe_allow_html=True)    
         st.subheader('WTI Price (NYMEX)')
         components.html(WTI_chart, height=500, scrolling=False)
+        st.markdown("<p class='left-align'>Source:TradingView (NYMEX)</p>", unsafe_allow_html=True)  
         st.subheader('Henry Hub Price (NYMEX)')
         components.html(NatGas_chart, height=500, scrolling=False)
+        st.markdown("<p class='left-align'>Source:TradingView (NYMEX)</p>", unsafe_allow_html=True)  
 
 

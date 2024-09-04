@@ -654,6 +654,21 @@ def macro_economic_page():
                         title="ISM PMI Data",
                         labels={"PMI": "PMI", "Date": "Date"},
                         markers=True)
+        
+        # Add shaded regions for recession periods
+        recession_periods = [
+            ('2020-02-01', '2020-11-30'),  # COVID-19 Recession
+        ]
+        for start, end in recession_periods:
+            fig_pmi.add_vrect(
+                x0=start,
+                x1=end,
+                fillcolor="red",
+                opacity=0.2,
+                layer="below",
+                line_width=0,
+                name="Recession Period"
+            )
 
         # Show the plot
         st.plotly_chart(fig_pmi, use_container_width=True)

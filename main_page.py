@@ -65,7 +65,7 @@ def main_page():
 
 
     st.write("""
-    Welcome to the GECM Oil Indicator Dashboard! This is the main page where you can find upcoming economic events and current market prices for various commodities. 
+    Welcome to the GCEM Oil Indicator Dashboard! This is the main page where you can find upcoming economic events and current market prices for oil and gas. 
 
     For more detailed analysis, please use the sidebar to navigate to the following sections:
 

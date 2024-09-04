@@ -507,6 +507,8 @@ def macro_economic_page():
                     An increase in new orders suggests that businesses are experiencing higher demand and are preparing to increase production, which is a positive sign for economic growth.
                     Manufacturers’ New Orders is a key economic indicator and measures the total value of new orders placed with manufacturers. It reflects the demand for goods produced by the manufacturing sector and serves as a gauge of economic health and future industrial activity. 
 
+                    Another indicator would be the US Manufacturing ISM Report On Business based on data compiled from purchasing and supply executives in the US. A PMI reading above 50 percent indicates that the manufacturing economy is generally expanding; below 50 percent indicates that it is generally declining.
+
                     The HOPE framework indicates that it will be the next indicator to show a downturn after housing.
                     """)
 
@@ -669,6 +671,15 @@ def macro_economic_page():
                 line_width=0,
                 name="Recession Period"
             )
+
+        # Add a zero line
+            fig_pmi.add_trace(go.Scatter(
+                x=[df["date"].min(), df["date"].max()],
+                y=[50, 0],
+                mode='lines',
+                line=dict(color='orange', dash='dash'),
+                name='Zero Line'
+            ))
 
         # Show the plot
         st.plotly_chart(fig_pmi, use_container_width=True)

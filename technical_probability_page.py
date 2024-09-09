@@ -75,7 +75,7 @@ def technical_probability_page():
                     <!-- TradingView Widget BEGIN -->
                 <div class="tradingview-widget-container" style="height:100%;width:100%">
                 <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
-                <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"><span class="blue-text">Track all markets on TradingView</span></a></div>
+                <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"><span class="blue-text"></span></a></div>
                 <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
                 {
                 "autosize": true,
@@ -136,7 +136,7 @@ def technical_probability_page():
                     {
                     "autosize": true,
                     "symbol": "VELOCITY:BRENT",
-                    "range":"1M",
+                    "range":"3D",
                     "timezone": "Asia/Kuala_Lumpur",
                     "theme": "dark",
                     "style": "1",
@@ -159,8 +159,10 @@ def technical_probability_page():
             </body>
             </html>
                 """
+        st.subheader("Daily Price with Pivot Points Indicator")
         components.html(Brent_chart_Pivot, height=800, scrolling=False)
         st.divider()
+        st.subheader("Intraday Price with RSI & MACD Indicator")
         components.html(Brent_chart, height=800, scrolling=False)
         # Use the font with right-aligned text
         st.markdown("<p class='left-align'>Source: TradingView</p>", unsafe_allow_html=True)

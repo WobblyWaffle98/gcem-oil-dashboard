@@ -40,11 +40,7 @@ def technical_probability_page():
         st.write(
             """
             In this section, we have integrated a TradingView advanced chart widget to provide you with a comprehensive technical analysis of Brent crude oil prices. 
-            This interactive chart allows you to visualize price movements and apply various technical indicators by hovering over the name of the commodity and clicking the triple dots, aiding in better analysis and decision-making.
-
-            The chart includes the "RSI (Relative Strength Index)" and "MACD (Moving Average Convergence Divergence)" studies, which help identify potential market trends and momentum based on historical price data. Typically, if the RSI is above 50 and the MACD is above zero, the asset is considered to have positive momentum, while an RSI below 50 and a MACD below zero indicate negative momentum. However, it's also important to look for RSI divergence, 
-            which can signal a potential reversal despite the current momentum.
-            """
+            This interactive chart allows you to visualize price movements and apply various technical indicators by hovering over the name of the commodity and clicking the triple dots, aiding in better analysis and decision-making."""
             )
 
         Brent_chart_Pivot = """
@@ -160,9 +156,22 @@ def technical_probability_page():
             </html>
                 """
         st.subheader("Daily Price with Pivot Points Indicator")
+        st.write(
+        """
+        The chart includes "Pivot Points," which are commonly used to identify potential support and resistance levels based on historical price data. Pivot points are calculated using the previous period's high, low, and close prices. If the price is trading above the main pivot point, it is generally considered to indicate bullish sentiment, while a price trading below the pivot point suggests bearish sentiment.
+
+        Additionally, traders often look at the first, second, and third support (S1, S2, S3) and resistance levels (R1, R2, R3) derived from pivot points. These levels can serve as potential price targets or areas where reversals may occur. For instance, if the price approaches a resistance level and fails to break through, it may signal a reversal to the downside. Similarly, if the price finds support at a pivot level and holds, it may indicate a potential upward movement.
+        """
+        )
         components.html(Brent_chart_Pivot, height=800, scrolling=False)
         st.divider()
         st.subheader("Intraday Price with RSI & MACD Indicator")
+        st.write(
+            """
+            The chart includes the "RSI (Relative Strength Index)" and "MACD (Moving Average Convergence Divergence)" studies, which help identify potential market trends and momentum based on historical price data. Typically, if the RSI is above 50 and the MACD is above zero, the asset is considered to have positive momentum, while an RSI below 50 and a MACD below zero indicate negative momentum. However, it's also important to look for RSI divergence, 
+            which can signal a potential reversal despite the current momentum.
+            """
+            )
         components.html(Brent_chart, height=800, scrolling=False)
         # Use the font with right-aligned text
         st.markdown("<p class='left-align'>Source: TradingView</p>", unsafe_allow_html=True)

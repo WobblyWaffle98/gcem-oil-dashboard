@@ -136,7 +136,7 @@ def technical_probability_page():
                     {
                     "autosize": true,
                     "symbol": "VELOCITY:BRENT",
-                    "range":"3D",
+                    "range":"5D",
                     "timezone": "Asia/Kuala_Lumpur",
                     "theme": "dark",
                     "style": "1",

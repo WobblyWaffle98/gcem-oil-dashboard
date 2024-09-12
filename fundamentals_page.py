@@ -34,7 +34,7 @@ def fundamentals_page():
     st.header("Fundamental Indicators")
     # Add fundamentals page specific code here
 
-    tab1, tab3, tab4, tab2, tab5, tab6 = st.tabs(["Balances", "Production", "Consumption","Seasonality", "EIA Inventory","EIA Inventory (SPR)"])
+    tab1, tab3, tab4, tab2, tab5, tab6, tabx = st.tabs(["Balances", "Production", "Consumption","Seasonality", "EIA Inventory","EIA Inventory (SPR)","Prodcution_2"])
 
     with tab1:
         st.subheader("Supply-Demand balances")
@@ -1169,6 +1169,97 @@ def fundamentals_page():
             st.plotly_chart(figs['fig1'], use_container_width=True)
             st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
 
+
+    with tabx:
+        st.subheader("World Petroleum and Other Liquid Production Components")
+
+
+        # Suppress SSL verification warnings
+        requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
+        def fetch_data(api_url, params):
+            try:
+                response = requests.get(api_url, params=params, verify=False)
+                response.raise_for_status()
+                return response.json()
+            except requests.exceptions.HTTPError as err:
+                print(f"HTTP error occurred: {err}")
+            except Exception as err:
+                print(f"An error occurred: {err}")
+            return None
+
+        api_url = 'https://api.eia.gov/v2/steo/data/'
+        api_key = 'gcp5ZkcZhaL5aCVvviD38eMtVEZXEyP28KqMHh4h'
+
+        params = {
+            "api_key": api_key,
+            "frequency": "annual",
+            "data[]": "value",
+            "start": "2000",
+            "sort[0][column]": "period",
+            "sort[0][direction]": "desc",
+            "offset": 0,
+            "length": 5000
+        }
+
+        # Fetch OPEC production data
+        params["facets[seriesId][]"] = "PAPR_OPECPLUS_OPEC"
+        data_production_OPEC = fetch_data(api_url, params)
+
+        # Fetch Non-OPEC production data
+        params["facets[seriesId][]"] = "PAPR_OPECPLUS_OTHER"
+        data_production_OPECP = fetch_data(api_url, params)
+
+        # Fetch Non-OPEC production data
+        params["facets[seriesId][]"] = "PAPR_WORLD"
+        data_production_WORLD = fetch_data(api_url, params)
+
+
+
+
+        # Extract production data
+        periods = [int(item['period']) for item in data_production_OPEC['response']['data']]
+        production_values_OPEC = [float(item['value']) for item in data_production_OPEC['response']['data']]
+        production_values_OPECP = [float(item['value']) for item in data_production_OPECP['response']['data']]
+        production_values_WORLD = [float(item['value']) for item in data_production_WORLD['response']['data']]
+
+        # Correct calculation of world production values (element-wise subtraction)
+        production_values_others = [
+            world - opecp - opec
+            for world, opecp, opec in zip(production_values_WORLD, production_values_OPECP, production_values_OPEC)
+        ]
+
+
+        # Create a stacked bar chart
+        fig = go.Figure()
+        # Add traces with raw values for the text
+        fig.add_trace(go.Bar(x=periods, y=production_values_OPEC, name='OPEC Members Production', text=production_values_OPEC, textposition='auto'))
+        fig.add_trace(go.Bar(x=periods, y=production_values_OPECP, name='OPEC+ Additional Members Production', text=production_values_OPECP, textposition='auto'))
+        fig.add_trace(go.Bar(x=periods, y=production_values_others, name='Other Production', text=production_values_others, textposition='auto'))
+
+
+        # Update traces to format the text as x.x M
+        fig.update_traces(texttemplate='%{text:.2f}', textposition='inside',textfont_color="white")
+
+        fig.update_layout(
+            title='Total World Petroleum and Other Liquid Production Breakdown',
+            xaxis_title='Year',
+            yaxis_title='Volume (million barrels per day)',
+            barmode='stack',
+        )
+
+        st.plotly_chart(fig)
+
+        st.divider()
+
+        col_OPEC,col_OPECPLUS,col_NON = st.columns(3)
+
+        with col_OPEC:
+            st.write("h")
+        with col_OPECPLUS:
+            st.write("h")
+        with col_NON:
+            st.write("h")
 
 
 

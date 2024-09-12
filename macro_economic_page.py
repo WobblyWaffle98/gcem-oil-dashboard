@@ -1095,7 +1095,7 @@ def macro_economic_page():
             x=event_dates_others,
             y=event_values_others,
             mode='markers',
-            marker=dict(size=10, color='black', symbol='circle'),
+            marker=dict(size=10, color='orange', symbol='circle'),
             hovertext=event_labels_others,
             hoverinfo='text',
             name='Other Events'

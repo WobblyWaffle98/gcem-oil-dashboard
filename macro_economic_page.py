@@ -1105,7 +1105,7 @@ def macro_economic_page():
         # Add Difference plot to the second subplot
         fig.add_trace(go.Scatter(x=df_plot['date'], y=df_plot['Difference'],
                                 mode='lines', name='Difference', line=dict(color='rgba(0, 0, 0, 0)'),
-                                fill='tozeroy', fillcolor='rgba(0, 100, 80, 0.2)'),
+                                fill='tozeroy', fillcolor='rgba(200, 50, 50, 0.3)'),
                     row=2, col=1)
 
         # Update x-axis range (last 3 years)

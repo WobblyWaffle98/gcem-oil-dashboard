@@ -219,6 +219,10 @@ def fundamentals_page():
         
         2. The [IEA Oil Market Report (OMR)](https://www.iea.org/energy-system/fossil-fuels/oil)is one of the world's most authoritative and timely sources of data, forecasts and analysis on the global oil market – 
         including detailed statistics and commentary on oil supply, demand, inventories, prices and refining activity, as well as oil trade for IEA and selected non-IEA countries.
+                 
+        3. The [Wood Mackenzie Portal] (https://my.woodmac.com/) provides comprehensive data, forecasts, and expert analysis on global oil markets. It offers in-depth insights into oil supply and demand dynamics, pricing trends, 
+        refining activities, and trade flows. Covering key regions and major players, the report delivers detailed statistics and commentary, 
+        helping industry stakeholders make informed decisions with timely and authoritative information on oil market developments.
 
         """)
 

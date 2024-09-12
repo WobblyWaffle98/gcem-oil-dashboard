@@ -1248,7 +1248,7 @@ def fundamentals_page():
             barmode='stack',
         )
 
-        st.plotly_chart(fig)
+        st.plotly_chart(fig,use_container_width=True)
 
         st.divider()
 

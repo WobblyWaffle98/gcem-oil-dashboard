@@ -858,8 +858,7 @@ def fundamentals_page():
             showlegend=True
         )
 
-        # Show the figure
-        fig.show()
+        st.plotly_chart(fig,use_container_width=True)
 
         st.divider()
         st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)

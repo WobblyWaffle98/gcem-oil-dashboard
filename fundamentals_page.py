@@ -440,11 +440,268 @@ def fundamentals_page():
             )
 
 
-            st.plotly_chart(fig)
+            st.plotly_chart(fig,use_container_width=True)
         with col_OPECPLUS:
-            st.write("h")
+            def fetch_data(api_url, params):
+                try:
+                    response = requests.get(api_url, params=params, verify=False)
+                    response.raise_for_status()
+                    return response.json()
+                except requests.exceptions.HTTPError as err:
+                    print(f"HTTP error occurred: {err}")
+                except Exception as err:
+                    print(f"An error occurred: {err}")
+                return None
+
+            api_url = 'https://api.eia.gov/v2/steo/data/'
+            api_key = 'gcp5ZkcZhaL5aCVvviD38eMtVEZXEyP28KqMHh4h'
+
+
+
+            params = {
+                "api_key": api_key,
+                "frequency": "annual",
+                "data[]": "value",
+                "start": "2000",
+                "sort[0][column]": "period",
+                "sort[0][direction]": "desc",
+                "offset": 0,
+                "length": 5000
+            }
+
+            params["facets[seriesId][]"] = "PAPR_AJ"
+            data_production_Azerbaijan = fetch_data(api_url, params)
+
+            params["facets[seriesId][]"] = "PAPR_BA"
+            data_production_Bahrain = fetch_data(api_url, params)
+
+            params["facets[seriesId][]"] = "PAPR_BX"
+            data_production_Brunei = fetch_data(api_url, params)
+
+            params["facets[seriesId][]"] = "PAPR_KZ"
+            data_production_Kazakhstan = fetch_data(api_url, params)
+
+            params["facets[seriesId][]"] = "PAPR_MY"
+            data_production_Malaysia = fetch_data(api_url, params)
+
+            params["facets[seriesId][]"] = "PAPR_MX"
+            data_production_Mexico = fetch_data(api_url, params)
+
+            params["facets[seriesId][]"] = "PAPR_MU"
+            data_production_Oman = fetch_data(api_url, params)
+
+            params["facets[seriesId][]"] = "PAPR_RS"
+            data_production_Russia = fetch_data(api_url, params)
+
+            params["facets[seriesId][]"] = "PAPR_OD"
+            data_production_South_Sudan = fetch_data(api_url, params)
+
+            params["facets[seriesId][]"] = "PAPR_SU"
+            data_production_Sudan = fetch_data(api_url, params)
+
+
+
+
+            # Extract production data
+            periods = [int(item['period']) for item in data_production_Sudan['response']['data']]
+
+            def extract_production_values(data):
+                return [float(item['value']) for item in data['response']['data']]
+
+            # Extract production values for each country
+            production_values_Azerbaijan = extract_production_values(data_production_Azerbaijan)
+            production_values_Bahrain = extract_production_values(data_production_Bahrain)
+            production_values_Brunei = extract_production_values(data_production_Brunei)
+            production_values_Kazakhstan = extract_production_values(data_production_Kazakhstan)
+            production_values_Malaysia = extract_production_values(data_production_Malaysia)
+            production_values_Mexico = extract_production_values(data_production_Mexico)
+            production_values_Oman = extract_production_values(data_production_Oman)
+            production_values_Russia = extract_production_values(data_production_Russia)
+            production_values_South_Sudan = extract_production_values(data_production_South_Sudan)
+            production_values_Sudan = extract_production_values(data_production_Sudan)
+
+
+
+            # Create a stacked bar chart
+            fig = go.Figure()
+            # Add a trace for each country
+            fig.add_trace(go.Bar(x=periods, y=production_values_Azerbaijan, name='Algeria', text=production_values_Azerbaijan))
+            fig.add_trace(go.Bar(x=periods, y=production_values_Bahrain, name='Bahrain', text=production_values_Bahrain))
+            fig.add_trace(go.Bar(x=periods, y=production_values_Brunei, name='Brunei', text=production_values_Brunei))
+            fig.add_trace(go.Bar(x=periods, y=production_values_Kazakhstan, name='Kazakhstan', text=production_values_Kazakhstan))
+            fig.add_trace(go.Bar(x=periods, y=production_values_Malaysia, name='Malaysia', text=production_values_Malaysia))
+            fig.add_trace(go.Bar(x=periods, y=production_values_Mexico, name='Mexico', text=production_values_Mexico))
+            fig.add_trace(go.Bar(x=periods, y=production_values_Oman, name='Oman', text=production_values_Oman))
+            fig.add_trace(go.Bar(x=periods, y=production_values_Russia, name='Russia', text=production_values_Russia))
+            fig.add_trace(go.Bar(x=periods, y=production_values_South_Sudan, name='South Sudan', text=production_values_South_Sudan))
+            fig.add_trace(go.Bar(x=periods, y=production_values_Sudan, name='Sudan', text=production_values_Sudan))
+
+
+            # Update traces to format the text as x.x M
+            fig.update_traces(texttemplate='%{text:.2f}', textposition='inside',textfont_color="white")
+
+            fig.update_layout(
+                title='Additional OPEC+ Members Production Breakdown',
+                xaxis_title='Year',
+                yaxis_title='Volume (million barrels per day)',
+                barmode='stack',
+            )
+
+
+            st.plotly_chart(fig,use_container_width=True)
         with col_NON:
-            st.write("h")
+            def fetch_data(api_url, params):
+                try:
+                    response = requests.get(api_url, params=params, verify=False)
+                    response.raise_for_status()
+                    return response.json()
+                except requests.exceptions.HTTPError as err:
+                    print(f"HTTP error occurred: {err}")
+                except Exception as err:
+                    print(f"An error occurred: {err}")
+                return None
+
+            api_url = 'https://api.eia.gov/v2/steo/data/'
+            api_key = 'gcp5ZkcZhaL5aCVvviD38eMtVEZXEyP28KqMHh4h'
+
+
+
+            params = {
+                "api_key": api_key,
+                "frequency": "annual",
+                "data[]": "value",
+                "start": "2000",
+                "sort[0][column]": "period",
+                "sort[0][direction]": "desc",
+                "offset": 0,
+                "length": 5000
+            }
+
+            # Fetch data for each country
+            params["facets[seriesId][]"] = "PAPR_CA"
+            data_production_Canada = fetch_data(api_url, params)
+
+            params["facets[seriesId][]"] = "PAPR_US"
+            data_production_United_States = fetch_data(api_url, params)
+
+            params["facets[seriesId][]"] = "PAPR_AR"
+            data_production_Argentina = fetch_data(api_url, params)
+
+            params["facets[seriesId][]"] = "PAPR_BR"
+            data_production_Brazil = fetch_data(api_url, params)
+
+            params["facets[seriesId][]"] = "PAPR_CO"
+            data_production_Colombia = fetch_data(api_url, params)
+
+            params["facets[seriesId][]"] = "PAPR_GY"
+            data_production_Guyana = fetch_data(api_url, params)
+
+            params["facets[seriesId][]"] = "PAPR_NO"
+            data_production_Norway = fetch_data(api_url, params)
+
+            params["facets[seriesId][]"] = "PAPR_UK"
+            data_production_United_Kingdom = fetch_data(api_url, params)
+
+            params["facets[seriesId][]"] = "PAPR_QA"
+            data_production_Qatar = fetch_data(api_url, params)
+
+            params["facets[seriesId][]"] = "PAPR_AO"
+            data_production_Angola = fetch_data(api_url, params)
+
+            params["facets[seriesId][]"] = "PAPR_EG"
+            data_production_Egypt = fetch_data(api_url, params)
+
+            params["facets[seriesId][]"] = "PAPR_CH"
+            data_production_China = fetch_data(api_url, params)
+
+            params["facets[seriesId][]"] = "PAPR_IN"
+            data_production_India = fetch_data(api_url, params)
+
+            params["facets[seriesId][]"] = "PAPR_ID"
+            data_production_Indonesia = fetch_data(api_url, params)
+
+            # Fetch data for extras
+            params["facets[seriesId][]"] = "PAPR_NONOPECPLUS_XUS"
+            data_production_others = fetch_data(api_url, params)
+
+
+
+
+            # Extract production data
+            periods = [int(item['period']) for item in data_production_Indonesia['response']['data']]
+
+            def extract_production_values(data):
+                return [float(item['value']) for item in data['response']['data']]
+
+            # Extract production values for each country
+            production_values_Canada = extract_production_values(data_production_Canada)
+            production_values_United_States = extract_production_values(data_production_United_States)
+            production_values_Argentina = extract_production_values(data_production_Argentina)
+            production_values_Brazil = extract_production_values(data_production_Brazil)
+            production_values_Colombia = extract_production_values(data_production_Colombia)
+            production_values_Guyana = extract_production_values(data_production_Guyana)
+            production_values_Norway = extract_production_values(data_production_Norway)
+            production_values_United_Kingdom = extract_production_values(data_production_United_Kingdom)
+            production_values_Qatar = extract_production_values(data_production_Qatar)
+            production_values_Angola = extract_production_values(data_production_Angola)
+            production_values_Egypt = extract_production_values(data_production_Egypt)
+            production_values_China = extract_production_values(data_production_China)
+            production_values_India = extract_production_values(data_production_India)
+            production_values_Indonesia = extract_production_values(data_production_Indonesia)
+
+            production_values_others = extract_production_values(data_production_others)
+
+            # Correct calculation of other production values (element-wise subtraction)
+            other_production_values = [
+                others - (canada + argentina + brazil + colombia + guyana +
+                        norway + uk + qatar + angola + egypt +
+                        china + india + indonesia)
+                for others, canada, argentina, brazil, colombia, guyana,
+                    norway, uk, qatar, angola, egypt, china, india, indonesia
+                in zip(production_values_others, production_values_Canada,
+                    production_values_Argentina, production_values_Brazil,
+                    production_values_Colombia, production_values_Guyana,
+                    production_values_Norway, production_values_United_Kingdom,
+                    production_values_Qatar, production_values_Angola,
+                    production_values_Egypt, production_values_China,
+                    production_values_India, production_values_Indonesia)
+            ]
+
+
+
+
+
+            # Add traces for each country
+            fig.add_trace(go.Bar(x=periods, y=other_production_values, name='Others', text=other_production_values))
+            fig.add_trace(go.Bar(x=periods, y=production_values_Canada, name='Canada', text=production_values_Canada))
+            fig.add_trace(go.Bar(x=periods, y=production_values_United_States, name='United States', text=production_values_United_States))
+            fig.add_trace(go.Bar(x=periods, y=production_values_Argentina, name='Argentina', text=production_values_Argentina))
+            fig.add_trace(go.Bar(x=periods, y=production_values_Brazil, name='Brazil', text=production_values_Brazil))
+            fig.add_trace(go.Bar(x=periods, y=production_values_Colombia, name='Colombia', text=production_values_Colombia))
+            fig.add_trace(go.Bar(x=periods, y=production_values_Guyana, name='Guyana', text=production_values_Guyana))
+            fig.add_trace(go.Bar(x=periods, y=production_values_Norway, name='Norway', text=production_values_Norway))
+            fig.add_trace(go.Bar(x=periods, y=production_values_United_Kingdom, name='United Kingdom', text=production_values_United_Kingdom))
+            fig.add_trace(go.Bar(x=periods, y=production_values_Qatar, name='Qatar', text=production_values_Qatar))
+            fig.add_trace(go.Bar(x=periods, y=production_values_Angola, name='Angola', text=production_values_Angola))
+            fig.add_trace(go.Bar(x=periods, y=production_values_Egypt, name='Egypt', text=production_values_Egypt))
+            fig.add_trace(go.Bar(x=periods, y=production_values_China, name='China', text=production_values_China))
+            fig.add_trace(go.Bar(x=periods, y=production_values_India, name='India', text=production_values_India))
+            fig.add_trace(go.Bar(x=periods, y=production_values_Indonesia, name='Indonesia', text=production_values_Indonesia))
+
+
+
+            # Update traces to format the text as x.x M
+            fig.update_traces(texttemplate='%{text:.2f}', textposition='inside',textfont_color="white")
+
+            fig.update_layout(
+                title='Non-OPEC Member Production Breakdown',
+                xaxis_title='Year',
+                yaxis_title='Volume (million barrels per day)',
+                barmode='stack',
+            )
+
+
+            st.plotly_chart(fig,use_container_width=True)
 
 #####################################
     with tab2:

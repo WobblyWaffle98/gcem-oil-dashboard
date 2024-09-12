@@ -441,6 +441,7 @@ def fundamentals_page():
 
 
             st.plotly_chart(fig,use_container_width=True)
+            st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
         with col_OPECPLUS:
             def fetch_data(api_url, params):
                 try:
@@ -549,6 +550,7 @@ def fundamentals_page():
 
 
             st.plotly_chart(fig,use_container_width=True)
+            st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
         with col_NON:
             def fetch_data(api_url, params):
                 try:
@@ -703,6 +705,7 @@ def fundamentals_page():
 
 
             st.plotly_chart(fig,use_container_width=True)
+            st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
 
         st.divider()
 
@@ -793,9 +796,8 @@ def fundamentals_page():
             # IMPORTANT: Cache the conversion to prevent computation on every rerun
             return df.to_csv().encode("utf-8")
         
-        st.divider()
 
-        st.subheader("Total World Petroleum and Other Liquid Production by OPEC+, US, and Non-OPEC (ex-US)")
+        st.subheader("Line chart of World Petroleum and Other Liquid Production by OPEC+, US, and Non-OPEC (ex-US)")
         
         st.write("""
                  This line chart tracks the production volumes of petroleum and other liquids by major global players: OPEC+, the US, and non-OPEC countries excluding the US. 

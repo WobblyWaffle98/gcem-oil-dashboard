@@ -227,7 +227,11 @@ def fundamentals_page():
         """)
 
     with tabx:
-        st.subheader("World Petroleum and Other Liquid Production Components")
+        st.subheader("Breakdown of World Petroleum and Other Liquid Production ")
+        
+        st.write("""
+                 The bar chart tracks the production volumes of petroleum and other liquids by major global players: OPEC members, additional OPEC+ members, and non-OPEC countries. 
+                   """)
 
 
         # Suppress SSL verification warnings
@@ -439,8 +443,11 @@ def fundamentals_page():
                 barmode='stack',
             )
 
-
+            
             st.plotly_chart(fig,use_container_width=True)
+            st.write("""
+                 OPEC does not report any forecast production numbers for OPEC members
+                   """)
             st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
         with col_OPECPLUS:
             def fetch_data(api_url, params):
@@ -801,9 +808,7 @@ def fundamentals_page():
         
         st.write("""
                  This line chart tracks the production volumes of petroleum and other liquids by major global players: OPEC+, the US, and non-OPEC countries excluding the US. 
-                 
-                 OPEC+ includes the OPEC member countries plus additional producers such as Russia, Kazakhstan, Azerbaijan, Mexico, and Oman.Each line 
-                 represents the production trends of these groups, highlighting their contributions to global supply.   """)
+                   """)
         
 
         st.plotly_chart(fig, use_container_width=True)

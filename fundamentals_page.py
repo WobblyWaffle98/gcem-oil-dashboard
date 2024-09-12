@@ -859,9 +859,9 @@ def fundamentals_page():
         )
 
         st.plotly_chart(fig,use_container_width=True)
-
-        st.divider()
         st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
+        st.divider()
+        
 
         st.subheader("OPEC+ Market Share")
 

@@ -311,12 +311,141 @@ def fundamentals_page():
         col_OPEC,col_OPECPLUS,col_NON = st.columns(3)
 
         with col_OPEC:
-            st.write("h")
+            def fetch_data(api_url, params):
+                try:
+                    response = requests.get(api_url, params=params, verify=False)
+                    response.raise_for_status()
+                    return response.json()
+                except requests.exceptions.HTTPError as err:
+                    print(f"HTTP error occurred: {err}")
+                except Exception as err:
+                    print(f"An error occurred: {err}")
+                return None
+
+            api_url = 'https://api.eia.gov/v2/steo/data/'
+            api_key = 'gcp5ZkcZhaL5aCVvviD38eMtVEZXEyP28KqMHh4h'
+
+
+
+            params = {
+                "api_key": api_key,
+                "frequency": "annual",
+                "data[]": "value",
+                "start": "2000",
+                "sort[0][column]": "period",
+                "sort[0][direction]": "desc",
+                "offset": 0,
+                "length": 5000
+            }
+
+            # Algeria
+            params["facets[seriesId][]"] = "PAPR_AG"
+            data_production_Algeria = fetch_data(api_url, params)
+
+            # Congo (Brazzaville)
+            params["facets[seriesId][]"] = "PAPR_CF"
+            data_production_Congo_Brazzaville = fetch_data(api_url, params)
+
+            # Equatorial Guinea
+            params["facets[seriesId][]"] = "PAPR_EK"
+            data_production_Equatorial_Guinea = fetch_data(api_url, params)
+
+            # Gabon
+            params["facets[seriesId][]"] = "PAPR_GB"
+            data_production_Gabon = fetch_data(api_url, params)
+
+            # Iran
+            params["facets[seriesId][]"] = "PAPR_IR"
+            data_production_Iran = fetch_data(api_url, params)
+
+            # Iraq
+            params["facets[seriesId][]"] = "PAPR_IZ"
+            data_production_Iraq = fetch_data(api_url, params)
+
+            # Kuwait
+            params["facets[seriesId][]"] = "PAPR_KU"
+            data_production_Kuwait = fetch_data(api_url, params)
+
+            # Libya
+            params["facets[seriesId][]"] = "PAPR_LY"
+            data_production_Libya = fetch_data(api_url, params)
+
+            # Nigeria
+            params["facets[seriesId][]"] = "PAPR_NI"
+            data_production_Nigeria = fetch_data(api_url, params)
+
+            # Saudi Arabia
+            params["facets[seriesId][]"] = "PAPR_SA"
+            data_production_Saudi_Arabia = fetch_data(api_url, params)
+
+            # United Arab Emirates
+            params["facets[seriesId][]"] = "PAPR_TC"
+            data_production_UAE = fetch_data(api_url, params)
+
+            # Venezuela
+            params["facets[seriesId][]"] = "PAPR_VE"
+            data_production_Venezuela = fetch_data(api_url, params)
+
+
+
+
+            # Extract production data
+            periods = [int(item['period']) for item in data_production_Saudi_Arabia['response']['data']]
+
+            def extract_production_values(data):
+                return [float(item['value']) for item in data['response']['data']]
+
+            # Extract production values for each country
+            production_values_Algeria = extract_production_values(data_production_Algeria)
+            production_values_Congo_Brazzaville = extract_production_values(data_production_Congo_Brazzaville)
+            production_values_Equatorial_Guinea = extract_production_values(data_production_Equatorial_Guinea)
+            production_values_Gabon = extract_production_values(data_production_Gabon)
+            production_values_Iran = extract_production_values(data_production_Iran)
+            production_values_Iraq = extract_production_values(data_production_Iraq)
+            production_values_Kuwait = extract_production_values(data_production_Kuwait)
+            production_values_Libya = extract_production_values(data_production_Libya)
+            production_values_Nigeria = extract_production_values(data_production_Nigeria)
+            production_values_Saudi_Arabia = extract_production_values(data_production_Saudi_Arabia)
+            production_values_UAE = extract_production_values(data_production_UAE)
+            production_values_Venezuela = extract_production_values(data_production_Venezuela)
+
+
+
+            # Create a stacked bar chart
+            fig = go.Figure()
+
+            # Add traces for each country
+            fig.add_trace(go.Bar(x=periods, y=production_values_Algeria, name='Algeria', text=production_values_Algeria))
+            fig.add_trace(go.Bar(x=periods, y=production_values_Congo_Brazzaville, name='Congo (Brazzaville)', text=production_values_Congo_Brazzaville))
+            fig.add_trace(go.Bar(x=periods, y=production_values_Equatorial_Guinea, name='Equatorial Guinea', text=production_values_Equatorial_Guinea))
+            fig.add_trace(go.Bar(x=periods, y=production_values_Gabon, name='Gabon', text=production_values_Gabon))
+            fig.add_trace(go.Bar(x=periods, y=production_values_Iran, name='Iran', text=production_values_Iran))
+            fig.add_trace(go.Bar(x=periods, y=production_values_Iraq, name='Iraq', text=production_values_Iraq))
+            fig.add_trace(go.Bar(x=periods, y=production_values_Kuwait, name='Kuwait', text=production_values_Kuwait))
+            fig.add_trace(go.Bar(x=periods, y=production_values_Libya, name='Libya', text=production_values_Libya))
+            fig.add_trace(go.Bar(x=periods, y=production_values_Nigeria, name='Nigeria', text=production_values_Nigeria))
+            fig.add_trace(go.Bar(x=periods, y=production_values_Saudi_Arabia, name='Saudi Arabia', text=production_values_Saudi_Arabia))
+            fig.add_trace(go.Bar(x=periods, y=production_values_UAE, name='United Arab Emirates', text=production_values_UAE))
+            fig.add_trace(go.Bar(x=periods, y=production_values_Venezuela, name='Venezuela', text=production_values_Venezuela))
+
+
+            # Update traces to format the text as x.x M
+            fig.update_traces(texttemplate='%{text:.2f}', textposition='inside',textfont_color="white")
+
+            fig.update_layout(
+                title='Total OPEC Member Production Breakdown',
+                xaxis_title='Year',
+                yaxis_title='Volume (million barrels per day)',
+                barmode='stack',
+            )
+
+
+            st.plotly_chart(fig)
         with col_OPECPLUS:
             st.write("h")
         with col_NON:
             st.write("h")
-            
+
 #####################################
     with tab2:
         st.subheader("Monthly and Quarterly Seasonality Analysis")

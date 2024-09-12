@@ -812,9 +812,57 @@ def fundamentals_page():
         
 
         st.plotly_chart(fig, use_container_width=True)
-        st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
+        
+
+        # Normalize production values to sum to 100% for each period
+        total_production = np.array(production_values_OPECPLUS) + np.array(production_values_US) + np.array(production_values_NONOPECxUS)
+        production_values_OPECPLUS_norm = np.array(production_values_OPECPLUS) / total_production * 100
+        production_values_US_norm = np.array(production_values_US) / total_production * 100
+        production_values_NONOPECxUS_norm = np.array(production_values_NONOPECxUS) / total_production * 100
+
+        # Create the stacked area chart
+        fig = go.Figure()
+
+        # First area (OPEC+ Production)
+        fig.add_trace(go.Scatter(
+            x=periods, 
+            y=production_values_OPECPLUS_norm, 
+            name='OPEC+ Production', 
+            fill='tonexty',
+            mode='none'  # Only fill the area without markers or lines
+        ))
+
+        # Second area (US Production)
+        fig.add_trace(go.Scatter(
+            x=periods, 
+            y=production_values_US_norm + production_values_OPECPLUS_norm,  # Stacking on top of OPEC+
+            name='US Production', 
+            fill='tonexty',
+            mode='none'
+        ))
+
+        # Third area (Non OPEC+ exUS Production)
+        fig.add_trace(go.Scatter(
+            x=periods, 
+            y=production_values_NONOPECxUS_norm + production_values_US_norm + production_values_OPECPLUS_norm,  # Stacking on top of US and OPEC+
+            name='Non OPEC+ exUS Production', 
+            fill='tonexty',
+            mode='none'
+        ))
+
+        # Customize layout
+        fig.update_layout(
+            title='100% Stacked Area Chart of Production',
+            xaxis_title='Periods',
+            yaxis_title='Production (%)',
+            showlegend=True
+        )
+
+        # Show the figure
+        fig.show()
 
         st.divider()
+        st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
 
         st.subheader("OPEC+ Market Share")
 

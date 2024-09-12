@@ -669,7 +669,8 @@ def fundamentals_page():
 
 
 
-
+            # Create a stacked bar chart
+            fig = go.Figure()
 
             # Add traces for each country
             fig.add_trace(go.Bar(x=periods, y=other_production_values, name='Others', text=other_production_values))

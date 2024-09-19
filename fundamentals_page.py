@@ -1165,18 +1165,20 @@ def fundamentals_page():
         fig = go.Figure()
 
         # Add sub-component traces
-        fig.add_trace(go.Bar(x=df_annual_consumption['Year'], y=df_annual_consumption['Canada Petroleum Consumption'], name='Canada Petroleum Consumption', visible=True))
-        fig.add_trace(go.Bar(x=df_annual_consumption['Year'], y=df_annual_consumption['Europe OECD Petroleum Consumption'], name='Europe OECD Petroleum Consumption', visible=True))
-        fig.add_trace(go.Bar(x=df_annual_consumption['Year'], y=df_annual_consumption['Japan Petroleum Consumption'], name='Japan Petroleum Consumption', visible=True))
-        fig.add_trace(go.Bar(x=df_annual_consumption['Year'], y=df_annual_consumption['United States Petroleum Consumption'], name='United States Petroleum Consumption', visible=True))
-        fig.add_trace(go.Bar(x=df_annual_consumption['Year'], y=df_annual_consumption['U.S. Territories Petroleum Consumption'], name='U.S. Territories Petroleum Consumption', visible=True))
-        fig.add_trace(go.Bar(x=df_annual_consumption['Year'], y=df_annual_consumption['Other OECD Petroleum Consumption'], name='Other OECD Petroleum Consumption', visible=True))
-        fig.add_trace(go.Bar(x=df_annual_consumption['Year'], y=df_annual_consumption['China Petroleum Consumption'], name='China Petroleum Consumption', visible=True))
-        fig.add_trace(go.Bar(x=df_annual_consumption['Year'], y=df_annual_consumption['Eurasia Petroleum Consumption'], name='Eurasia Petroleum Consumption', visible=True))
-        fig.add_trace(go.Bar(x=df_annual_consumption['Year'], y=df_annual_consumption['Europe non-OECD Petroleum Consumption'], name='Europe non-OECD Petroleum Consumption', visible=True))
-        fig.add_trace(go.Bar(x=df_annual_consumption['Year'], y=df_annual_consumption['Other Asia Petroleum Consumption'], name='Other Asia Petroleum Consumption', visible=True))
-        fig.add_trace(go.Bar(x=df_annual_consumption['Year'], y=df_annual_consumption['Other Non-OECD Petroleum Consumption'], name='Other Non-OECD Petroleum Consumption', visible=True))
+        fig.add_trace(go.Bar(x=df_annual_consumption['Year'], y=df_annual_consumption['Canada Petroleum Consumption'], name='Canada Petroleum Consumption', visible=True,text=df_annual_consumption['Canada Petroleum Consumption']))
+        fig.add_trace(go.Bar(x=df_annual_consumption['Year'], y=df_annual_consumption['Europe OECD Petroleum Consumption'], name='Europe OECD Petroleum Consumption', visible=True,text=df_annual_consumption['Europe OECD Petroleum Consumption']))
+        fig.add_trace(go.Bar(x=df_annual_consumption['Year'], y=df_annual_consumption['Japan Petroleum Consumption'], name='Japan Petroleum Consumption', visible=True,text=df_annual_consumption['Japan Petroleum Consumption'],))
+        fig.add_trace(go.Bar(x=df_annual_consumption['Year'], y=df_annual_consumption['United States Petroleum Consumption'], name='United States Petroleum Consumption', visible=True,text=df_annual_consumption['United States Petroleum Consumption']))
+        fig.add_trace(go.Bar(x=df_annual_consumption['Year'], y=df_annual_consumption['U.S. Territories Petroleum Consumption'], name='U.S. Territories Petroleum Consumption', visible=True,text=df_annual_consumption['U.S. Territories Petroleum Consumption']))
+        fig.add_trace(go.Bar(x=df_annual_consumption['Year'], y=df_annual_consumption['Other OECD Petroleum Consumption'], name='Other OECD Petroleum Consumption', visible=True,text=df_annual_consumption['Other OECD Petroleum Consumption']))
+        fig.add_trace(go.Bar(x=df_annual_consumption['Year'], y=df_annual_consumption['China Petroleum Consumption'], name='China Petroleum Consumption', visible=True,text=df_annual_consumption['China Petroleum Consumption']))
+        fig.add_trace(go.Bar(x=df_annual_consumption['Year'], y=df_annual_consumption['Eurasia Petroleum Consumption'], name='Eurasia Petroleum Consumption', visible=True,text=df_annual_consumption['Eurasia Petroleum Consumption']))
+        fig.add_trace(go.Bar(x=df_annual_consumption['Year'], y=df_annual_consumption['Europe non-OECD Petroleum Consumption'], name='Europe non-OECD Petroleum Consumption', visible=True,text=df_annual_consumption['Europe non-OECD Petroleum Consumption'],))
+        fig.add_trace(go.Bar(x=df_annual_consumption['Year'], y=df_annual_consumption['Other Asia Petroleum Consumption'], name='Other Asia Petroleum Consumption', visible=True,text=df_annual_consumption['Other Asia Petroleum Consumption']))
+        fig.add_trace(go.Bar(x=df_annual_consumption['Year'], y=df_annual_consumption['Other Non-OECD Petroleum Consumption'], name='Other Non-OECD Petroleum Consumption', visible=True,text=df_annual_consumption['Other Non-OECD Petroleum Consumption']))
 
+        # Update traces to format the text as x.x M
+        fig.update_traces(texttemplate='%{text:.2f}', textposition='inside',textfont_color="white")
 
 
         fig.update_layout(

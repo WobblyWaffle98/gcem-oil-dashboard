@@ -185,7 +185,12 @@ def fundamentals_page():
         # Create the second plot for Oversupply/Undersupply
         fig2q = go.Figure()
         fig2q.add_trace(go.Bar(x=df['Period'], y=df['Oversupply/Undersupply'], name='Oversupply/Undersupply',
-                            marker_color=df['Oversupply/Undersupply'].apply(lambda x: 'green' if x >= 0 else 'red')))
+                            marker_color=df['Oversupply/Undersupply'].apply(lambda x: 'green' if x >= 0 else 'red'),text=df['Oversupply/Undersupply'],))
+        
+        # Update traces to format the text as x.x M
+        fig2q.update_traces(texttemplate='%{text:.2f}', textposition='inside',textfont_color="white")
+        
+        
 
         fig2q.update_layout(
             title='World Petroleum Quarterly Oversupply/Undersupply',

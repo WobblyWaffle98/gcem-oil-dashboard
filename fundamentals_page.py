@@ -454,7 +454,7 @@ def fundamentals_page():
             
             st.plotly_chart(fig,use_container_width=True)
             st.write("""
-                 OPEC does not report any forecast production numbers for OPEC members
+                 OPEC does not provide production forecast figures for its member countries for either the current or the following year 
                    """)
             st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
         with col_OPECPLUS:
@@ -565,6 +565,9 @@ def fundamentals_page():
 
 
             st.plotly_chart(fig,use_container_width=True)
+            st.write("""
+                 The current and the following year are production forecast figure
+                   """)
             st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
         with col_NON:
             def fetch_data(api_url, params):
@@ -720,6 +723,9 @@ def fundamentals_page():
 
 
             st.plotly_chart(fig,use_container_width=True)
+            st.write("""
+                 The current and the following year are production forecast figure
+                   """)
             st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
 
         st.divider()

@@ -55,7 +55,8 @@ with st.sidebar:
                 <hr style="margin-bottom: 6%; margin-top: 6%;">
                 </a><br><br>
                 <b>Data Disclamer</b><br>
-                Please note that the data provided on this platform is sourced from publicly available market information. Any interpretation or analysis derived from this data is solely the responsibility of the user. GCEM does not guarantee the accuracy or completeness of the data and will 
+                Please note that the data provided on this platform is sourced from publicly available market information. Any interpretation or analysis derived from this data is solely the responsibility of the user.
+                <br>GCEM does not guarantee the accuracy or completeness of the data and will 
                 not be held liable for any decisions or actions taken based on its use.
             </div>
         """

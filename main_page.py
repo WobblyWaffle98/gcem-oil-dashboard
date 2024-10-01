@@ -333,6 +333,5 @@ def main_page():
         st.markdown("<p class='left-align'>Source:TradingView (NYMEX)</p>", unsafe_allow_html=True)  
         st.subheader('Henry Hub Price (NYMEX)')
         components.html(NatGas_chart, height=500, scrolling=False)
-        s
         st.markdown("<p class='left-align'>Source:TradingView (NYMEX)</p>", unsafe_allow_html=True)  
 

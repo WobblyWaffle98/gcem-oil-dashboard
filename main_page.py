@@ -56,7 +56,7 @@ def main_page():
     
     # Streamlit app title
     image_placeholder2 = st.empty()
-    imagePath2 = "Images/DASHBOARD_GIF_2optimized.gif"
+    imagePath2 = "Images/DASHBOARD_GIF_3optimized.gif"
     displayLocalGIF2(image_placeholder2, imagePath2,"")
 
 

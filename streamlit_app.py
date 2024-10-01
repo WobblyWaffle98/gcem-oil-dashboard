@@ -48,21 +48,17 @@ st.sidebar.title("Navigation")
 
 page = st.sidebar.radio("Go to", ["Main", "Macro-economic", "Fundamentals", "Financial Markets", "Technical and Probability Analysis"])
 
-# Render selected page
-if page == "Main":
-    if st.session_state["authentication_status"]:
+if st.session_state["authentication_status"]:
+    # Render selected page
+    if page == "Main":
         main_page()
-elif page == "Macro-economic":
-    if st.session_state["authentication_status"]:
+    elif page == "Macro-economic":
         macro_economic_page()
-elif page == "Fundamentals":
-    if st.session_state["authentication_status"]:
+    elif page == "Fundamentals":
         fundamentals_page()
-elif page == "Financial Markets":
-    if st.session_state["authentication_status"]:
+    elif page == "Financial Markets":
         financial_markets_page()
-elif page == "Technical and Probability Analysis":
-    if st.session_state["authentication_status"]:
+    elif page == "Technical and Probability Analysis":
         technical_probability_page()
 
 
@@ -71,5 +67,3 @@ elif st.session_state["authentication_status"] is False:
 elif st.session_state["authentication_status"] is None:
     st.warning('Please enter your username and password')
 
-with open('./login_credentials.yaml', 'w') as file:
-    yaml.dump(config, file, default_flow_style=False)

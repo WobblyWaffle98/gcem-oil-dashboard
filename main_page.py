@@ -73,7 +73,7 @@ def main_page():
 
     """)
     container = st.container(border=True)
-    container.write("Please note that the data provided is sourced from publicly available market information. Any interpretation or analysis derived from this data is solely the responsibility of the user. GCEM does not guarantee the accuracy or completeness of the data and will not be held liable for any decisions or actions taken based on its use."
+    container.write("Please note that the data provided is sourced from publicly available market information. Any interpretation or analysis derived from this data is solely the responsibility of the user. GCEM does not guarantee the accuracy or completeness of the data and will not be held liable for any decisions or actions taken based on its use.")
         
 
     st.divider()
@@ -334,5 +334,4 @@ def main_page():
         components.html(NatGas_chart, height=500, scrolling=False)
         s
         st.markdown("<p class='left-align'>Source:TradingView (NYMEX)</p>", unsafe_allow_html=True)  
-
 

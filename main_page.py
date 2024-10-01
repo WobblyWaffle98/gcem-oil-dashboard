@@ -72,12 +72,13 @@ def main_page():
     - **Technical and Probability Analysis**: Dive into technical analysis tools and probability-based evaluations.
 
     """)
-    st.header("Data Disclamer")
-    st.write("""
-    Please note that the data provided is sourced from publicly available market information. Any interpretation or analysis derived from this data is solely the responsibility of the user.
     
-    GCEM does not guarantee the accuracy or completeness of the data and will not be held liable for any decisions or actions taken based on its use.   
-    """)
+    with st.container(border=True):
+        st.header("Data Disclamer")
+        st.write("""
+        Please note that the data provided is sourced from publicly available market information. Any interpretation or analysis derived from this data is solely the responsibility of the user.
+        GCEM does not guarantee the accuracy or completeness of the data and will not be held liable for any decisions or actions taken based on its use.   
+        """)
 
     st.divider()
     

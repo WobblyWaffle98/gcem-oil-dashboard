@@ -269,7 +269,7 @@ def macro_economic_page():
 
         st.subheader("HOPE Analysis")
         st.write("""
-            The HOPE model, developed by [Michael Kantrowitz](https://www.advisorperspectives.com/articles/2023/02/15/the-leading-indicators-are-signaling-recession) of Piper Sandler, is an economic indicator model that focuses on four key components. HOPE is an acronym describing the sequence in which economic activity weakens due to a FED tightening cycle before a recession namely Housing, New Orders, Corporate Profits and Employment which typically happen in sequence. 
+            The HOPE model, developed by [Michael Kantrowitz](https://www.advisorperspectives.com/articles/2023/02/15/the-leading-indicators-are-signaling-recession) of Piper Sandler, is an economic indicator model that focuses on four key components. HOPE is an acronym describing the sequence in which the US economic activity weakens due to a FED tightening cycle before a recession namely Housing, New Orders, Corporate Profits and Employment which typically happen in sequence. 
             Economically speaking, the HOPE framework is driven by the realization that the most interest rate sensitive sectors are the first to feel the effects of tightening monetary policy.
                  
             These sectors often act as leading economic indicators. Consequently, as tightening monetary policy slows down economic activity in interest rate sensitive sectors, other sectors of the economy start to feel the impact of higher rates. 
@@ -983,7 +983,8 @@ def macro_economic_page():
 
         The Measuring Geopolitical Risk index by [Caldara and Iacoviello](https://www.matteoiacoviello.com/gpr_files/GPR_PAPER.pdf) quantifies geopolitical risk using textual analysis of international news. 
         It constructs a numerical index from news articles, capturing factors like conflicts, diplomatic tensions, terrorism, and key geopolitical events.
-
+        The index can be used to calculate or measure risk premium if the index is above certain threshold.
+                 
         The specific keywords used in the textual analysis to identify geopolitical risk factors might vary, but they likely include terms related to:
                     
         1. **Military conflicts** (e.g., war, conflict, aggression)

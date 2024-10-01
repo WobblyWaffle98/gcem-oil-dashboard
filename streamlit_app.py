@@ -51,17 +51,12 @@ page = st.sidebar.radio("Go to", ["Main", "Macro-economic", "Fundamentals", "Fin
 with st.sidebar:
     st.html(
             """
-            <div style="text-align:center; font-size:12px; color:lightgrey">
+            <div style="text-align:center; font-size:12px; color:grey">
                 <hr style="margin-bottom: 6%; margin-top: 6%;">
-                <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
-                    <img alt="Creative Commons License" style="border-width:0"
-                        src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png" />
                 </a><br><br>
-                This work is licensed under a <b>Creative Commons
-                    Attribution-NonCommercial-ShareAlike 4.0 International License</b>.<br>
-                You can modify and build upon this work non-commercially. All derivatives should be
-                credited to Siddhant Sadangi and
-                be licenced under the same terms.
+                <b>Data Disclamer</b>
+                "Please note that the data provided on this platform is sourced from publicly available market information. Any interpretation or analysis derived from this data is solely the responsibility of the user. GCEM does not guarantee the accuracy or completeness of the data and will 
+                not be held liable for any decisions or actions taken based on its use."
             </div>
         """
         )

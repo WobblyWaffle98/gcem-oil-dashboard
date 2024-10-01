@@ -48,6 +48,25 @@ st.sidebar.title("Navigation")
 
 page = st.sidebar.radio("Go to", ["Main", "Macro-economic", "Fundamentals", "Financial Markets", "Technical and Probability Analysis"])
 
+with st.sidebar:
+    st.html(
+            """
+            <div style="text-align:center; font-size:12px; color:lightgrey">
+                <hr style="margin-bottom: 6%; margin-top: 6%;">
+                <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
+                    <img alt="Creative Commons License" style="border-width:0"
+                        src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png" />
+                </a><br><br>
+                This work is licensed under a <b>Creative Commons
+                    Attribution-NonCommercial-ShareAlike 4.0 International License</b>.<br>
+                You can modify and build upon this work non-commercially. All derivatives should be
+                credited to Siddhant Sadangi and
+                be licenced under the same terms.
+            </div>
+        """
+        )
+
+
 if st.session_state["authentication_status"]:
     # Render selected page
     if page == "Main":

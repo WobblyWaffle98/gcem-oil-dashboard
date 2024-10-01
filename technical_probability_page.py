@@ -155,17 +155,17 @@ def technical_probability_page():
             </body>
             </html>
                 """
-        st.subheader("Daily Price with Pivot Points Indicator")
+        st.subheader("Daily Price with Pivot Points Indicator (Broker Quoted)")
         st.write(
         """
-        The chart includes "Pivot Points," which are commonly used to identify potential support and resistance levels based on historical price data. Pivot points are calculated using the previous period's high, low, and close prices. If the price is trading above the main pivot point, it is generally considered to indicate bullish sentiment, while a price trading below the pivot point suggests bearish sentiment.
+        The latest broker quoted Brent daily price data, sourced from TradingView, with a difference of USD 0.40 to USD 0.60 compared to the actual ICE Brent price.. The chart includes "Pivot Points," which are commonly used to identify potential support and resistance levels based on historical price data. Pivot points are calculated using the previous period's high, low, and close prices. If the price is trading above the main pivot point, it is generally considered to indicate bullish sentiment, while a price trading below the pivot point suggests bearish sentiment.
 
         Additionally, traders often look at the first, second, and third support (S1, S2, S3) and resistance levels (R1, R2, R3) derived from pivot points. These levels can serve as potential price targets or areas where reversals may occur. For instance, if the price approaches a resistance level and fails to break through, it may signal a reversal to the downside. Similarly, if the price finds support at a pivot level and holds, it may indicate a potential upward movement.
         """
         )
         components.html(Brent_chart_Pivot, height=800, scrolling=False)
         st.divider()
-        st.subheader("Intraday Price with RSI & MACD Indicator")
+        st.subheader("Intraday Price with RSI & MACD Indicator (Broker Quoted)")
         st.write(
             """
             The chart includes the "RSI (Relative Strength Index)" and "MACD (Moving Average Convergence Divergence)" studies, which help identify potential market trends and momentum based on historical price data. Typically, if the RSI is above 50 and the MACD is above zero, the asset is considered to have positive momentum, while an RSI below 50 and a MACD below zero indicate negative momentum. However, it's also important to look for RSI divergence, 

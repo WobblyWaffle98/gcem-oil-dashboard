@@ -319,7 +319,7 @@ def main_page():
                     </body>
                     </html>
                     """
-        st.header("Latest Price (Daily)")
+        st.header("Latest Price (Daily 1-year)")
         st.write("""
                  The latest price data is sourced from TradingView. 
 

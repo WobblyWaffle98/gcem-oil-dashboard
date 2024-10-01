@@ -29,59 +29,59 @@ credentials:
       name: emylia
       password: GCEM
     aiman.shamsuliwardi:
-          email: aiman.shamsuliwardi@petronas.com
-          failed_login_attempts: 0
-          logged_in: false
-          name: aiman.shamsuliwardi
-          password: GCEM
+      email: aiman.shamsuliwardi@petronas.com
+      failed_login_attempts: 0
+      logged_in: false
+      name: aiman.shamsuliwardi
+      password: GCEM
     norshazlina.azlan:
-          email: norshazlina.azlan@petronas.com
-          failed_login_attempts: 0
-          logged_in: false
-          name: norshazlina.azlan
-          password: GCEM
+      email: norshazlina.azlan@petronas.com
+      failed_login_attempts: 0
+      logged_in: false
+      name: norshazlina.azlan
+      password: GCEM
     nikmohsain_nikahmad:
-          email: nikmohsain_nikahmad@petronas.com
-          failed_login_attempts: 0
-          logged_in: false
-          name: nikmohsain_nikahmad
-          password: GCEM
+      email: nikmohsain_nikahmad@petronas.com
+      failed_login_attempts: 0
+      logged_in: false
+      name: nikmohsain_nikahmad
+      password: GCEM
     mirzasuryaakma.supar:
-          email: mirzasuryaakma.supar@petronas.com
-          failed_login_attempts: 0
-          logged_in: false
-          name: mirzasuryaakma.supar
-          password: GCEM
+      email: mirzasuryaakma.supar@petronas.com
+      failed_login_attempts: 0
+      logged_in: false
+      name: mirzasuryaakma.supar
+      password: GCEM
     edward.gidion:
-          email: edward.gidion@petronas.com
-          failed_login_attempts: 0
-          logged_in: false
-          name: edward.gidion
-          password: GCEM
+      email: edward.gidion@petronas.com
+      failed_login_attempts: 0
+      logged_in: false
+      name: edward.gidion
+      password: GCEM
     bea.gonzales:
-          email: bea.gonzales@petronas.com
-          failed_login_attempts: 0
-          logged_in: false
-          name: bea.gonzales
-          password: GCEM
-    saifuddin.abdjalil
-          email: saifuddin.abdjalil@petronas.com
-          failed_login_attempts: 0
-          logged_in: false
-          name: saifuddin.abdjalil
-          password: GCEM
+      email: bea.gonzales@petronas.com
+      failed_login_attempts: 0
+      logged_in: false
+      name: bea.gonzales
+      password: GCEM
+    saifuddin.abdjalil:
+      email: saifuddin.abdjalil@petronas.com
+      failed_login_attempts: 0
+      logged_in: false
+      name: saifuddin.abdjalil
+      password: GCEM
     ahmadmuaz.mazlan:
-          email: ahmadmuaz.mazlan@petronas.com
-          failed_login_attempts: 0
-          logged_in: false
-          name: ahmadmuaz.mazlan
-          password: GCEM
+      email: ahmadmuaz.mazlan@petronas.com
+      failed_login_attempts: 0
+      logged_in: false
+      name: ahmadmuaz.mazlan
+      password: GCEM
     akmalhaziq.roslan:
-          email: akmalhaziq.roslan@petronas.com
-          failed_login_attempts: 0
-          logged_in: false
-          name: akmalhaziq.roslan
-          password: GCEM
+      email: akmalhaziq.roslan@petronas.com
+      failed_login_attempts: 0
+      logged_in: false
+      name: akmalhaziq.roslan
+      password: GCEM
 pre-authorized:
   emails:
     - melsby@gmail.com

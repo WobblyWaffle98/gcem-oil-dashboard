@@ -23,9 +23,6 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
 
-
-
-
 def main_page():
 
     def displayLocalGIF2(placeholder, localImagePath, caption):
@@ -74,6 +71,12 @@ def main_page():
     - **Financial Markets**: View data and trends from different financial markets.
     - **Technical and Probability Analysis**: Dive into technical analysis tools and probability-based evaluations.
 
+    """)
+    st.header("Data Disclamer")
+    st.write("""
+    Please note that the data provided is sourced from publicly available market information. Any interpretation or analysis derived from this data is solely the responsibility of the user.
+    
+    GCEM does not guarantee the accuracy or completeness of the data and will not be held liable for any decisions or actions taken based on its use.   
     """)
 
     st.divider()
@@ -332,6 +335,7 @@ def main_page():
         st.markdown("<p class='left-align'>Source:TradingView (NYMEX)</p>", unsafe_allow_html=True)  
         st.subheader('Henry Hub Price (NYMEX)')
         components.html(NatGas_chart, height=500, scrolling=False)
+        s
         st.markdown("<p class='left-align'>Source:TradingView (NYMEX)</p>", unsafe_allow_html=True)  
 
 

@@ -54,9 +54,9 @@ with st.sidebar:
             <div style="text-align:center; font-size:12px; color:grey">
                 <hr style="margin-bottom: 6%; margin-top: 6%;">
                 </a><br><br>
-                <b>Data Disclamer</b>
-                "Please note that the data provided on this platform is sourced from publicly available market information. Any interpretation or analysis derived from this data is solely the responsibility of the user. GCEM does not guarantee the accuracy or completeness of the data and will 
-                not be held liable for any decisions or actions taken based on its use."
+                <b>Data Disclamer</b><br>
+                Please note that the data provided on this platform is sourced from publicly available market information. Any interpretation or analysis derived from this data is solely the responsibility of the user. GCEM does not guarantee the accuracy or completeness of the data and will 
+                not be held liable for any decisions or actions taken based on its use.
             </div>
         """
         )

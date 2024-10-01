@@ -980,7 +980,6 @@ def macro_economic_page():
         st.subheader("Geopolitical Risk Daily Index")
 
         st.write("""
-        ## Geopolitical Risk index (GPR)
 
         The Measuring Geopolitical Risk index by [Caldara and Iacoviello](https://www.matteoiacoviello.com/gpr_files/GPR_PAPER.pdf) quantifies geopolitical risk using textual analysis of international news. 
         It constructs a numerical index from news articles, capturing factors like conflicts, diplomatic tensions, terrorism, and key geopolitical events.

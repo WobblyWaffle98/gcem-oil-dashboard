@@ -13,3 +13,4 @@ prettytable
 bs4
 streamlit-aggrid
 futures
+streamlit_authenticator

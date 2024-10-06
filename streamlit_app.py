@@ -14,7 +14,37 @@ from streamlit_authenticator.utilities import (CredentialsError,
                                                RegisterError,
                                                ResetError,
                                                UpdateError)
+from pymongo.server_api import ServerApi
+from pymongo import MongoClient
 
+
+def get_password(username):
+    # Fetch the user's data from MongoDB
+    config = config_collection.find_one({})
+
+    # Check if the user exists in the 'usernames' dictionary
+    if username in config['credentials']['usernames']:
+        # Return the user's password
+        return config['credentials']['usernames'][username]['password']
+    else:
+        return f"Username {username} not found."
+    
+def change_password(username, new_password):
+    # Fetch the user's data from MongoDB
+    config = config_collection.find_one({})
+
+    # Check if the user exists in the 'usernames' dictionary
+    if username in config['credentials']['usernames']:
+        # Update the user's password
+        config['credentials']['usernames'][username]['password'] = new_password
+
+        # Save the updated document back to MongoDB
+        config_collection.update_one(
+            {},  # match the document (assuming there's only one document)
+            {"$set": {"credentials.usernames": config['credentials']['usernames']}}
+        )
+    else:
+        print(f"Username {username} not found.")
 
 
 
@@ -22,9 +52,16 @@ from streamlit_authenticator.utilities import (CredentialsError,
 st.set_page_config(page_title="Oil Indicator Dashboard", layout="wide",page_icon=r'Images/Theta_icon_changed.png')
 
 
-# Loading config file
-with open('config.yaml', 'r', encoding='utf-8') as file:
-    config = yaml.load(file, Loader=SafeLoader)
+uri = "mongodb+srv://harithzahrin:GCEM@oil-dashboard.cey6w.mongodb.net/?retryWrites=true&w=majority&appName=Oil-Dashboard"
+# Create a new client and connect to the server
+client = MongoClient(uri, server_api=ServerApi('1'))
+
+# Step 2: Access the database
+db = client['TEST_DATABASE']
+config_collection = db['TEST_COLLECTION']
+
+# Fetch the configuration from MongoDB
+config = config_collection.find_one({})  # Fetch the first document
 
 # Creating the authenticator object
 authenticator = stauth.Authenticate(

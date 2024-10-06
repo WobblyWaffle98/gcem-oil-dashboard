@@ -88,7 +88,6 @@ page = st.sidebar.radio("Go to", ["Main", "Macro-economic", "Fundamentals", "Fin
 with st.sidebar:
     if st.session_state["authentication_status"]:
         authenticator.logout()
-        st.divider()
     st.html(
             """
             <div style="text-align:center; font-size:12px; color:grey">

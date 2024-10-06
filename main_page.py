@@ -59,7 +59,9 @@ def main_page():
     imagePath2 = "Images/DASHBOARD_GIF_3optimized.gif"
     displayLocalGIF2(image_placeholder2, imagePath2,"")
 
-
+    
+    if st.session_state["authentication_status"]:
+        st.write(f'Welcome *{st.session_state["name"]}*')
 
     st.write("""
     Welcome to the GCEM Oil Indicator Dashboard! This is the main page where you can find upcoming economic events and current market prices for oil and gas. 

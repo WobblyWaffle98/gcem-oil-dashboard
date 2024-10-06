@@ -40,7 +40,7 @@ def change_password(username, new_password):
         print(f"Username {username} not found.")
 
 def user_settings():
-    st.subheader("Password Reset")
+    st.header("Password Reset")
     with st.form(key="change_password_form"):
         st.write("Change your password")
         # Fields for current and new password

@@ -101,6 +101,8 @@ with st.sidebar:
 
 
 if st.session_state["authentication_status"]:
+    with st.sidebar:
+        authenticator.logout()
     # Render selected page
     if page == "Main":
         main_page()

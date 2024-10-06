@@ -86,6 +86,9 @@ st.sidebar.title("Navigation")
 page = st.sidebar.radio("Go to", ["Main", "Macro-economic", "Fundamentals", "Financial Markets", "Technical and Probability Analysis"])
 
 with st.sidebar:
+    if st.session_state["authentication_status"]:
+        authenticator.logout()
+        st.divider()
     st.html(
             """
             <div style="text-align:center; font-size:12px; color:grey">
@@ -101,8 +104,6 @@ with st.sidebar:
 
 
 if st.session_state["authentication_status"]:
-    with st.sidebar:
-        authenticator.logout()
     # Render selected page
     if page == "Main":
         main_page()

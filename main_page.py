@@ -61,7 +61,7 @@ def main_page():
 
     
     if st.session_state["authentication_status"]:
-        st.write(f'Welcome *{st.session_state["name"]}*')
+        st.write(f'Hi *{st.session_state["name"]}* !')
 
     st.write("""
     Welcome to the GCEM Oil Indicator Dashboard! This is the main page where you can find upcoming economic events and current market prices for oil and gas. 

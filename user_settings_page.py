@@ -49,7 +49,6 @@ def user_settings():
         reenter_password = st.text_input("Re-enter New Password", type="password")
 
         password = get_password(st.session_state["username"])
-        st.write(password)
         # Submit button
         submit_button = st.form_submit_button(label="Change Password")
 

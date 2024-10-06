@@ -42,7 +42,7 @@ def change_password(username, new_password):
 def user_settings():
     st.header("Password Reset")
     with st.form(key="change_password_form"):
-        st.write("Change your password")
+        st.write("Please refrain from using any existing passwords or passwords that grant access to sensitive data")
         # Fields for current and new password
         current_password = st.text_input("Current Password", type="password")
         new_password = st.text_input("New Password", type="password")

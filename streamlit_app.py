@@ -4,6 +4,7 @@ from macro_economic_page import macro_economic_page
 from fundamentals_page import fundamentals_page
 from financial_markets_page import financial_markets_page
 from technical_probability_page import technical_probability_page
+from others_page import others_page
 from user_settings_page import user_settings
 import streamlit_authenticator as stauth
 import yaml
@@ -84,7 +85,7 @@ except LoginError as e:
 st.sidebar.image(r'Images/Heading (4).png',use_column_width=True)
 st.sidebar.title("Navigation")
 
-page = st.sidebar.radio("Go to", ["Main", "Macro-economic", "Fundamentals", "Financial Markets", "Technical and Probability Analysis", "User Settings"])
+page = st.sidebar.radio("Go to", ["Main", "Macro-economic", "Fundamentals", "Financial Markets", "Technical and Probability Analysis","Others", "User Settings"])
 
 with st.sidebar:
     if st.session_state["authentication_status"]:
@@ -115,6 +116,8 @@ if st.session_state["authentication_status"]:
         financial_markets_page()
     elif page == "Technical and Probability Analysis":
         technical_probability_page()
+    elif page == "Others":
+        others_page()
     elif page == "User Settings":
         user_settings()
 

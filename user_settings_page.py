@@ -3,7 +3,7 @@ from pymongo.server_api import ServerApi
 from pymongo import MongoClient
 
 
-uri = "mongodb+srv://harithzahrin:GCEM@oil-dashboard.cey6w.mongodb.net/?retryWrites=true&w=majority&appName=Oil-Dashboard"
+uri = "mongodb+srv://harithzahrin:bLfv0OY29B0xxaDw@oil-dashboard.cey6w.mongodb.net/?retryWrites=true&w=majority&appName=Oil-Dashboard"
 # Create a new client and connect to the server
 client = MongoClient(uri, server_api=ServerApi('1'))
 

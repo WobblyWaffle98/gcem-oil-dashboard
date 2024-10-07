@@ -82,7 +82,7 @@ except LoginError as e:
 
 
 # Sidebar for navigation
-st.sidebar.image(r'Images/Heading (4).png',use_column_width=True)
+st.sidebar.image(r'Images/Heading (6).png',use_column_width=True)
 st.sidebar.title("Navigation")
 
 page = st.sidebar.radio("Go to", ["Main", "Macro-economic", "Fundamentals", "Financial Markets", "Technical and Probability Analysis","Others", "User Settings"])

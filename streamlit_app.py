@@ -54,16 +54,25 @@ def change_password(username, new_password):
 st.set_page_config(page_title="Oil Indicator Dashboard", layout="wide",page_icon=r'Images/Theta_icon_changed.png')
 
 
-uri = "mongodb+srv://harithzahrin:bLfv0OY29B0xxaDw@oil-dashboard.cey6w.mongodb.net/?retryWrites=true&w=majority&appName=Oil-Dashboard"
-# Create a new client and connect to the server
-client = MongoClient(uri, server_api=ServerApi('1'))
+# Cached function to retrieve data with a Time-To-Live (TTL) of 600 seconds
+@st.cache_data(ttl=600)
+def get_config():
+    # MongoDB connection URI
+    uri = "mongodb+srv://harithzahrin:bLfv0OY29B0xxaDw@oil-dashboard.cey6w.mongodb.net/?retryWrites=true&w=majority&appName=Oil-Dashboard"
+    
+    # Create a new client and connect to the server
+    client = MongoClient(uri, server_api=ServerApi('1'))
+    
+    # Access the database and collection
+    db = client['TEST_DATABASE']
+    config_collection = db['TEST_COLLECTION']
+    
+    # Fetch the configuration document from MongoDB
+    config = config_collection.find_one({})
+    return config
 
-# Step 2: Access the database
-db = client['TEST_DATABASE']
-config_collection = db['TEST_COLLECTION']
-
-# Fetch the configuration from MongoDB
-config = config_collection.find_one({})  # Fetch the first document
+# Fetch the configuration
+config = get_config()
 
 # Creating the authenticator object
 authenticator = stauth.Authenticate(

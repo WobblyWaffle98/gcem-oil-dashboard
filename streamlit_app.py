@@ -53,7 +53,7 @@ def change_password(username, new_password):
 st.set_page_config(page_title="Oil Indicator Dashboard", layout="wide",page_icon=r'Images/Theta_icon_changed.png')
 
 
-uri = st.secrets["uri"]
+uri = "mongodb+srv://harithzahrin:bLfv0OY29B0xxaDw@oil-dashboard.cey6w.mongodb.net/?retryWrites=true&w=majority&appName=Oil-Dashboard"
 # Create a new client and connect to the server
 client = MongoClient(uri, server_api=ServerApi('1'))
 

@@ -9,6 +9,7 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 import plotly.graph_objs as go
 import time
 import streamlit.components.v1 as components
+import concurrent.futures
 
 
 
@@ -270,83 +271,75 @@ def financial_markets_page():
             - **Monetary Policy**: Central banks use yield curves to understand market expectations of future economic conditions and to set appropriate monetary policies.
             ''')
         
+        # Define years
         current_year = datetime.now().year
         previous_year = current_year - 1
         previousprevious_year = current_year - 2
+        years = [current_year, previous_year, previousprevious_year]
 
-        # Python code to download data from Treasury
+        @st.cache_data
         def get_data():
             all_data = []
-            for year in [current_year, previous_year,previousprevious_year]:
-                print(year)
-                year = str(year)
-                url1 = f'https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/'+year+'/all?type=daily_treasury_yield_curve&field_tdr_date_value='+year+'page&_format=csv'
-                
-                data = pd.read_csv(url1)
-                all_data.append(data)
             
+            # Download data in parallel
+            def fetch_data(year):
+                try:
+                    url = f'https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/{year}/all?type=daily_treasury_yield_curve&field_tdr_date_value={year}page&_format=csv'
+                    response = requests.get(url)
+                    response.raise_for_status()
+                    data = pd.read_csv(url)
+                    return data
+                except requests.exceptions.RequestException as e:
+                    st.error(f"Failed to fetch data for year {year}: {e}")
+                    return pd.DataFrame()  # Return empty DataFrame in case of error
+
+            # Use ThreadPoolExecutor for parallel download
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                results = executor.map(fetch_data, years)
+
+            for data in results:
+                if not data.empty:
+                    all_data.append(data)
+            
+            # Combine all data
             pd_alldata = pd.concat(all_data, ignore_index=True)
             pd_alldata['Date'] = pd.to_datetime(pd_alldata['Date'])
-            pd_alldata.index = pd_alldata['Date']
+            pd_alldata.set_index('Date', inplace=True)
             
-            req_cols = ['1 Mo','2 Mo','3 Mo', '6 Mo', '1 Yr', '2 Yr', '3 Yr', '5 Yr', 
-                        '7 Yr', '10 Yr', '20 Yr', '30 Yr']
-            final = pd_alldata[req_cols]
-
+            # Filter required columns
+            req_cols = ['1 Mo','2 Mo','3 Mo', '6 Mo', '1 Yr', '2 Yr', '3 Yr', '5 Yr', '7 Yr', '10 Yr', '20 Yr', '30 Yr']
+            final = pd_alldata[req_cols].dropna()
+            
             return final
 
-        # Get the data
+        # Fetch and process the data
         data = get_data()
 
+        # Create traces for each column in one go for performance
+        traces = [go.Scatter(x=data.index, y=data[col], mode='lines', name=col) for col in data.columns]
 
-        # Create traces for each column
-        traces = []
-        for col in data.columns:
-            trace = go.Scatter(x=data.index, y=data[col], mode='lines', name=col)
-            traces.append(trace)
+        # Layout for the time series plot
+        layout = go.Layout(title='Treasury Yield Time Series', xaxis=dict(title='Date'), yaxis=dict(title='Yield (%)'))
 
-        # Create layout
-        layout = go.Layout(title='Treasury Yield Time Series',
-                        xaxis=dict(title='Date'),
-                        yaxis=dict(title='Yield (%)'))
-
-        # Create figure
+        # Plot the time series figure
         fig = go.Figure(data=traces, layout=layout)
-
         st.plotly_chart(fig, use_container_width=True)
         st.markdown("<p class='left-align'>Source: US Treasury</p>", unsafe_allow_html=True)
 
-        #########################
+        # Extract specific rows and generate the yield curve figure
+        rows_to_plot = {
+            'Current': data.iloc[0],
+            'Last Week': data.iloc[6],
+            'Last Month': data.iloc[29],
+            'Last Year': data.iloc[364]
+        }
 
-        # Extract the first and seventh rows
-        Current = data.iloc[0]
-        Last_week = data.iloc[6]
-        Last_Month = data.iloc[29]
-        Last_Year = data.iloc[364]
-
-        # Create a figure
         fig = go.Figure()
+        for name, row in rows_to_plot.items():
+            fig.add_trace(go.Scatter(x=row.index, y=row.values, mode='lines', name=name))
 
-        # Add first row data to the plot
-        fig.add_trace(go.Scatter(x=Current.index, y=Current.values, mode='lines', name='Current'))
-
-        # Add seventh row data to the plot
-        fig.add_trace(go.Scatter(x=Last_week.index, y=Last_week.values, mode='lines', name='Last Week'))
-
-        # Add seventh row data to the plot
-        fig.add_trace(go.Scatter(x=Last_Month.index, y=Last_Month.values, mode='lines', name='Last Month'))
-
-        # Add seventh row data to the plot
-        fig.add_trace(go.Scatter(x=Last_Year.index, y=Last_Year.values, mode='lines', name='Last Year'))
-
-        # Customize layout
-        fig.update_layout(
-            title="Treasury Yield Curve",
-            xaxis_title="Maturity",
-            yaxis_title="Rate (%)"
-        )
-
-        # Show the plot
+        # Layout for the yield curve plot
+        fig.update_layout(title="Treasury Yield Curve", xaxis_title="Maturity", yaxis_title="Rate (%)")
         st.plotly_chart(fig, use_container_width=True)
         st.markdown("<p class='left-align'>Source: US Treasury</p>", unsafe_allow_html=True)
 

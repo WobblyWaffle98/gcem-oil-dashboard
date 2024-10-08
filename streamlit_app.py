@@ -95,7 +95,7 @@ with st.sidebar:
         authenticator.logout()
     st.html(
             """
-            <div style="text-align:center; font-size:12px; color:grey">
+            <div style="text-align:center; font-size:12px; ">
                 <hr style="margin-bottom: 6%; margin-top: 6%;">
                 </a><br><br>
                 <b>Data Disclamer</b><br>

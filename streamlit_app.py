@@ -62,8 +62,11 @@ client = MongoClient(uri, server_api=ServerApi('1'))
 db = client['TEST_DATABASE']
 config_collection = db['TEST_COLLECTION']
 
-# Fetch the configuration from MongoDB
-config = config_collection.find_one({})  # Fetch the first document
+@st.cache_data
+def fetch_config():
+    return config_collection.find_one({})
+
+config = fetch_config()# Fetch the first document
 
 # Creating the authenticator object
 authenticator = stauth.Authenticate(

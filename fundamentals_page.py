@@ -1225,7 +1225,7 @@ def fundamentals_page():
         # Suppress SSL verification warnings
         requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-         # Series to fetch
+        # Series to fetch
         series_list = {
             'WGTSTUS1': 'U.S. Ending Stocks of Total Gasoline',
             'WDISTUS1': 'U.S. Ending Stocks of Distillate Fuel Oil',
@@ -1499,111 +1499,111 @@ def fundamentals_page():
 
     with tab6:
 
-            st.subheader("EIA Strategic Petroleum Reserve (SPR)")
+        st.subheader("EIA Strategic Petroleum Reserve (SPR)")
 
-            st.write(
-            """
-            The Strategic Petroleum Reserve (SPR) is the world's largest supply of emergency crude oil, maintained by the U.S. Department of Energy. It was established to mitigate the impact of disruptions in the supply of petroleum products and ensure energy security. The SPR provides a critical buffer against unforeseen events that could affect the availability of crude oil, such as natural disasters, geopolitical conflicts, or significant market fluctuations.
+        st.write(
+        """
+        The Strategic Petroleum Reserve (SPR) is the world's largest supply of emergency crude oil, maintained by the U.S. Department of Energy. It was established to mitigate the impact of disruptions in the supply of petroleum products and ensure energy security. The SPR provides a critical buffer against unforeseen events that could affect the availability of crude oil, such as natural disasters, geopolitical conflicts, or significant market fluctuations.
 
-            **Strategic Petroleum Reserve (SPR) Inventory Levels Over Time**
+        **Strategic Petroleum Reserve (SPR) Inventory Levels Over Time**
+        
+        This line plot illustrates the historical levels of crude oil in the U.S. Strategic Petroleum Reserve (SPR) over time. 
+        The plot includes actual values and a 5-year range offering a comprehensive view of US government usage of the SPR inventory.
+        """
+        )
+
+
+        # Function to fetch data from the API
+        def fetch_data_2(series, start_date):
+            url = f"https://api.eia.gov/v2/petroleum/sum/sndw/data/?api_key=gcp5ZkcZhaL5aCVvviD38eMtVEZXEyP28KqMHh4h&frequency=weekly&data[0]=value&facets[series][]={series}&start={start_date}&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
+            response = requests.get(url, verify=False)
+            if response.status_code == 200:
+                return response.json().get('response', {}).get('data', [])
+            else:
+                st.error(f"Failed to fetch data for series {series}: {response.status_code} {response.reason}")
+                return []
             
-            This line plot illustrates the historical levels of crude oil in the U.S. Strategic Petroleum Reserve (SPR) over time. 
-            The plot includes actual values and a 5-year range offering a comprehensive view of US government usage of the SPR inventory.
-            """
-            )
+        # Function to calculate 5-year range and average
+        def calculate_five_year_stats(data):
+            weekly_values = defaultdict(list)
+            for entry in data:
+                week = datetime.strptime(entry['period'], "%Y-%m-%d").strftime("%U")
+                weekly_values[week].append(float(entry['value']))
+            
+            five_year_min = {week: min(values) for week, values in weekly_values.items()}
+            five_year_max = {week: max(values) for week, values in weekly_values.items()}
+            five_year_avg = {week: sum(values) / len(values) for week, values in weekly_values.items()}
+            return five_year_min, five_year_max, five_year_avg
 
 
-            # Function to fetch data from the API
-            def fetch_data_2(series, start_date):
-                url = f"https://api.eia.gov/v2/petroleum/sum/sndw/data/?api_key=gcp5ZkcZhaL5aCVvviD38eMtVEZXEyP28KqMHh4h&frequency=weekly&data[0]=value&facets[series][]={series}&start={start_date}&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
-                response = requests.get(url, verify=False)
-                if response.status_code == 200:
-                    return response.json().get('response', {}).get('data', [])
-                else:
-                    st.error(f"Failed to fetch data for series {series}: {response.status_code} {response.reason}")
-                    return []
+        series_list = {
+            'WCSSTUS1': 'U.S. Ending Stocks of Crude Oil in SPR',
+        }
+
+
+        # Calculate the start date for 5 years of historical data
+        start_date_2 = (datetime.now() - timedelta(days=5*365)).strftime("%Y-%m-%d")
+
+        # Fetch data for each series
+        series_data_2 = {series: fetch_data_2(series, start_date_2) for series in series_list}
+
+
+        # Create separate plots for each series
+        figs = {}
+        for i, (series, data) in enumerate(series_data_2.items(), start=1):
+            if data:
+                # Extract dates and values
+                dates = [entry['period'] for entry in data]
+                values = [float(entry['value']) for entry in data]
                 
-            # Function to calculate 5-year range and average
-            def calculate_five_year_stats(data):
-                weekly_values = defaultdict(list)
-                for entry in data:
-                    week = datetime.strptime(entry['period'], "%Y-%m-%d").strftime("%U")
-                    weekly_values[week].append(float(entry['value']))
+                # Calculate 5-year range and average
+                five_year_min, five_year_max, five_year_avg = calculate_five_year_stats(data)
+                weeks = [datetime.strptime(date, "%Y-%m-%d").strftime("%U") for date in dates]
+                min_values = [five_year_min[week] for week in weeks]
+                max_values = [five_year_max[week] for week in weeks]
+                avg_values = [five_year_avg[week] for week in weeks]
                 
-                five_year_min = {week: min(values) for week, values in weekly_values.items()}
-                five_year_max = {week: max(values) for week, values in weekly_values.items()}
-                five_year_avg = {week: sum(values) / len(values) for week, values in weekly_values.items()}
-                return five_year_min, five_year_max, five_year_avg
+                # Create a plot
+                fig = go.Figure()
+
+                # Add actual values line plot
+                fig.add_trace(go.Scatter(
+                    x=dates, 
+                    y=values, 
+                    mode='lines',
+                    name='Actual Values',
+                    marker=dict(color='blue'),
+                    line=dict(color='blue')
+                ))
+                
+                # Add 5-year range as a filled area
+                fig.add_trace(go.Scatter(
+                    x=dates + dates[::-1],
+                    y=max_values + min_values[::-1],
+                    fill='toself',
+                    fillcolor='rgba(0,100,80,0.2)',
+                    line=dict(color='rgba(255,255,255,0)'),
+                    hoverinfo="skip",
+                    showlegend=True,
+                    name='5-Year Range'
+                ))
 
 
-            series_list = {
-                'WCSSTUS1': 'U.S. Ending Stocks of Crude Oil in SPR',
-            }
+                # Customize layout
+                fig.update_layout(
+                    title=f'{series_list[series]}',
+                    xaxis=dict(title='Date'),
+                    yaxis=dict(title='Value (Thousand Barrels)'),
+                    plot_bgcolor='rgba(0,0,0,0)'
+                )
 
-
-            # Calculate the start date for 5 years of historical data
-            start_date_2 = (datetime.now() - timedelta(days=5*365)).strftime("%Y-%m-%d")
-
-            # Fetch data for each series
-            series_data_2 = {series: fetch_data_2(series, start_date_2) for series in series_list}
-
-
-            # Create separate plots for each series
-            figs = {}
-            for i, (series, data) in enumerate(series_data_2.items(), start=1):
-                if data:
-                    # Extract dates and values
-                    dates = [entry['period'] for entry in data]
-                    values = [float(entry['value']) for entry in data]
-                    
-                    # Calculate 5-year range and average
-                    five_year_min, five_year_max, five_year_avg = calculate_five_year_stats(data)
-                    weeks = [datetime.strptime(date, "%Y-%m-%d").strftime("%U") for date in dates]
-                    min_values = [five_year_min[week] for week in weeks]
-                    max_values = [five_year_max[week] for week in weeks]
-                    avg_values = [five_year_avg[week] for week in weeks]
-                    
-                    # Create a plot
-                    fig = go.Figure()
-
-                    # Add actual values line plot
-                    fig.add_trace(go.Scatter(
-                        x=dates, 
-                        y=values, 
-                        mode='lines',
-                        name='Actual Values',
-                        marker=dict(color='blue'),
-                        line=dict(color='blue')
-                    ))
-                    
-                    # Add 5-year range as a filled area
-                    fig.add_trace(go.Scatter(
-                        x=dates + dates[::-1],
-                        y=max_values + min_values[::-1],
-                        fill='toself',
-                        fillcolor='rgba(0,100,80,0.2)',
-                        line=dict(color='rgba(255,255,255,0)'),
-                        hoverinfo="skip",
-                        showlegend=True,
-                        name='5-Year Range'
-                    ))
-
-
-                    # Customize layout
-                    fig.update_layout(
-                        title=f'{series_list[series]}',
-                        xaxis=dict(title='Date'),
-                        yaxis=dict(title='Value (Thousand Barrels)'),
-                        plot_bgcolor='rgba(0,0,0,0)'
-                    )
-
-                    # Store plot in dictionary
-                    figs[f'fig{i}'] = fig
+                # Store plot in dictionary
+                figs[f'fig{i}'] = fig
 
 
 
-            st.plotly_chart(figs['fig1'], use_container_width=True)
-            st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
+        st.plotly_chart(figs['fig1'], use_container_width=True)
+        st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
 
 
 

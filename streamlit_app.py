@@ -62,8 +62,11 @@ client = MongoClient(uri, server_api=ServerApi('1'))
 db = client['TEST_DATABASE']
 config_collection = db['TEST_COLLECTION']
 
-# Fetch the configuration from MongoDB
-config = config_collection.find_one({})  # Fetch the first document
+@st.cache_data
+def fetch_config():
+    return config_collection.find_one({})
+
+config = fetch_config()# Fetch the first document
 
 # Creating the authenticator object
 authenticator = stauth.Authenticate(
@@ -92,7 +95,7 @@ with st.sidebar:
         authenticator.logout()
     st.html(
             """
-            <div style="text-align:center; font-size:12px; color:grey">
+            <div style="text-align:center; font-size:12px; ">
                 <hr style="margin-bottom: 6%; margin-top: 6%;">
                 </a><br><br>
                 <b>Data Disclamer</b><br>

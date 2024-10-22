@@ -924,7 +924,7 @@ def fundamentals_page():
         data = yf.download(ticker, start='2014-01-01', end=datetime.now())
 
         # Resample data to end of month to ensure we have monthly data points
-        monthly_data = data['Adj Close'].resample('M').last()
+        monthly_data = data['Adj Close'].resample('ME').last()
 
         # Calculate month-on-month percentage changes
         monthly_pct_change = monthly_data.pct_change() * 100
@@ -937,7 +937,7 @@ def fundamentals_page():
         monthly_avg_pct_change = monthly_pct_change.unstack(level='Month')
 
         # Calculate quarter-on-quarter percentage changes
-        quarterly_data = monthly_data.resample('Q').last()
+        quarterly_data = monthly_data.resample('QE').last()
         quarterly_pct_change = quarterly_data.pct_change() * 100
 
         # Extract quarter and year from the date index

@@ -1011,12 +1011,12 @@ def fundamentals_page():
             """
         )
         # Streamlit slider for selecting the period
-        period = st.slider("Period (in years)", min_value=1, max_value=len(monthly_avg_pct_change), value=12)
+        period = st.slider("Period (in years)", min_value=1, max_value=monthly_avg_pct_change.shape[0], value=12)
 
         # Function to update the plot based on the selected period
         def update_plot(period):
-            # Calculate the number of years
-            num_years = len(monthly_avg_pct_change)
+            # Get the total number of available years
+            num_years = monthly_avg_pct_change.shape[0]
             
             # Calculate the start index for the selected period
             start_index = max(0, num_years - period)
@@ -1027,24 +1027,31 @@ def fundamentals_page():
             # Calculate the average percentage change for each month across the selected period
             monthly_avg_pct_change_across_years = monthly_data_period.mean(axis=0)
             
-            # Define custom color palette
+            # Define custom color palette based on positive or negative values
             colors = ['red' if val < 0 else 'green' for val in monthly_avg_pct_change_across_years.values]
             
-            # Create Plotly bar chart for average month-on-month change across all years
+            # Create Plotly bar chart for average month-on-month change across the selected period
             fig = go.Figure(data=[
                 go.Bar(x=monthly_avg_pct_change_across_years.index, y=monthly_avg_pct_change_across_years.values, marker_color=colors)
             ])
+            
+            # Customize the layout of the chart
             fig.update_layout(
                 title=f'Average Month-on-Month Percentage Change of Brent Crude Oil Prices (Period: {period} years)',
                 xaxis_title='Month',
                 yaxis_title='Average Percentage Change',
                 xaxis=dict(tickmode='array', tickvals=list(range(1, 13)), ticktext=['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'])
             )
+            
+            # Display the chart in Streamlit
             st.plotly_chart(fig, use_container_width=True)
+            
+            # Add the data source
             st.markdown("<p class='left-align'>Source: Yahoo Finance</p>", unsafe_allow_html=True)
 
-        # Call the update plot function with the initial period value
+        # Call the update_plot function with the initial period value
         update_plot(period)
+
 
 
 

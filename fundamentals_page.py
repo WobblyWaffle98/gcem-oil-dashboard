@@ -923,6 +923,8 @@ def fundamentals_page():
         # Fetch historical data for the last 10 years
         data = yf.download(ticker, start='2014-01-01', end=datetime.now())
 
+        st.dataframe(data)
+
         # Resample data to end of month to ensure we have monthly data points
         monthly_data = data['Adj Close'].resample('M').last()
 
@@ -953,7 +955,6 @@ def fundamentals_page():
         # Calculate average quarter-on-quarter percentage changes
         quarterly_avg_pct_change = quarterly_pct_change.groupby(['Year', 'Quarter'])['Pct Change'].mean().unstack()
 
-        st.dataframe(quarterly_avg_pct_change)
         with col1:
             # Plotly heatmap for month-on-month change
             fig_monthly = go.Figure(data=go.Heatmap(

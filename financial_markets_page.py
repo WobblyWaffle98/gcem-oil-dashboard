@@ -170,6 +170,11 @@ def financial_markets_page():
         # Download the VIX and S&P 500 data
         vix_data = yf.download("^VIX", start='2004-01-01', end=end_date)
         sp500_data = yf.download("^GSPC", start='2004-01-01', end=end_date)
+        st.dataframe(vix_data)
+
+        # Reset the index to turn the index into a column
+        vix_data.reset_index(inplace=True)
+        sp500_data.reset_index(inplace=True)
 
         # Convert the 'Date' column to datetime and keep only the date
         vix_data['Date'] = pd.to_datetime(vix_data['Date']).dt.date

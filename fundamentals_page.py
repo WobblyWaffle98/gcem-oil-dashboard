@@ -919,23 +919,23 @@ def fundamentals_page():
 
         # Define the ticker symbol for Brent Crude Oil
         ticker = 'BZ=F'
-        
+
         # Fetch historical data for the last 10 years
         data = yf.download(ticker, start='2014-01-01', end=datetime.now())
-        
+
         # Resample data to end of month to ensure we have monthly data points
         monthly_data = data['Adj Close'].resample('M').last()
-        
+
         # Calculate month-on-month percentage changes
         monthly_pct_change = monthly_data.pct_change() * 100
-        
-        # Extract month and year from the date index
-        monthly_pct_change = pd.DataFrame(monthly_pct_change, columns=['Pct Change'])
-        monthly_pct_change['Month'] = monthly_pct_change.index.month
-        monthly_pct_change['Year'] = monthly_pct_change.index.year
-        
+
+        # Create a DataFrame with the percentage changes and the original monthly data
+        monthly_pct_change_df = pd.DataFrame(monthly_pct_change, columns=['Pct Change'])
+        monthly_pct_change_df['Month'] = monthly_pct_change_df.index.month
+        monthly_pct_change_df['Year'] = monthly_pct_change_df.index.year
+
         # Calculate average month-on-month percentage changes
-        monthly_avg_pct_change = monthly_pct_change.groupby(['Year', 'Month'])['Adj Close'].mean().unstack()
+        monthly_avg_pct_change = monthly_pct_change_df.groupby(['Year', 'Month'])['Pct Change'].mean().unstack()
         
         # Calculate quarter-on-quarter percentage changes
         quarterly_data = monthly_data.resample('Q').last()

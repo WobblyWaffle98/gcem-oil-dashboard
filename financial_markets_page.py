@@ -179,6 +179,7 @@ def financial_markets_page():
         vix_data['Date'] = pd.to_datetime(vix_data['Date']).dt.date
         sp500_data['Date'] = pd.to_datetime(sp500_data['Date']).dt.date
 
+        
         # Create a plotly figure
         fig = go.Figure()
 
@@ -186,7 +187,7 @@ def financial_markets_page():
         fig.add_trace(go.Scatter(x=vix_data['Date'], y=vix_data['Close'], mode='lines', name='VIX'))
 
         # Add the S&P 500 data to the figure
-        fig.add_trace(go.Scatter(x=sp500_data['Date'], y=sp500_data['Close'], mode='lines', name='S&P 500', yaxis='y2'))
+        fig.add_trace(go.Scatter(x=sp500_data['Date'], y=sp500_data['Close'], mode='lines', name='S&P 500'))
 
         # Add shaded regions for recession periods
         recession_periods = [
@@ -204,18 +205,11 @@ def financial_markets_page():
                 name="Recession Period"
             )
 
-        # Update the layout for dual y-axes
+        # Update the layout
         fig.update_layout(
             title="CBOE Volatility Index and S&P 500",
             xaxis_title="Date",
-            yaxis=dict(
-                title="VIX Value",
-            ),
-            yaxis2=dict(
-                title="S&P 500 Value",
-                overlaying='y',
-                side='right'
-            ),
+            yaxis_title="Value",
             legend=dict(
                 orientation="h",  # Horizontal orientation
                 yanchor="top",    # Position at the top

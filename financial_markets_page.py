@@ -172,13 +172,9 @@ def financial_markets_page():
         sp500_data = yf.download("^GSPC", start='2004-01-01', end=end_date)
         st.dataframe(vix_data)
 
-        # Reset the index to turn the index into a column
-        vix_data.reset_index(inplace=True)
-        sp500_data.reset_index(inplace=True)
-
-        # Convert the 'Date' column to datetime and keep only the date
-        vix_data['Date'] = pd.to_datetime(vix_data['Date']).dt.date
-        sp500_data['Date'] = pd.to_datetime(sp500_data['Date']).dt.date
+        # Convert the index to datetime and keep only the date
+        vix_data.index = pd.to_datetime(vix_data.index).date
+        sp500_data.index = pd.to_datetime(sp500_data.index).date
         
         st.dataframe(vix_data)
         # Create a plotly figure
@@ -191,7 +187,7 @@ def financial_markets_page():
         fig.add_trace(go.Scatter(x=sp500_data.index, y=sp500_data['Close'], mode='lines', name='S&P 500', yaxis='y2'))
 
         # Add shaded regions for recession periods
-        """recession_periods = [
+        recession_periods = [
             ('2007-12-01', '2009-06-30'),  # Great Recession
             ('2020-02-01', '2020-11-30'),  # COVID-19 Recession
         ]
@@ -204,7 +200,7 @@ def financial_markets_page():
                 layer="below",
                 line_width=0,
                 name="Recession Period"
-            )"""
+            )
 
         # Update the layout for dual y-axes
         fig.update_layout(

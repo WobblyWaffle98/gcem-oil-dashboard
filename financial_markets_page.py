@@ -164,31 +164,22 @@ def financial_markets_page():
                 The VIX Index represents the market's expectations of 30-day future volatility based on options prices for the S&P 500 Index (SPX).
                  """)
 
-        # Define the end date as now
+        # Define the start date 5 years ago
         end_date = datetime.now()
 
         # Download the VIX and S&P 500 data
         vix_data = yf.download("^VIX", start='2004-01-01', end=end_date)
         sp500_data = yf.download("^GSPC", start='2004-01-01', end=end_date)
 
-        # Reset the index to turn the index into a column if needed
-        vix_data.reset_index(inplace=True)
-        sp500_data.reset_index(inplace=True)
-
-        # If you want to keep only the date part in the 'Date' column
-        vix_data['Date'] = pd.to_datetime(vix_data['Date']).dt.date
-        sp500_data['Date'] = pd.to_datetime(sp500_data['Date']).dt.date
-
-        
         # Create a plotly figure
         fig = go.Figure()
 
         # Add the VIX data to the figure
-        fig.add_trace(go.Scatter(x=vix_data['Date'], y=vix_data['Close'], mode='lines', name='VIX'))
+        fig.add_trace(go.Scatter(x=vix_data.index, y=vix_data['Close'], mode='lines', name='VIX'))
 
         # Add the S&P 500 data to the figure
-        fig.add_trace(go.Scatter(x=sp500_data['Date'], y=sp500_data['Close'], mode='lines', name='S&P 500'))
-        """ 
+        fig.add_trace(go.Scatter(x=sp500_data.index, y=sp500_data['Close'], mode='lines', name='S&P 500', yaxis='y2'))
+
         # Add shaded regions for recession periods
         recession_periods = [
             ('2007-12-01', '2009-06-30'),  # Great Recession
@@ -205,22 +196,32 @@ def financial_markets_page():
                 name="Recession Period"
             )
 
-        # Update the layout
+        # Update the layout for dual y-axes
         fig.update_layout(
             title="CBOE Volatility Index and S&P 500",
             xaxis_title="Date",
-            yaxis_title="Value",
+            yaxis=dict(
+                title="VIX Value",
+
+            ),
+            yaxis2=dict(
+                title="S&P 500 Value",
+
+                overlaying='y',
+                side='right'
+            ),
             legend=dict(
-                orientation="h",  # Horizontal orientation
-                yanchor="top",    # Position at the top
-                y=-0.2,           # Move below the plot
-                xanchor="center", # Center horizontally
-                x=0.5
-            )
-        )"""
+                    orientation="h",  # Horizontal orientation
+                    yanchor="top",    # Position at the top
+                    y=-0.2,           # Move below the plot
+                    xanchor="center", # Center horizontally
+                    x=0.5)
+                    # Center horizontally
+            
+        )
 
         # Show the figure
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig,use_container_width=True)
         # Use the font with right-aligned text
         st.markdown("<p class='left-align'>Source: Yahoo Finance</p>", unsafe_allow_html=True)
 

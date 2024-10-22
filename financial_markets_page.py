@@ -171,6 +171,8 @@ def financial_markets_page():
         vix_data = yf.download("^VIX", start='2004-01-01', end=end_date)
         sp500_data = yf.download("^GSPC", start='2004-01-01', end=end_date)
 
+        st.dataframe(vix_data)
+        st.dataframe(sp500_data)
         # Create a plotly figure
         fig = go.Figure()
 

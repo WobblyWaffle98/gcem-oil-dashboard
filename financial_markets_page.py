@@ -188,7 +188,7 @@ def financial_markets_page():
 
         # Add the S&P 500 data to the figure
         fig.add_trace(go.Scatter(x=sp500_data['Date'], y=sp500_data['Close'], mode='lines', name='S&P 500'))
-
+        """ 
         # Add shaded regions for recession periods
         recession_periods = [
             ('2007-12-01', '2009-06-30'),  # Great Recession
@@ -217,7 +217,7 @@ def financial_markets_page():
                 xanchor="center", # Center horizontally
                 x=0.5
             )
-        )
+        )"""
 
         # Show the figure
         st.plotly_chart(fig, use_container_width=True)

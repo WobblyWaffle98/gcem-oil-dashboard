@@ -926,37 +926,33 @@ def fundamentals_page():
         # Resample data to end of month to ensure we have monthly data points
         monthly_data = data['Adj Close'].resample('M').last()
 
-        st.dataframe(monthly_data)
-
         # Calculate month-on-month percentage changes
         monthly_pct_change = monthly_data.pct_change() * 100
 
-        # Create a DataFrame with the percentage changes and the original monthly data
-        monthly_pct_change_df = pd.DataFrame(monthly_pct_change, columns=['Pct Change'])
-        monthly_pct_change_df['Month'] = monthly_pct_change_df.index.month
-        monthly_pct_change_df['Year'] = monthly_pct_change_df.index.year
+        # Extract month and year from the date index
+        monthly_pct_change.index = pd.MultiIndex.from_tuples(
+            [(i.year, i.month) for i in monthly_pct_change.index], names=['Year', 'Month'])
 
         # Calculate average month-on-month percentage changes
-        monthly_avg_pct_change = monthly_pct_change_df.groupby(['Year', 'Month'])['Pct Change'].mean().unstack()
-        
+        monthly_avg_pct_change = monthly_pct_change.unstack(level='Month')
+
         # Calculate quarter-on-quarter percentage changes
         quarterly_data = monthly_data.resample('Q').last()
         quarterly_pct_change = quarterly_data.pct_change() * 100
-        
+
         # Extract quarter and year from the date index
-        quarterly_pct_change = pd.DataFrame(quarterly_pct_change, columns=['Pct Change'])
-        quarterly_pct_change['Quarter'] = quarterly_pct_change.index.quarter
-        quarterly_pct_change['Year'] = quarterly_pct_change.index.year
-        
+        quarterly_pct_change.index = pd.MultiIndex.from_tuples(
+            [(i.year, i.quarter) for i in quarterly_pct_change.index], names=['Year', 'Quarter'])
+
         # Calculate average quarter-on-quarter percentage changes
-        quarterly_avg_pct_change = quarterly_pct_change.groupby(['Year', 'Quarter'])['Pct Change'].mean().unstack()
+        quarterly_avg_pct_change = quarterly_pct_change.unstack(level='Quarter')
+
         with col1:
             # Plotly heatmap for month-on-month change
             fig_monthly = go.Figure(data=go.Heatmap(
                 z=monthly_avg_pct_change.values,
                 x=['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
                 y=monthly_avg_pct_change.index,
-                
                 colorscale='RdYlGn',
                 colorbar=dict(title='Percentage Change'),
                 zmin=-10,  # Adjust according to your data
@@ -969,9 +965,10 @@ def fundamentals_page():
                 xaxis_title='Month',
                 yaxis_title='Year',
             )
-            
-            st.plotly_chart(fig_monthly,use_container_width=True)
+
+            st.plotly_chart(fig_monthly, use_container_width=True)
             st.markdown("<p class='left-align'>Source: Yahoo Finance</p>", unsafe_allow_html=True)
+
         with col2:
             # Plotly heatmap for quarter-on-quarter change
             fig_quarterly = go.Figure(data=go.Heatmap(
@@ -990,9 +987,10 @@ def fundamentals_page():
                 xaxis_title='Quarter',
                 yaxis_title='Year'
             )
-            
-            st.plotly_chart(fig_quarterly,use_container_width=True)
+
+            st.plotly_chart(fig_quarterly, use_container_width=True)
             st.markdown("<p class='left-align'>Source: Yahoo Finance</p>", unsafe_allow_html=True)
+
 
         #####################
 

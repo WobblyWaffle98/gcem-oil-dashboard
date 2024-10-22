@@ -899,6 +899,40 @@ def fundamentals_page():
 
 #####################################
     with tab2:
+        # Cache the data fetching to avoid reloading it each time the app is rerun
+        @st.cache_data
+        def fetch_data(ticker, start_date):
+            return yf.download(ticker, start=start_date, end=datetime.now())
+
+        def calculate_percentage_changes(data, resample_rule, time_unit):
+            resampled_data = data['Adj Close'].resample(resample_rule).last()
+            pct_change = resampled_data.pct_change() * 100
+            if time_unit == 'Month':
+                pct_change.index = pd.MultiIndex.from_tuples(
+                    [(i.year, i.month) for i in pct_change.index], names=['Year', time_unit])
+            else:  # Quarter
+                pct_change.index = pd.MultiIndex.from_tuples(
+                    [(i.year, i.quarter) for i in pct_change.index], names=['Year', time_unit])
+            return pct_change.unstack(level=time_unit)
+
+        def plot_heatmap(data, x_labels, title, x_title, y_title):
+            fig = go.Figure(data=go.Heatmap(
+                z=data.values,
+                x=x_labels,
+                y=data.index,
+                colorscale='RdYlGn',
+                colorbar=dict(title='Percentage Change'),
+                zmin=-10,  # Adjust according to your data
+                zmax=10,   # Adjust according to your data
+                hoverongaps=False
+            ))
+            fig.update_layout(
+                title=title,
+                xaxis_title=x_title,
+                yaxis_title=y_title
+            )
+            return fig
+
         st.subheader("Monthly and Quarterly Seasonality Analysis")
 
         st.write(
@@ -906,88 +940,43 @@ def fundamentals_page():
             This heatmap illustrates the month-on-month (left) or quarter-on-quarter(right) percentage 
             change in Brent Crude Oil prices over the past decade. Each cell represents the average 
             percentage change for a specific month or quarter of each year. The color gradient ranges from red (indicating a decrease) to green (indicating an increase), providing a visual overview of seasonal trends and fluctuations in oil prices.
-            
+
             Key Insights:
 
             - Observe the seasonal patterns where certain months consistently show higher or lower changes.
             - Identify trends and anomalies in the price changes month by month.
-
             """
         )
 
-        col1,col2 = st.columns(2)
+        col1, col2 = st.columns(2)
 
         # Define the ticker symbol for Brent Crude Oil
         ticker = 'BZ=F'
 
         # Fetch historical data for the last 10 years
-        data = yf.download(ticker, start='2014-01-01', end=datetime.now())
+        data = fetch_data(ticker, start_date='2014-01-01')
 
-        # Resample data to end of month to ensure we have monthly data points
-        monthly_data = data['Adj Close'].resample('ME').last()
-
-        # Calculate month-on-month percentage changes
-        monthly_pct_change = monthly_data.pct_change() * 100
-
-        # Extract month and year from the date index
-        monthly_pct_change.index = pd.MultiIndex.from_tuples(
-            [(i.year, i.month) for i in monthly_pct_change.index], names=['Year', 'Month'])
-
-        # Calculate average month-on-month percentage changes
-        monthly_avg_pct_change = monthly_pct_change.unstack(level='Month')
-
-        # Calculate quarter-on-quarter percentage changes
-        quarterly_data = monthly_data.resample('QE').last()
-        quarterly_pct_change = quarterly_data.pct_change() * 100
-
-        # Extract quarter and year from the date index
-        quarterly_pct_change.index = pd.MultiIndex.from_tuples(
-            [(i.year, i.quarter) for i in quarterly_pct_change.index], names=['Year', 'Quarter'])
-
-        # Calculate average quarter-on-quarter percentage changes
-        quarterly_avg_pct_change = quarterly_pct_change.unstack(level='Quarter')
+        # Calculate monthly and quarterly percentage changes
+        monthly_avg_pct_change = calculate_percentage_changes(data, 'ME', 'Month')
+        quarterly_avg_pct_change = calculate_percentage_changes(data, 'QE', 'Quarter')
 
         with col1:
-            # Plotly heatmap for month-on-month change
-            fig_monthly = go.Figure(data=go.Heatmap(
-                z=monthly_avg_pct_change.values,
-                x=['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-                y=monthly_avg_pct_change.index,
-                colorscale='RdYlGn',
-                colorbar=dict(title='Percentage Change'),
-                zmin=-10,  # Adjust according to your data
-                zmax=10,   # Adjust according to your data
-                hoverongaps=False
-            ))
-
-            fig_monthly.update_layout(
-                title='Month-on-Month Percentage Change Seasonality of Brent Crude Oil Prices',
-                xaxis_title='Month',
-                yaxis_title='Year',
+            fig_monthly = plot_heatmap(
+                monthly_avg_pct_change,
+                ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                'Month-on-Month Percentage Change Seasonality of Brent Crude Oil Prices',
+                'Month', 'Year'
             )
-
             st.plotly_chart(fig_monthly, use_container_width=True)
             st.markdown("<p class='left-align'>Source: Yahoo Finance</p>", unsafe_allow_html=True)
 
         with col2:
-            # Plotly heatmap for quarter-on-quarter change
-            fig_quarterly = go.Figure(data=go.Heatmap(
-                z=quarterly_avg_pct_change.values,
-                x=['Q1', 'Q2', 'Q3', 'Q4'],
-                y=quarterly_avg_pct_change.index,
-                colorscale='RdYlGn',
-                colorbar=dict(title='Percentage Change'),
-                zmin=-10,  # Adjust according to your data
-                zmax=10,   # Adjust according to your data
-                hoverongaps=False
-            ))
-
-            fig_quarterly.update_layout(
-                title='Quarter-on-Quarter Percentage Change Seasonality of Brent Crude Oil Prices',
-                xaxis_title='Quarter',
-                yaxis_title='Year'
+            fig_quarterly = plot_heatmap(
+                quarterly_avg_pct_change,
+                ['Q1', 'Q2', 'Q3', 'Q4'],
+                'Quarter-on-Quarter Percentage Change Seasonality of Brent Crude Oil Prices',
+                'Quarter', 'Year'
             )
-
             st.plotly_chart(fig_quarterly, use_container_width=True)
             st.markdown("<p class='left-align'>Source: Yahoo Finance</p>", unsafe_allow_html=True)
 

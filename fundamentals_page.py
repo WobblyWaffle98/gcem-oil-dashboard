@@ -930,7 +930,7 @@ def fundamentals_page():
         monthly_pct_change = monthly_data.pct_change() * 100
 
         # Convert the Series to a DataFrame and rename the column to 'Pct Change'
-        monthly_pct_change = monthly_pct_change.to_frame(name='Pct Change')
+        monthly_pct_change = pd.DataFrame(monthly_pct_change, columns=['Pct Change'])
 
         # Extract month and year from the date index
         monthly_pct_change['Month'] = monthly_pct_change.index.month

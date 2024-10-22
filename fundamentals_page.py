@@ -926,6 +926,8 @@ def fundamentals_page():
         # Resample data to end of month to ensure we have monthly data points
         monthly_data = data['Adj Close'].resample('M').last()
 
+        st.dataframe(monthly_data)
+
         # Calculate month-on-month percentage changes
         monthly_pct_change = monthly_data.pct_change() * 100
 

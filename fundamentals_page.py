@@ -947,7 +947,7 @@ def fundamentals_page():
         quarterly_pct_change['Year'] = quarterly_pct_change.index.year
         
         # Calculate average quarter-on-quarter percentage changes
-        quarterly_avg_pct_change = quarterly_pct_change.groupby(['Year', 'Quarter'])['Adj Close'].mean().unstack()
+        quarterly_avg_pct_change = quarterly_pct_change.groupby(['Year', 'Quarter'])['Pct Change'].mean().unstack()
         with col1:
             # Plotly heatmap for month-on-month change
             fig_monthly = go.Figure(data=go.Heatmap(

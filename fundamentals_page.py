@@ -930,7 +930,7 @@ def fundamentals_page():
         monthly_pct_change = monthly_data.pct_change() * 100
         
         # Extract month and year from the date index
-        monthly_pct_change = monthly_pct_change.to_frame()
+        #monthly_pct_change = monthly_pct_change.to_frame()
         monthly_pct_change['Month'] = monthly_pct_change.index.month
         monthly_pct_change['Year'] = monthly_pct_change.index.year
         

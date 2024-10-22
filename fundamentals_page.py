@@ -1010,7 +1010,7 @@ def fundamentals_page():
 
             """
         )
-        # Streamlit slider for selecting the period
+        # Streamlit slider for selecting the period (in years)
         period = st.slider("Period (in years)", min_value=1, max_value=monthly_avg_pct_change.shape[0], value=12)
 
         # Function to update the plot based on the selected period
@@ -1024,15 +1024,17 @@ def fundamentals_page():
             # Select the relevant data for the period
             monthly_data_period = monthly_avg_pct_change.iloc[start_index:]
             
-            # Calculate the average percentage change for each month across the selected period
-            monthly_avg_pct_change_across_years = monthly_data_period.mean(axis=0)
+            # Now we keep all years and group by month to get the mean for each month
+            monthly_avg_pct_change_by_month = monthly_data_period.groupby(monthly_data_period.index.get_level_values(1)).mean()
             
             # Define custom color palette based on positive or negative values
-            colors = ['red' if val < 0 else 'green' for val in monthly_avg_pct_change_across_years.values]
+            colors = ['red' if val < 0 else 'green' for val in monthly_avg_pct_change_by_month.values]
             
-            # Create Plotly bar chart for average month-on-month change across the selected period
+            # Create Plotly bar chart for average month-on-month change for each month in the selected period
             fig = go.Figure(data=[
-                go.Bar(x=monthly_avg_pct_change_across_years.index, y=monthly_avg_pct_change_across_years.values, marker_color=colors)
+                go.Bar(x=['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    y=monthly_avg_pct_change_by_month.values,
+                    marker_color=colors)
             ])
             
             # Customize the layout of the chart
@@ -1051,6 +1053,7 @@ def fundamentals_page():
 
         # Call the update_plot function with the initial period value
         update_plot(period)
+
 
 
 

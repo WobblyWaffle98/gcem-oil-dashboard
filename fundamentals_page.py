@@ -930,7 +930,7 @@ def fundamentals_page():
         monthly_pct_change = monthly_data.pct_change() * 100
         
         # Extract month and year from the date index
-        monthly_pct_change = pd.DataFrame(monthly_pct_change)
+        monthly_pct_change = pd.DataFrame(monthly_pct_change, columns=['Pct Change'])
         monthly_pct_change['Month'] = monthly_pct_change.index.month
         monthly_pct_change['Year'] = monthly_pct_change.index.year
         
@@ -942,7 +942,7 @@ def fundamentals_page():
         quarterly_pct_change = quarterly_data.pct_change() * 100
         
         # Extract quarter and year from the date index
-        quarterly_pct_change = pd.DataFrame(quarterly_pct_change)
+        quarterly_pct_change = pd.DataFrame(quarterly_pct_change, columns=['Pct Change'])
         quarterly_pct_change['Quarter'] = quarterly_pct_change.index.quarter
         quarterly_pct_change['Year'] = quarterly_pct_change.index.year
         

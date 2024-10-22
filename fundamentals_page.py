@@ -944,7 +944,7 @@ def fundamentals_page():
         quarterly_pct_change = quarterly_data.pct_change() * 100
 
         # Convert the Series to a DataFrame and rename the column to 'Pct Change'
-        quarterly_pct_change = quarterly_pct_change.to_frame(name='Pct Change')
+        quarterly_pct_change = pd.DataFrame(quarterly_pct_change, columns=['Pct Change'])
 
         # Extract quarter and year from the date index
         quarterly_pct_change['Quarter'] = quarterly_pct_change.index.quarter

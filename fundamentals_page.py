@@ -994,13 +994,13 @@ def fundamentals_page():
 
         #####################
 
-
+        """
 
         st.divider()
         st.subheader("Interactive Period Analysis")
 
         st.write(
-            """
+            
             Use the slider to select different periods and observe the average month-on-month percentage change in Brent Crude Oil prices. This bar chart aggregates the average changes over the selected years, helping you understand longer-term trends and variations in seasonal patterns.
             
             Key Insights:
@@ -1008,7 +1008,7 @@ def fundamentals_page():
             - The color-coded bars indicate positive (green) and negative (red) average changes.
             - Customize the period to examine how seasonality and trends evolve over different time frames.
 
-            """
+            
         )
         # Streamlit slider for selecting the period (in years)
         period = st.slider("Period (in years)", min_value=1, max_value=monthly_avg_pct_change.shape[0], value=12)
@@ -1052,7 +1052,7 @@ def fundamentals_page():
             st.markdown("<p class='left-align'>Source: Yahoo Finance</p>", unsafe_allow_html=True)
 
         # Call the update_plot function with the initial period value
-        update_plot(period)
+        update_plot(period)"""
 
 
 

@@ -1,6 +1,6 @@
 
 streamlit
-pandas
+pandas==2.2.3
 numpy
 plotly
 yfinance==0.2.44
@@ -8,10 +8,11 @@ matplotlib
 scipy
 seaborn
 datetime
-xlrd
+xlrd==2.0.1
 prettytable
 bs4
 streamlit-aggrid
-futures
+futures==3.0.5
 streamlit_authenticator
 pymongo
+

@@ -220,6 +220,19 @@ def fundamentals_page():
             # Use the font with right-aligned text
             st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
 
+        @st.cache_data
+        def convert_df(df):
+            # IMPORTANT: Cache the conversion to prevent computation on every rerun
+            return df.to_csv().encode("utf-8")
+
+
+        st.download_button(
+            label="Download data as CSV",
+            data=convert_df(df),
+            file_name="OilBalances.csv",
+            mime="text/csv",
+            )
+
         st.subheader("Other sources of Supply-Demand Balances (May require paid subscriptions)")
         st.write("""
         1. The [OPEC Monthly Oil Market Report (MOMR)](https://www.opec.org/opec_web/en/publications/338.htm) covers major issues affecting the world oil market and provides an outlook for crude oil market developments for the coming year. 

@@ -1361,6 +1361,7 @@ def fundamentals_page():
 
         # Create separate plots for each series
         figs = {}
+        all_data = []
         for i, (series, data) in enumerate(series_data_2.items(), start=1):
             if data:
                 # Extract dates and values
@@ -1373,6 +1374,21 @@ def fundamentals_page():
                 min_values = [five_year_min[week] for week in weeks]
                 max_values = [five_year_max[week] for week in weeks]
                 avg_values = [five_year_avg[week] for week in weeks]
+
+                # Create a DataFrame for this series
+                df = pd.DataFrame({
+                    'Date': dates,
+                    'Actual Values': values,
+                    '5-Year Min': min_values,
+                    '5-Year Max': max_values,
+                    '5-Year Average': avg_values
+                })
+                
+                # Add series name to the DataFrame
+                df['Series'] = series_list[series]
+                
+                # Append to the all_data list
+                all_data.append(df)
                 
                 # Create a plot
                 fig = go.Figure()
@@ -1418,6 +1434,9 @@ def fundamentals_page():
 
                 # Store plot in dictionary
                 figs[f'fig{i}'] = fig
+
+        # Combine all DataFrames into one
+        combined_df = pd.concat(all_data, ignore_index=True)
 
 
 
@@ -1507,6 +1526,21 @@ def fundamentals_page():
 
             st.plotly_chart(figs['fig3'], use_container_width=True)
             st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
+
+        # Function to convert DataFrame to Excel
+        @st.cache_data
+        def convert_df(df):
+            # IMPORTANT: Cache the conversion to prevent computation on every rerun
+            return df.to_csv().encode("utf-8")
+        
+
+        # Download button for Excel
+        st.download_button(
+            label="Download data as Excel",
+            data=convert_df(combined_df),
+            file_name="OilData.xlsx",
+            mime="application/vnd.ms-excel",
+        )
 
 
     with tab6:

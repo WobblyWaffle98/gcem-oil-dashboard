@@ -1538,7 +1538,7 @@ def fundamentals_page():
         st.download_button(
             label="Download data as CSV",
             data=convert_df(combined_df),
-            file_name="OilData.csv",
+            file_name="CRUDE-EIA-Inventory.csv",
             mime="text/csv",
         )
 

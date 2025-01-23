@@ -1536,10 +1536,10 @@ def fundamentals_page():
 
         # Download button for Excel
         st.download_button(
-            label="Download data as Excel",
+            label="Download data as CSV",
             data=convert_df(combined_df),
-            file_name="OilData.xlsx",
-            mime="application/vnd.ms-excel",
+            file_name="OilData.csv",
+            mime="text/csv",
         )
 
 

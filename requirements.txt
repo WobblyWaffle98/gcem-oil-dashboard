@@ -3,7 +3,7 @@ streamlit==1.41.0
 pandas==2.2.3
 numpy
 plotly
-yfinance==0.2.44
+yfinance
 matplotlib
 scipy
 seaborn

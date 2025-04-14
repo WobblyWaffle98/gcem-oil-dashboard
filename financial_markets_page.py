@@ -132,7 +132,7 @@ def financial_markets_page():
                 start_date = end_date - timedelta(days=10*365)
             
             # Fetch historical data
-            data = yf.download(list(tickers.keys()), start=start_date, end=end_date)['Adj Close']
+            data = yf.download(list(tickers.keys()), start=start_date, end=end_date)['Close']
             
             # Rename columns to equity names
             data.rename(columns=tickers, inplace=True)
@@ -496,7 +496,7 @@ def financial_markets_page():
                 start_date = end_date - timedelta(days=10*365)
             
             # Fetch historical data
-            data = yf.download(list(fx_tickers.keys()), start=start_date, end=end_date)['Adj Close']
+            data = yf.download(list(fx_tickers.keys()), start=start_date, end=end_date)['Close']
             
             # Rename columns to FX pair names
             data.rename(columns=fx_tickers, inplace=True)
@@ -540,8 +540,8 @@ def financial_markets_page():
             start_date = datetime(2007, 7, 1)
             
             # Fetch data for DXY and Brent Crude Oil
-            df_dxy = yf.download("DX-Y.NYB", start=start_date)['Adj Close']
-            df_brent = yf.download("BZ=F", start=start_date)['Adj Close']
+            df_dxy = yf.download("DX-Y.NYB", start=start_date)['Close']
+            df_brent = yf.download("BZ=F", start=start_date)['Close']
 
             fig_ts = go.Figure()
 

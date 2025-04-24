@@ -223,10 +223,10 @@ def technical_probability_page():
             # Drift = Average Daily Return − (Variance / 2)
             u = log_returns.mean()
             var = log_returns.var()
-            drift = u - (0.5 * var)
+            drift = float(u - (0.5 * var))  # Convert to float scalar
 
             # Standard deviation of historic log returns
-            stdev = log_returns.std()
+            stdev = float(log_returns.std())  # Convert to float scalar
 
             # Price predictions for the specified future period with iterations
             last_date = new_data.index[-1]

@@ -918,7 +918,7 @@ def fundamentals_page():
             return yf.download(ticker, start=start_date, end=datetime.now())
 
         def calculate_percentage_changes(data, resample_rule, time_unit):
-            resampled_data = data['Adj Close'].resample(resample_rule).last()
+            resampled_data = data['Close'].resample(resample_rule).last()
             pct_change = resampled_data.pct_change() * 100
             if time_unit == 'Month':
                 pct_change.index = pd.MultiIndex.from_tuples(

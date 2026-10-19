@@ -61,7 +61,7 @@ html, body, .stApp, [data-testid="stAppViewContainer"]{
   font-family:'Geist','Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
 }
 [data-testid="stHeader"]{ background:transparent; }
-#MainMenu, footer, [data-testid="stDeployButton"]{ visibility:hidden; }
+#MainMenu, footer, [data-testid="stDeployButton"], [data-testid="stAppDeployButton"], .stDeployButton{ display:none !important; }
 .block-container{ padding-top:2rem; padding-bottom:4rem; max-width:1500px; }
 h1,h2,h3,h4{ font-family:'Geist','Inter',system-ui,sans-serif; font-weight:600; letter-spacing:-0.02em; color:var(--ink); }
 a{ color:var(--brand-dark); }
@@ -88,6 +88,8 @@ hr{ border-color:var(--rule); }
 }
 .stButton > button:hover{ border-color:var(--brand); color:var(--brand-dark); background:var(--surface); }
 .stButton > button:focus-visible{ outline:2px solid var(--brand); outline-offset:2px; }
+[data-testid="stButtonGroup"]{ flex-wrap:nowrap; }
+button[data-testid="stBaseButton-segmented_control"], button[data-testid="stBaseButton-segmented_controlActive"]{ padding:0.25rem 0.7rem; white-space:nowrap; }
 button[data-testid="stBaseButton-segmented_control"]{
   background:var(--surface); border:1px solid var(--rule); color:var(--muted); font-weight:500;
 }
@@ -125,28 +127,43 @@ button[data-testid="stBaseButton-segmented_controlActive"]{
 .gc-pill.up{ color:#14773F; background:rgba(31,157,85,.12); }
 .gc-pill.down{ color:#C3282D; background:rgba(229,72,77,.12); }
 .gc-pill.flat{ color:var(--muted); background:var(--bg); }
-.gc-q svg{ display:block; flex:none; }
+.gc-q svg{ display:block; flex:1 1 40px; min-width:40px; max-width:96px; height:30px; }
 @media (max-width:1280px){ .gc-grid{ grid-template-columns:repeat(3, minmax(0,1fr)); } }
 @media (max-width:640px){ .gc-grid{ grid-template-columns:repeat(2, minmax(0,1fr)); } .gc-hero-t{ font-size:1.5rem; } .gc-hero-m{ text-align:left; } }
 
 /* Panels (st.container(key=...)) */
 .st-key-chart_card, .st-key-cal_card{
-  background:var(--surface); border:1px solid var(--rule); border-radius:16px; padding:20px 22px 12px; box-shadow:var(--shadow);
+  background:var(--surface); border:1px solid var(--rule); border-radius:16px; padding:20px 0 12px;
+  box-shadow:var(--shadow); overflow:hidden;
 }
+/* Text and controls get side padding; the chart and calendar run edge to edge so they size to the card exactly */
+.st-key-chart_card > [data-testid="stElementContainer"], .st-key-cal_card > [data-testid="stElementContainer"],
+.st-key-chart_card > [data-testid="stHorizontalBlock"]{ box-sizing:border-box; padding:0 22px; }
+.st-key-chart_card > [data-testid="stElementContainer"]:has(.stPlotlyChart, [data-testid="stPlotlyChart"], .js-plotly-plot),
+.st-key-cal_card > [data-testid="stElementContainer"]:has(iframe){ padding:0; }
 .gc-h{ font-size:1.15rem; font-weight:600; letter-spacing:-0.02em; margin:0 0 2px; }
 .gc-note{ color:var(--muted); font-size:0.86rem; margin:0 0 12px; max-width:64ch; }
 
+/* Streamlit sizes children to the card's outer width; make them fit the padded inner width */
+.st-key-chart_card > div, .st-key-cal_card > div, [class*="st-key-sec_"] > div{ width:100% !important; max-width:100% !important; min-width:0; }
+.st-key-chart_card, .st-key-cal_card, [class*="st-key-sec_"]{ box-sizing:border-box; min-width:0; }
+.st-key-cal_card iframe{ width:100% !important; }
+/* Streamlit also pins inner markdown/button wrappers to the card's outer width; let them follow the padded box */
+.st-key-chart_card [data-testid="stMarkdown"], .st-key-cal_card [data-testid="stMarkdown"],
+[class*="st-key-sec_"] [data-testid="stMarkdown"], [class*="st-key-sec_"] .stButton{ width:100% !important; }
+
 /* Section cards */
 [class*="st-key-sec_"]{
-  background:var(--surface); border:1px solid var(--rule); border-radius:16px; padding:18px 18px 10px;
-  box-shadow:var(--shadow); gap:0.4rem; transition:border-color .15s;
+  background:var(--surface); border:1px solid var(--rule); border-radius:16px; padding:18px 0 10px;
+  box-shadow:var(--shadow); gap:0.4rem; transition:border-color .15s; height:100%; min-height:236px;
 }
+[class*="st-key-sec_"] > [data-testid="stElementContainer"]{ box-sizing:border-box; padding:0 18px; }
 [class*="st-key-sec_"]:hover{ border-color:var(--brand); }
 .gc-ic{ width:40px; height:40px; border-radius:12px; background:var(--tint); color:var(--brand-dark);
   display:flex; align-items:center; justify-content:center; margin-bottom:12px; }
 .gc-ic svg{ width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
-.gc-card-t{ font-size:1.02rem; font-weight:600; letter-spacing:-0.015em; line-height:1.25; margin-bottom:6px; }
-.gc-card-d{ color:var(--muted); font-size:0.86rem; line-height:1.45; min-height:3.8em; }
+.gc-card-t{ font-size:1.02rem; font-weight:600; letter-spacing:-0.015em; line-height:1.25; margin-bottom:6px; min-height:2.5em; }
+.gc-card-d{ color:var(--muted); font-size:0.86rem; line-height:1.45; min-height:5.9em; }
 [class*="st-key-open_"] button{ border:none; background:transparent; padding:6px 0; color:var(--brand-dark); justify-content:flex-start; min-height:0; font-weight:600; }
 [class*="st-key-open_"] button:hover{ color:var(--deep); background:transparent; }
 

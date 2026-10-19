@@ -165,8 +165,8 @@ def main_page():
         f"""
         <div class="gc-hero">
           <div>
-            <div class="gc-hero-t">Oil Indicator Dashboard</div>
-            <div class="gc-hero-s">Market prices, upcoming economic events and analysis for oil and gas.</div>
+            <div class="gc-hero-t">Oil Indicator Lab</div>
+            <div class="gc-hero-s">Market prices, upcoming economic events and analysis for oil.</div>
           </div>
           <div class="gc-hero-m">
             <b>{fetched:%d %b %Y}</b><br>

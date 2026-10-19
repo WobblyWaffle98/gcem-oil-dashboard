@@ -60,9 +60,6 @@ def main_page():
     displayLocalGIF2(image_placeholder2, imagePath2,"")
 
     
-    if st.session_state["authentication_status"]:
-        st.write(f'Hi User !')
-
     st.write("""
     Welcome to the GCEM Oil Indicator Dashboard! This is the main page where you can find upcoming economic events and current market prices for oil and gas. 
 
@@ -335,5 +332,4 @@ def main_page():
         st.markdown("<p class='left-align'>Source:TradingView (NYMEX)</p>", unsafe_allow_html=True)  
         st.subheader('Henry Hub Price (NYMEX)')
         components.html(NatGas_chart, height=500, scrolling=False)
-        st.markdown("<p class='left-align'>Source:TradingView (NYMEX)</p>", unsafe_allow_html=True)  
-
+        st.markdown("<p class='left-align'>Source:TradingView (NYMEX)</p>", unsafe_allow_html=True)

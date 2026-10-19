@@ -3,6 +3,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 import pandas as pd
+import plotly.graph_objects as go
 import streamlit as st
 import streamlit.components.v1 as components
 import yfinance as yf
@@ -21,14 +22,12 @@ QUOTES = [
     ("USD/MYR", "MYR=X", 4),
 ]
 
-# TradingView symbols for the main chart (same sources as before)
-CHARTS = {
-    "Brent": "VELOCITY:BRENT",
-    "WTI": "NYMEX:CL1!",
-    "Henry Hub": "NYMEX:NG1!",
-}
+# Yahoo Finance symbols for the main chart
+CHARTS = {"Brent": "BZ=F", "WTI": "CL=F", "Henry Hub": "NG=F"}
+RANGES = {"1M": "1mo", "3M": "3mo", "6M": "6mo", "1Y": "1y", "5Y": "5y"}
 
-CHART_HEIGHT = 640
+CHART_HEIGHT = 640   # calendar iframe height
+PLOT_HEIGHT = 540    # price chart height (leaves room for the controls)
 # The Investing.com widget only ships a light theme; this inverts it to sit on the dark page.
 DARKEN_CALENDAR = True
 
@@ -54,6 +53,52 @@ def load_quotes():
     else:
         series["SPREAD"] = None
     return series, datetime.now(MYT)
+
+
+@st.cache_data(ttl=300, show_spinner=False)
+def load_history(symbol, period):
+    """Daily OHLC from Yahoo Finance. Returns None on failure."""
+    try:
+        df = yf.Ticker(symbol).history(period=period, interval="1d")[["Open", "High", "Low", "Close"]].dropna()
+        return df if len(df) >= 2 else None
+    except Exception:
+        return None
+
+
+def _price_figure(df, name, dp, candles):
+    up, down, accent = COLORS["up"], COLORS["down"], COLORS["accent"]
+    font = dict(family="Geist, Inter, system-ui, sans-serif", color=COLORS["muted"], size=12)
+    fig = go.Figure()
+    if candles:
+        fig.add_trace(go.Candlestick(
+            x=df.index, open=df["Open"], high=df["High"], low=df["Low"], close=df["Close"],
+            increasing=dict(line=dict(color=up), fillcolor=up),
+            decreasing=dict(line=dict(color=down), fillcolor=down),
+            name=name, showlegend=False,
+        ))
+    else:
+        fig.add_trace(go.Scatter(
+            x=df.index, y=df["Close"], mode="lines", name=name, showlegend=False,
+            line=dict(color=accent, width=2.2),
+            hovertemplate=f"%{{y:,.{dp}f}}<extra></extra>",
+        ))
+    last = float(df["Close"].iloc[-1])
+    fig.add_hline(y=last, line=dict(color=COLORS["muted"], width=1, dash="dot"),
+                  annotation_text=f"{last:,.{dp}f}", annotation_position="right",
+                  annotation_font=dict(color=COLORS["bg"], size=12),
+                  annotation_bgcolor=accent if not candles else COLORS["text"])
+    fig.update_layout(
+        height=PLOT_HEIGHT, margin=dict(l=4, r=4, t=8, b=4),
+        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor=COLORS["panel"], font=font,
+        hovermode="x unified", dragmode="pan",
+        hoverlabel=dict(bgcolor=COLORS["raise"], bordercolor=COLORS["rule"], font=dict(color=COLORS["text"])),
+        xaxis=dict(showgrid=False, showline=False, rangeslider=dict(visible=False),
+                   rangebreaks=[dict(bounds=["sat", "mon"])],
+                   showspikes=True, spikecolor=COLORS["muted"], spikethickness=1, spikedash="dot", spikemode="across"),
+        yaxis=dict(side="right", gridcolor="rgba(255,255,255,0.05)", zeroline=False, tickformat=f",.{min(dp, 2)}f",
+                   showspikes=True, spikecolor=COLORS["muted"], spikethickness=1, spikedash="dot"),
+    )
+    return fig
 
 
 # ---------------------------------------------------------------- html builders
@@ -90,38 +135,6 @@ def _quote_cell(label, s, dp):
         f'<div class="gc-q-row"><span class="gc-q-chg {cls}">{sign}{abs(chg):,.{dp}f} ({sign}{abs(pct):.2f}%)</span>'
         f"{_sparkline(s.tolist(), color)}</div></div>"
     )
-
-
-def _tv_chart_html(symbol):
-    return f"""
-<!DOCTYPE html><html><head><meta charset="utf-8">
-<style>
-  html,body{{margin:0;height:100%;background:transparent;}}
-  .wrap{{height:calc(100% - 2px);border:1px solid {COLORS['rule']};border-radius:12px;overflow:hidden;background:{COLORS['bg']};}}
-  .tradingview-widget-container{{height:100%;width:100%;}}
-</style></head><body><div class="wrap">
-<div class="tradingview-widget-container">
-  <div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div>
-  <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
-  {{
-    "autosize": true,
-    "symbol": "{symbol}",
-    "interval": "D",
-    "timezone": "Asia/Kuala_Lumpur",
-    "theme": "dark",
-    "style": "1",
-    "locale": "en",
-    "backgroundColor": "{COLORS['bg']}",
-    "gridColor": "rgba(255, 255, 255, 0.04)",
-    "hide_legend": true,
-    "withdateranges": true,
-    "allow_symbol_change": false,
-    "calendar": false,
-    "hide_volume": true,
-    "support_host": "https://www.tradingview.com"
-  }}
-  </script>
-</div></div></body></html>"""
 
 
 def _calendar_html():
@@ -170,21 +183,32 @@ def main_page():
     left, right = st.columns([1.75, 1.0], gap="large")
 
     with left:
-        head, ctrl = st.columns([1, 1])
-        with head:
-            st.markdown(
-                '<div class="gc-h">Prices</div>'
-                '<p class="gc-note">Daily futures from TradingView. Small differences or delays against official settlements are possible.</p>',
-                unsafe_allow_html=True,
-            )
-        with ctrl:
-            choice = st.segmented_control(
-                "Instrument", list(CHARTS), default="Brent",
-                key="main_chart", label_visibility="collapsed",
-            ) or "Brent"
-        components.html(_tv_chart_html(CHARTS[choice]), height=CHART_HEIGHT, scrolling=False)
-        st.caption(f"Source: TradingView ({CHARTS[choice].split(':')[0].title()})")
+        st.markdown(
+            '<div class="gc-h">Prices</div>'
+            '<p class="gc-note">Daily front-month futures from Yahoo Finance. Continuous contracts can show small jumps at roll dates.</p>',
+            unsafe_allow_html=True,
+        )
+        c1, c2, c3 = st.columns([1.25, 1.5, 0.85])
+        with c1:
+            choice = st.segmented_control("Instrument", list(CHARTS), default="Brent",
+                                          key="main_chart", label_visibility="collapsed") or "Brent"
+        with c2:
+            rng = st.segmented_control("Range", list(RANGES), default="6M",
+                                       key="main_range", label_visibility="collapsed") or "6M"
+        with c3:
+            kind = st.segmented_control("Style", ["Line", "Candles"], default="Line",
+                                        key="main_kind", label_visibility="collapsed") or "Line"
 
+        sym = CHARTS[choice]
+        dp = next(d for _, s, d in QUOTES if s == sym)
+        hist = load_history(sym, RANGES[rng])
+        if hist is None:
+            st.warning("Price history is unavailable from Yahoo Finance right now. Try again in a few minutes.")
+        else:
+            st.plotly_chart(_price_figure(hist, choice, dp, kind == "Candles"),
+                            use_container_width=True, theme=None,
+                            config={"displayModeBar": False, "scrollZoom": True})
+        st.caption(f"Source: Yahoo Finance ({sym}), delayed")
     with right:
         st.markdown(
             '<div class="gc-h">Economic calendar</div>'

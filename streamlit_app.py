@@ -5,15 +5,18 @@ from fundamentals_page import fundamentals_page
 from financial_markets_page import financial_markets_page
 from technical_probability_page import technical_probability_page
 from others_page import others_page
+from theme import apply_theme, SECTIONS
 
 # Streamlit app layout
 st.set_page_config(page_title="Oil Indicator Dashboard", layout="wide", page_icon=r'Images/Theta_icon_changed.png')
+
+apply_theme()
 
 # Sidebar for navigation
 st.sidebar.image(r'Images/Untitled design (1).png', use_container_width=True)
 st.sidebar.title("Navigation")
 
-page = st.sidebar.radio("Go to", ["Main", "Macro-economic", "Fundamentals", "Financial Markets", "Technical and Probability Analysis", "Others"])
+page = st.sidebar.radio("Go to", ["Main", *SECTIONS], key="nav_page")
 
 with st.sidebar:
     st.html(

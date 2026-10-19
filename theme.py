@@ -20,6 +20,9 @@ COLORS = {
     "down": "#E5484D",
 }
 
+# Multi-series chart colours, brand teal first
+COLORWAY = ["#00A99D", "#00403D", "#2491CF", "#F2A93B", "#7A5AF8", "#E5484D", "#6C8A89", "#9BD3CC"]
+
 # Sidebar names (exact radio labels): blurb shown on the Main page, and an icon path set (24x24, stroked).
 SECTIONS = {
     "Macro-economic": (
@@ -132,25 +135,36 @@ button[data-testid="stBaseButton-segmented_controlActive"]{
 @media (max-width:640px){ .gc-grid{ grid-template-columns:repeat(2, minmax(0,1fr)); } .gc-hero-t{ font-size:1.5rem; } .gc-hero-m{ text-align:left; } }
 
 /* Panels (st.container(key=...)) */
-.st-key-chart_card, .st-key-cal_card{
+.st-key-chart_card, .st-key-cal_card, [class*="st-key-panel_"]{
   background:var(--surface); border:1px solid var(--rule); border-radius:16px; padding:20px 0 12px;
   box-shadow:var(--shadow); overflow:hidden;
 }
 /* Text and controls get side padding; the chart and calendar run edge to edge so they size to the card exactly */
 .st-key-chart_card > [data-testid="stElementContainer"], .st-key-cal_card > [data-testid="stElementContainer"],
-.st-key-chart_card > [data-testid="stHorizontalBlock"]{ box-sizing:border-box; padding:0 22px; }
+[class*="st-key-panel_"] > [data-testid="stElementContainer"],
+.st-key-chart_card > [data-testid="stHorizontalBlock"], [class*="st-key-panel_"] > [data-testid="stHorizontalBlock"]{ box-sizing:border-box; padding:0 22px; }
 .st-key-chart_card > [data-testid="stElementContainer"]:has(.stPlotlyChart, [data-testid="stPlotlyChart"], .js-plotly-plot),
+[class*="st-key-panel_"] > [data-testid="stElementContainer"]:has(.stPlotlyChart, [data-testid="stPlotlyChart"], .js-plotly-plot),
+[class*="st-key-panel_"] > [data-testid="stElementContainer"]:has([data-testid="stDataFrame"]),
 .st-key-cal_card > [data-testid="stElementContainer"]:has(iframe){ padding:0; }
 .gc-h{ font-size:1.15rem; font-weight:600; letter-spacing:-0.02em; margin:0 0 2px; }
 .gc-note{ color:var(--muted); font-size:0.86rem; margin:0 0 12px; max-width:64ch; }
 
 /* Streamlit sizes children to the card's outer width; make them fit the padded inner width */
-.st-key-chart_card > div, .st-key-cal_card > div, [class*="st-key-sec_"] > div{ width:100% !important; max-width:100% !important; min-width:0; }
-.st-key-chart_card, .st-key-cal_card, [class*="st-key-sec_"]{ box-sizing:border-box; min-width:0; }
+.st-key-chart_card > div, .st-key-cal_card > div, [class*="st-key-sec_"] > div, [class*="st-key-panel_"] > div{ width:100% !important; max-width:100% !important; min-width:0; }
+.st-key-chart_card, .st-key-cal_card, [class*="st-key-sec_"], [class*="st-key-panel_"]{ box-sizing:border-box; min-width:0; }
 .st-key-cal_card iframe{ width:100% !important; }
 /* Streamlit also pins inner markdown/button wrappers to the card's outer width; let them follow the padded box */
-.st-key-chart_card [data-testid="stMarkdown"], .st-key-cal_card [data-testid="stMarkdown"],
+.st-key-chart_card [data-testid="stMarkdown"], .st-key-cal_card [data-testid="stMarkdown"], [class*="st-key-panel_"] [data-testid="stMarkdown"],
 [class*="st-key-sec_"] [data-testid="stMarkdown"], [class*="st-key-sec_"] .stButton{ width:100% !important; }
+
+[class*="st-key-panel_"] [data-testid="stMultiSelect"], [class*="st-key-panel_"] [data-testid="stSelectbox"],
+[class*="st-key-panel_"] .stToggle, [class*="st-key-panel_"] [data-testid="stCaptionContainer"]{ width:100% !important; }
+[class*="st-key-panel_"] [data-testid="stExpander"]{ box-sizing:border-box; margin:0 22px; width:calc(100% - 44px) !important; }
+
+/* Side-by-side panels stretch to the same height */
+[data-testid="stColumn"]:has(> [data-testid="stVerticalBlock"] > [class*="st-key-panel_"]) > [data-testid="stVerticalBlock"]{ height:100%; }
+[data-testid="stVerticalBlock"] > [class*="st-key-panel_"]{ height:100%; }
 
 /* Section cards */
 [class*="st-key-sec_"]{
@@ -168,9 +182,72 @@ button[data-testid="stBaseButton-segmented_controlActive"]{
 [class*="st-key-open_"] button:hover{ color:var(--deep); background:transparent; }
 
 .gc-foot{ color:var(--muted); font-size:0.78rem; line-height:1.55; max-width:95ch; border-top:1px solid var(--rule); padding-top:16px; margin-top:32px; }
+
+/* KPI grid variants */
+.gc-grid.n3{ grid-template-columns:repeat(3, minmax(0,1fr)); }
+.gc-grid.n4{ grid-template-columns:repeat(4, minmax(0,1fr)); }
+.gc-grid.n5{ grid-template-columns:repeat(5, minmax(0,1fr)); }
+@media (max-width:1100px){ .gc-grid.n4, .gc-grid.n5{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
+.gc-q-sub{ color:var(--muted); font-size:0.78rem; line-height:1.35; }
+.gc-q-step{ display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:7px;
+  background:var(--tint); color:var(--brand-dark); font-size:0.78rem; font-weight:700; margin-right:8px; }
+.gc-q-name.step{ display:flex; align-items:center; }
+.gc-pill.warn{ color:#9A5B00; background:rgba(242,169,59,.18); }
+.gc-hero.slim{ padding:20px 28px; margin-bottom:16px; }
+.gc-hero.slim .gc-hero-t{ font-size:1.6rem; }
+.gc-lead{ color:var(--muted); font-size:0.92rem; line-height:1.5; margin:0 0 4px; max-width:78ch; }
+.gc-lead b{ color:var(--ink); font-weight:600; }
+
+/* Tabs */
+[data-baseweb="tab-list"]{ gap:4px; }
+button[data-baseweb="tab"]{ background:transparent; padding:10px 16px; color:var(--muted); font-weight:500; }
+button[data-baseweb="tab"]:hover{ color:var(--brand-dark); background:transparent; }
+button[data-baseweb="tab"][aria-selected="true"]{ color:var(--brand-dark); font-weight:600; }
+[data-baseweb="tab-highlight"]{ background:var(--brand); height:3px; border-radius:3px 3px 0 0; }
+[data-baseweb="tab-border"]{ background:var(--rule); }
+
+/* Expanders, toggles, selects */
+[data-testid="stExpander"]{ background:var(--surface); border:1px solid var(--rule); border-radius:14px; box-shadow:none; }
+[data-testid="stExpander"] summary{ font-weight:600; color:var(--ink); }
+[data-testid="stExpander"] summary:hover{ color:var(--brand-dark); }
+[data-baseweb="select"] > div{ background:var(--surface); border-color:var(--rule); border-radius:10px; }
+.gc-state{ color:var(--muted); font-size:0.9rem; line-height:1.5; padding:34px 6px 30px; text-align:center; }
+.gc-state b{ display:block; color:var(--ink); font-weight:600; margin-bottom:4px; }
 </style>
 """)
 
 
 def apply_theme():
     st.markdown(_CSS.substitute(COLORS), unsafe_allow_html=True)
+
+
+def hero(title, subtitle="", meta="", slim=False):
+    cls = "gc-hero slim" if slim else "gc-hero"
+    st.markdown(
+        f'<div class="{cls}"><div><div class="gc-hero-t">{title}</div>'
+        + (f'<div class="gc-hero-s">{subtitle}</div>' if subtitle else "")
+        + f'</div><div class="gc-hero-m">{meta}</div></div>',
+        unsafe_allow_html=True,
+    )
+
+
+def kpi_grid(cards, cols=4):
+    """cards: list of dicts with label, value, and optional pill, pill_cls (up/down/flat/warn), sub, step."""
+    cells = []
+    for c in cards:
+        step = f'<span class="gc-q-step">{c["step"]}</span>' if c.get("step") else ""
+        name_cls = "gc-q-name step" if step else "gc-q-name"
+        pill = f'<div><span class="gc-pill {c.get("pill_cls", "flat")}">{c["pill"]}</span></div>' if c.get("pill") else ""
+        sub = f'<div class="gc-q-sub">{c["sub"]}</div>' if c.get("sub") else ""
+        cells.append(
+            f'<div class="gc-q"><div class="{name_cls}">{step}{c["label"]}</div>'
+            f'<div class="gc-q-price">{c["value"]}</div>{pill}{sub}</div>'
+        )
+    st.markdown(f'<div class="gc-grid n{cols}">{"".join(cells)}</div>', unsafe_allow_html=True)
+
+
+def panel_head(title, note=""):
+    st.markdown(
+        f'<div class="gc-h">{title}</div>' + (f'<p class="gc-note">{note}</p>' if note else ""),
+        unsafe_allow_html=True,
+    )

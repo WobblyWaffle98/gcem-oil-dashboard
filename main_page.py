@@ -26,7 +26,7 @@ CHARTS = {"Brent": "BZ=F", "WTI": "CL=F", "Henry Hub": "NG=F"}
 RANGES = {"1M": "1mo", "3M": "3mo", "6M": "6mo", "1Y": "1y", "5Y": "5y"}
 
 PLOT_HEIGHT = 500
-CAL_HEIGHT = 560  # calendar iframe, sized so both panels end at the same line
+CAL_HEIGHT = 540  # calendar iframe, sized so both panels end at the same line
 
 
 # ---------------------------------------------------------------- data
@@ -91,15 +91,15 @@ def _price_figure(df, name, dp, candles):
         annotation_font=dict(color="#FFFFFF", size=12), annotation_bgcolor=c["deep"],
     )
     fig.update_layout(
-        height=PLOT_HEIGHT, margin=dict(l=4, r=4, t=8, b=4),
+        height=PLOT_HEIGHT, margin=dict(l=22, r=10, t=8, b=8),
         paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor=c["surface"],
         font=dict(family="Geist, Inter, system-ui, sans-serif", color=c["muted"], size=12),
         hovermode="x unified", dragmode="pan",
         hoverlabel=dict(bgcolor="#FFFFFF", bordercolor=c["rule"], font=dict(color=c["ink"])),
-        xaxis=dict(showgrid=False, showline=True, linecolor=c["rule"], rangeslider=dict(visible=False),
+        xaxis=dict(automargin=True, showgrid=False, showline=True, linecolor=c["rule"], rangeslider=dict(visible=False),
                    rangebreaks=[dict(bounds=["sat", "mon"])],
                    showspikes=True, spikecolor=c["muted"], spikethickness=1, spikedash="dot", spikemode="across"),
-        yaxis=dict(side="right", gridcolor=c["rule"], zeroline=False, tickformat=f",.{min(dp, 2)}f",
+        yaxis=dict(automargin=True, side="right", gridcolor=c["rule"], zeroline=False, tickformat=f",.{min(dp, 2)}f",
                    showspikes=True, spikecolor=c["muted"], spikethickness=1, spikedash="dot"),
     )
     return fig
@@ -114,8 +114,8 @@ def _sparkline(values, color, w=88, h=30):
         f"{i * w / n:.1f},{h - 3 - (v - lo) / rng * (h - 6):.1f}" for i, v in enumerate(values)
     )
     return (
-        f'<svg width="{w}" height="{h}" viewBox="0 0 {w} {h}" aria-hidden="true">'
-        f'<polyline points="{pts}" fill="none" stroke="{color}" stroke-width="1.8" '
+        f'<svg viewBox="0 0 {w} {h}" preserveAspectRatio="none" aria-hidden="true">'
+        f'<polyline points="{pts}" fill="none" stroke="{color}" stroke-width="1.8" vector-effect="non-scaling-stroke" '
         f'stroke-linejoin="round" stroke-linecap="round"/></svg>'
     )
 
@@ -128,7 +128,7 @@ def _quote_card(label, s, dp):
     last, prev = float(s.iloc[-1]), float(s.iloc[-2])
     chg = last - prev
     pct = chg / abs(prev) * 100 if prev else 0.0
-    cls = "up" if chg > 0 else "down" if chg < 0 else "flat"
+    cls = "flat" if round(pct, 2) == 0 else "up" if chg > 0 else "down"
     color = {"up": COLORS["up"], "down": COLORS["down"], "flat": COLORS["muted"]}[cls]
     arrow = {"up": "\u25B2 ", "down": "\u25BC ", "flat": ""}[cls]
     return (
@@ -191,7 +191,7 @@ def main_page():
                 '<p class="gc-note">Daily front-month futures from Yahoo Finance. Continuous contracts can show small jumps at roll dates.</p>',
                 unsafe_allow_html=True,
             )
-            c1, c2, c3 = st.columns([1.25, 1.5, 0.9])
+            c1, c2, c3 = st.columns([1.55, 1.45, 1.0])
             with c1:
                 choice = st.segmented_control("Instrument", list(CHARTS), default="Brent",
                                               key="main_chart", label_visibility="collapsed") or "Brent"

@@ -23,6 +23,10 @@ COLORS = {
 # Multi-series chart colours, brand teal first
 COLORWAY = ["#00A99D", "#00403D", "#2491CF", "#F2A93B", "#7A5AF8", "#E5484D", "#6C8A89", "#9BD3CC"]
 
+# Longer palette for stacked charts with many series (teal family first, then distinct hues)
+PALETTE_LONG = ["#00A99D", "#00403D", "#2491CF", "#F2A93B", "#7A5AF8", "#E5484D", "#6C8A89", "#9BD3CC",
+                "#0B4F8A", "#C026D3", "#84CC16", "#B45309", "#F472B6", "#94A3B8", "#06B6D4", "#5B6B1F"]
+
 # Sidebar names (exact radio labels): blurb shown on the Main page, and an icon path set (24x24, stroked).
 SECTIONS = {
     "Macro-economic": (
@@ -162,9 +166,22 @@ button[data-testid="stBaseButton-segmented_controlActive"]{
 [class*="st-key-panel_"] .stToggle, [class*="st-key-panel_"] [data-testid="stCaptionContainer"]{ width:100% !important; }
 [class*="st-key-panel_"] [data-testid="stExpander"]{ box-sizing:border-box; margin:0 22px; width:calc(100% - 44px) !important; }
 
-/* Side-by-side panels stretch to the same height */
-[data-testid="stColumn"]:has(> [data-testid="stVerticalBlock"] > [class*="st-key-panel_"]) > [data-testid="stVerticalBlock"]{ height:100%; }
-[data-testid="stVerticalBlock"] > [class*="st-key-panel_"]{ height:100%; }
+/* Widgets stay light with dark text, even if the browser or Streamlit asks for dark */
+:root, .stApp{ color-scheme:light; }
+[data-baseweb="select"] *, [data-baseweb="input"] *, [data-baseweb="textarea"] *{ color:var(--ink); }
+[data-baseweb="select"] svg{ fill:var(--muted); }
+[data-baseweb="popover"] [data-baseweb="menu"], [data-baseweb="popover"] ul[role="listbox"]{ background:var(--surface); }
+[data-baseweb="popover"] li, [data-baseweb="popover"] [role="option"]{ color:var(--ink); background:var(--surface); }
+[data-baseweb="popover"] li:hover, [data-baseweb="popover"] [role="option"]:hover, [data-baseweb="popover"] [aria-selected="true"]{ background:var(--tint); color:var(--brand-dark); }
+[data-baseweb="tag"]{ background:var(--brand); }
+[data-baseweb="tag"] *{ color:#FFFFFF; }
+[data-testid="stToggle"] label, [data-testid="stToggle"] p, [data-testid="stCheckbox"] label, [data-testid="stCheckbox"] p{ color:var(--ink); }
+[data-testid="stWidgetLabel"], [data-testid="stWidgetLabel"] p{ color:var(--ink); }
+[data-testid="stExpander"] summary, [data-testid="stExpander"] summary p{ color:var(--ink); }
+
+/* Side-by-side panels stretch to the same height: every wrapper between the column and the panel fills its parent */
+[data-testid="stColumn"] div:has([class*="st-key-panel_"]){ height:100%; }
+[class*="st-key-panel_"]{ height:100%; }
 
 /* Section cards */
 [class*="st-key-sec_"]{
@@ -195,7 +212,7 @@ button[data-testid="stBaseButton-segmented_controlActive"]{
 .gc-pill.warn{ color:#9A5B00; background:rgba(242,169,59,.18); }
 .gc-hero.slim{ padding:20px 28px; margin-bottom:16px; }
 .gc-hero.slim .gc-hero-t{ font-size:1.6rem; }
-.gc-lead{ color:var(--muted); font-size:0.92rem; line-height:1.5; margin:0 0 4px; max-width:78ch; }
+.gc-lead{ color:var(--muted); font-size:0.92rem; line-height:1.5; margin:0 0 14px; max-width:78ch; }
 .gc-lead b{ color:var(--ink); font-weight:600; }
 
 /* Tabs */
@@ -215,6 +232,31 @@ button[data-baseweb="tab"][aria-selected="true"]{ color:var(--brand-dark); font-
 .gc-state b{ display:block; color:var(--ink); font-weight:600; margin-bottom:4px; }
 </style>
 """)
+
+
+LIGHT_THEME = {
+    "theme.base": "light",
+    "theme.primaryColor": COLORS["brand"],
+    "theme.backgroundColor": COLORS["bg"],
+    "theme.secondaryBackgroundColor": COLORS["surface"],
+    "theme.textColor": COLORS["ink"],
+}
+
+
+def force_light_theme():
+    """Pin the Streamlit theme to light from code, so the app looks the same whether or not
+    .streamlit/config.toml is deployed and whatever the viewer's OS dark-mode setting is.
+    Must run before any other Streamlit call on each run."""
+    changed = False
+    try:
+        for k, v in LIGHT_THEME.items():
+            if st._config.get_option(k) != v:
+                st._config.set_option(k, v)
+                changed = True
+    except Exception:
+        return  # private API; the CSS below and config.toml still apply
+    if changed:
+        st.rerun()  # the theme is sent to the browser at the start of a run, so run once more
 
 
 def apply_theme():

@@ -1,562 +1,451 @@
-import streamlit as st
-import datetime
-import yfinance as yf
+import datetime as dt
+
 import numpy as np
-import plotly.express as px
-from scipy.stats import norm
 import pandas as pd
 import plotly.graph_objects as go
-import streamlit.components.v1 as components
+import streamlit as st
+import yfinance as yf
+from plotly.subplots import make_subplots
+
+from charts import layout, panel, show, unavailable
+from technical_copy import TEXT
+from theme import COLORS, hero, kpi_grid, panel_head
+
+SYMBOL = "BZ=F"
+TZ = "Asia/Kuala_Lumpur"
+SOURCE = "Source: Yahoo Finance (BZ=F), delayed"
+DAILY_RANGES = {"3M": 63, "6M": 126, "1Y": 252, "2Y": 504}
+INTRADAY_RANGES = {"1D": 1, "5D": 5, "1M": 22}
+LEVEL_COLORS = {"R3": "#E5484D", "R2": "#EE7A7E", "R1": "#F5A9AC", "PP": "#F2A93B",
+                "S1": "#8FD3A8", "S2": "#4CB87A", "S3": "#1F9D55"}
+MAX_CELLS = 80_000_000  # steps x iterations, to keep memory bounded
 
 
+# ---------------------------------------------------------------- data (each raises on failure; wrappers below catch)
+@st.cache_data(ttl=900, show_spinner=False)
+def daily_ohlc():
+    df = yf.Ticker(SYMBOL).history(period="2y", interval="1d")[["Open", "High", "Low", "Close"]].dropna()
+    if len(df) < 30:
+        raise ValueError("Not enough daily data")
+    df.index = df.index.tz_localize(None).normalize()
+    return df
 
+
+@st.cache_data(ttl=300, show_spinner=False)
+def intraday_ohlc(interval):
+    period = "1mo" if interval in ("5m", "15m", "30m") else "3mo"
+    df = yf.Ticker(SYMBOL).history(period=period, interval=interval)[["Open", "High", "Low", "Close"]].dropna()
+    if len(df) < 60:
+        raise ValueError("Not enough intraday data")
+    df.index = df.index.tz_convert(TZ)
+    return df
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def brent_history(end, years):
+    start = pd.Timestamp(end) - pd.DateOffset(years=years)
+    s = yf.Ticker(SYMBOL).history(start=start.date(), end=(pd.Timestamp(end) + pd.Timedelta(days=1)).date())["Close"].dropna()
+    if len(s) < 30:
+        raise ValueError("Not enough price history")
+    s.index = s.index.tz_localize(None).normalize()
+    return s
+
+
+def _safe(fn, *a):
+    try:
+        return fn(*a)
+    except Exception:
+        return None
+
+
+@st.cache_data(show_spinner=False)
+def _csv(s):
+    return s.to_csv().encode("utf-8")
+
+
+# ---------------------------------------------------------------- indicators
+def rsi(close, n=14):
+    d = close.diff()
+    up, down = d.clip(lower=0), -d.clip(upper=0)
+    ag, al = up.ewm(alpha=1 / n, adjust=False).mean(), down.ewm(alpha=1 / n, adjust=False).mean()
+    return 100 - 100 / (1 + ag / al)
+
+
+def macd(close, fast=12, slow=26, signal=9):
+    line = close.ewm(span=fast, adjust=False).mean() - close.ewm(span=slow, adjust=False).mean()
+    sig = line.ewm(span=signal, adjust=False).mean()
+    return line, sig, line - sig
+
+
+def pivot_levels(df, basis):
+    """Standard pivot points per bar, using the previous completed period's high, low and close."""
+    key = {"Daily": df.index, "Weekly": df.index.to_period("W"), "Monthly": df.index.to_period("M")}[basis]
+    agg = df.groupby(key).agg(H=("High", "max"), L=("Low", "min"), C=("Close", "last")).shift(1)
+    pp = (agg["H"] + agg["L"] + agg["C"]) / 3
+    lv = pd.DataFrame({
+        "R3": agg["H"] + 2 * (pp - agg["L"]), "R2": pp + (agg["H"] - agg["L"]), "R1": 2 * pp - agg["L"], "PP": pp,
+        "S1": 2 * pp - agg["H"], "S2": pp - (agg["H"] - agg["L"]), "S3": agg["L"] - 2 * (agg["H"] - pp),
+    })
+    out = lv.reindex(key)
+    out.index = df.index
+    return out
+
+
+# ---------------------------------------------------------------- technical charts
+def daily_fig(df, lv, start):
+    v, lvv = df[df.index >= start], lv[lv.index >= start]
+    fig = go.Figure(go.Candlestick(
+        x=v.index, open=v["Open"], high=v["High"], low=v["Low"], close=v["Close"], name="Brent", showlegend=False,
+        increasing=dict(line=dict(color=COLORS["up"]), fillcolor=COLORS["up"]),
+        decreasing=dict(line=dict(color=COLORS["down"]), fillcolor=COLORS["down"]),
+    ))
+    # Segments must start and end on trading days: points inside the hidden weekend break are dropped by Plotly
+    tail = pd.Timedelta(hours=18)
+    for col in ["R3", "R2", "R1", "PP", "S1", "S2", "S3"]:
+        s = lvv[col]
+        grp = (s != s.shift()).cumsum()
+        xs, ys = [], []
+        for _, g in s.dropna().groupby(grp.loc[s.dropna().index]):
+            xs += [g.index.min(), g.index.max() + tail, None]
+            ys += [g.iloc[0], g.iloc[0], None]
+        fig.add_trace(go.Scatter(x=xs, y=ys, mode="lines", name=col, line=dict(color=LEVEL_COLORS[col], width=1.4),
+                                 hoverinfo="skip", connectgaps=False))
+        last = s.dropna()
+        if len(last):
+            fig.add_trace(go.Scatter(x=[v.index.max() + pd.Timedelta(days=1)], y=[last.iloc[-1]], mode="text", text=[f"{col} {last.iloc[-1]:.2f}"],
+                                     textposition="middle right", textfont=dict(size=11, color=LEVEL_COLORS[col]),
+                                     showlegend=False, hoverinfo="skip"))
+    layout(fig, 560, hover="x")
+    fig.update_layout(margin=dict(l=22, r=22, t=46, b=14))
+    fig.update_xaxes(rangeslider=dict(visible=False), rangebreaks=[dict(bounds=["sat", "mon"])])
+    fig.update_yaxes(side="right", title_text="USD per barrel")
+    return fig
+
+
+def intraday_fig(df, days):
+    r = rsi(df["Close"])
+    line, sig, hist = macd(df["Close"])
+    cutoff = df.index.max() - pd.Timedelta(days=days if days > 1 else 1.0)
+    keep = df.index >= cutoff
+    v, r, line, sig, hist = df[keep], r[keep], line[keep], sig[keep], hist[keep]
+    labels = v.index.strftime("%a %d %b %H:%M")
+    day = v.index.strftime("%a %d %b")
+    first = [i for i in range(len(v)) if i == 0 or day[i] != day[i - 1]]
+    fig = make_subplots(rows=3, cols=1, shared_xaxes=True, vertical_spacing=0.03, row_heights=[0.58, 0.19, 0.23])
+    fig.add_trace(go.Candlestick(x=labels, open=v["Open"], high=v["High"], low=v["Low"], close=v["Close"], name="Brent", showlegend=False,
+                                 increasing=dict(line=dict(color=COLORS["up"]), fillcolor=COLORS["up"]),
+                                 decreasing=dict(line=dict(color=COLORS["down"]), fillcolor=COLORS["down"])), row=1, col=1)
+    fig.add_trace(go.Scatter(x=labels, y=r, mode="lines", name="RSI (14)", line=dict(color=COLORS["brand"], width=1.8),
+                             hovertemplate="%{y:.1f}"), row=2, col=1)
+    for y, dash in ((70, "dot"), (50, "dash"), (30, "dot")):
+        fig.add_hline(y=y, line=dict(color=COLORS["muted"], width=1, dash=dash), row=2, col=1)
+    fig.add_trace(go.Bar(x=labels, y=hist, name="Histogram", marker_color=[COLORS["up"] if h >= 0 else COLORS["down"] for h in hist],
+                         hovertemplate="%{y:.3f}"), row=3, col=1)
+    fig.add_trace(go.Scatter(x=labels, y=line, mode="lines", name="MACD (12, 26, 9)", line=dict(color=COLORS["blue"], width=1.6),
+                             hovertemplate="%{y:.3f}"), row=3, col=1)
+    fig.add_trace(go.Scatter(x=labels, y=sig, mode="lines", name="Signal", line=dict(color="#F2A93B", width=1.6),
+                             hovertemplate="%{y:.3f}"), row=3, col=1)
+    layout(fig, 720)
+    fig.update_layout(margin=dict(l=44, r=22, t=46, b=14))
+    fig.update_xaxes(type="category", rangeslider=dict(visible=False), tickmode="array",
+                     tickvals=[labels[i] for i in first], ticktext=[day[i] for i in first], showgrid=False)
+    fig.update_yaxes(side="right")
+    fig.update_yaxes(title_text="USD per barrel", row=1, col=1)
+    fig.update_yaxes(title_text="RSI", range=[0, 100], row=2, col=1)
+    fig.update_yaxes(title_text="MACD", row=3, col=1)
+    return fig
+
+
+def level_strip(lv, close):
+    row = lv.iloc[-1]
+    if row.isna().any():
+        return ""
+    cells = "".join(
+        f'<div class="gc-lv {"r" if k.startswith("R") else "s" if k.startswith("S") else "p"}"><b>{k}</b><span>{row[k]:.2f}</span></div>'
+        for k in ["R3", "R2", "R1", "PP", "S1", "S2", "S3"]
+    )
+    bias = "above" if close > row["PP"] else "below"
+    return (f'<div class="gc-levels">{cells}</div>'
+            f'<p class="gc-small">Last close {close:.2f} is <b>{bias}</b> the main pivot point ({row["PP"]:.2f}).</p>')
+
+
+# ---------------------------------------------------------------- Monte Carlo
+def _monthly_last(close):
+    try:
+        return close.resample("ME").last()
+    except ValueError:  # older pandas
+        return close.resample("M").last()
+
+
+def simulate(S0, drift, stdev, steps, iterations):
+    z = np.random.default_rng().standard_normal((steps, iterations))
+    r = np.exp(drift + stdev * z)
+    r[0] = 1.0
+    return S0 * np.cumprod(r, axis=0)  # same recursion as the original loop: P[0] = S0, P[t] = P[t-1] * r[t]
+
+
+PCTS = [1, 5, 30, 80, 95, 99]
+
+
+def run_mc(kind, end_date, future_date, years, iterations):
+    close = brent_history(end_date, years)
+    if kind == "daily":
+        series = close
+        lr = np.log(1 + series.pct_change())
+        last_date = series.index[-1]
+        steps = (pd.Timestamp(future_date) - last_date).days
+        unit = "days"
+    else:
+        series = _monthly_last(close)
+        lr = np.log(1 + series.pct_change())
+        last_date = series.index[-1]
+        steps = (pd.Timestamp(future_date) - last_date).days // 30
+        unit = "months"
+    if steps < 2:
+        raise ValueError("Choose a forecast date at least two periods after the last price date.")
+    if steps * iterations > MAX_CELLS:
+        raise ValueError("That horizon is too long for this many iterations. Shorten the horizon or lower the iterations.")
+
+    u, var, stdev = lr.mean(), lr.var(), lr.std()
+    drift = float(u - 0.5 * var)
+    stdev = float(stdev)
+    S0 = float(series.iloc[-1])
+    paths = simulate(S0, drift, stdev, steps, iterations)
+
+    final = paths[-1].copy()
+    pooled = np.percentile(paths, PCTS)
+    final_p = np.percentile(final, PCTS)
+    band = np.percentile(paths, [5, 30, 80, 95], axis=1)
+    if kind == "daily":
+        dates = [last_date + pd.Timedelta(days=i) for i in range(steps)]
+        roll = lr.rolling(252).std() * np.sqrt(252)
+        roll_label = "Rolling 252-day volatility (annualised)"
+        if roll.dropna().empty:
+            roll = lr.rolling(63).std() * np.sqrt(252)
+            roll_label = "Rolling 63-day volatility (annualised)"
+        vol = dict(daily=stdev, monthly=stdev * np.sqrt(21), annual=stdev * np.sqrt(252))
+        recent = series.iloc[-126:]
+    else:
+        dates = list(pd.date_range(start=last_date, periods=steps, freq="ME"))
+        roll = lr.rolling(12).std() * np.sqrt(12)
+        roll_label = "Rolling 12-month volatility (annualised)"
+        vol = dict(monthly=stdev, annual=stdev * np.sqrt(12))
+        recent = series.iloc[-24:]
+
+    return dict(
+        kind=kind, unit=unit, inputs=(end_date, future_date, years, iterations), S0=S0, last_date=last_date, price_date=close.index[-1], steps=steps,
+        iterations=iterations, vol=vol, mean_pooled=float(paths.mean()), mean_final=float(final.mean()),
+        pooled=pooled, final_p=final_p, final=final, mean_path=paths.mean(axis=1), band=band, dates=dates,
+        hist=close, hist_series=series, roll=roll, roll_label=roll_label, recent=recent,
+    )
+
+
+def mc_paths_fig(res):
+    c = COLORS
+    d = res["dates"]
+    fig = go.Figure()
+    rec = res["recent"]
+    fig.add_trace(go.Scatter(x=rec.index, y=rec.values, mode="lines", name="Recent actual", line=dict(color=c["muted"], width=1.8),
+                             hovertemplate="%{y:.2f}"))
+    fig.add_trace(go.Scatter(x=d, y=res["band"][3], mode="lines", line=dict(width=0), showlegend=False, hoverinfo="skip"))
+    fig.add_trace(go.Scatter(x=d, y=res["band"][0], mode="lines", line=dict(width=0), fill="tonexty", fillcolor="rgba(0,169,157,0.12)",
+                             name="P5 to P95", hoverinfo="skip"))
+    fig.add_trace(go.Scatter(x=d, y=res["mean_path"], mode="lines", name="Mean path", line=dict(color=c["brand"], width=2.4),
+                             hovertemplate="%{y:.2f}"))
+    fig.add_trace(go.Scatter(x=d, y=res["band"][1], mode="lines", name="P30", line=dict(color=c["down"], width=1.8, dash="dash"),
+                             hovertemplate="%{y:.2f}"))
+    fig.add_trace(go.Scatter(x=d, y=res["band"][2], mode="lines", name="P80", line=dict(color="#F2A93B", width=1.8, dash="dash"),
+                             hovertemplate="%{y:.2f}"))
+    layout(fig, 430)
+    fig.update_yaxes(title_text="USD per barrel")
+    return fig
+
+
+def mc_hist_fig(res):
+    c = COLORS
+    f = res["final"]
+    fig = go.Figure(go.Histogram(x=f, nbinsx=100, marker=dict(color=c["brand"], line=dict(width=0)), opacity=0.85, name="Final price",
+                                 hovertemplate="%{x:.1f}: %{y}<extra></extra>"))
+    for x, label, color, pos in ((float(f.mean()), "Mean", c["ink"], "top"),
+                                 (float(np.percentile(f, 30)), "P30", c["down"], "top left"),
+                                 (float(np.percentile(f, 80)), "P80", "#F2A93B", "top right")):
+        fig.add_vline(x=x, line=dict(color=color, width=1.6, dash="dash"), annotation_text=f"{label} {x:.1f}",
+                      annotation_position=pos, annotation_font=dict(size=11, color=color))
+    layout(fig, 430, legend=False, hover="closest")
+    fig.update_layout(margin=dict(l=22, r=22, t=30, b=14), bargap=0.05)
+    fig.update_xaxes(title_text="Price at forecast date (USD per barrel)")
+    fig.update_yaxes(title_text="Frequency")
+    return fig
+
+
+def mc_history_fig(res):
+    c = COLORS
+    h, roll = res["hist"], res["roll"]
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    fig.add_trace(go.Scatter(x=h.index, y=h.values, mode="lines", name="Brent price", line=dict(color=c["brand"], width=2.2),
+                             hovertemplate="%{y:.2f}"), secondary_y=False)
+    fig.add_trace(go.Scatter(x=roll.index, y=roll.values, mode="lines", name=res["roll_label"], line=dict(color="#F2A93B", width=1.8),
+                             hovertemplate="%{y:.1%}"), secondary_y=True)
+    layout(fig, 430)
+    fig.update_yaxes(title_text="USD per barrel", secondary_y=False)
+    fig.update_yaxes(title_text="Volatility", tickformat=".0%", showgrid=False, secondary_y=True)
+    return fig
+
+
+def pct_table(res):
+    rows = [("Mean", res["mean_pooled"], res["mean_final"], True)]
+    rows += [(f"P{p}", a, b, False) for p, a, b in zip(PCTS, res["pooled"], res["final_p"])]
+    body = "".join(
+        f'<tr><td>{name}</td><td class="{"hl" if hl else ""}">{a:,.2f}</td><td class="{"hl" if hl else ""}">{b:,.2f}</td></tr>'
+        for name, a, b, hl in rows
+    )
+    return ('<table class="gc-table"><thead><tr><th></th><th>All simulated {u}</th><th>At forecast date</th></tr></thead>'
+            f"<tbody>{body}</tbody></table>").replace("{u}", "days" if res["kind"] == "daily" else "months")
+
+
+def render_mc(res):
+    S0, ann = res["S0"], res["vol"]["annual"]
+    end_date, future_date, years, iters = res["inputs"]
+    vol_sub = (f"Daily {res['vol']['daily'] * 100:.2f}% \u00B7 Monthly (21 days) {res['vol']['monthly'] * 100:.2f}%"
+               if res["kind"] == "daily" else f"Monthly {res['vol']['monthly'] * 100:.2f}%")
+    chg = (res["mean_pooled"] / S0 - 1) * 100
+    arrow = "\u25B2" if chg > 0 else "\u25BC" if chg < 0 else ""
+    kpi_grid([
+        dict(label="Current closing price", value=f"{S0:,.2f}", sub=f"USD per barrel \u00B7 {res['price_date']:%d %b %Y}"),
+        dict(label="Forecast horizon", value=f"{res['steps']} {res['unit']}", sub=f"To {pd.Timestamp(future_date):%d %b %Y} \u00B7 {iters:,} iterations"),
+        dict(label="Expected average price", value=f"{res['mean_pooled']:,.2f}", pill=f"{arrow} {abs(chg):.1f}% vs current",
+             pill_cls="flat", sub="Mean of all simulated prices"),
+        dict(label="Volatility (annualised)", value=f"{ann * 100:.1f}%", sub=vol_sub),
+    ], cols=4)
+
+    left, right = st.columns([1.7, 1], gap="medium")
+    with left:
+        with panel(f"mc_{res['kind']}_paths"):
+            panel_head("Key paths", "Mean path with the 30th and 80th percentile paths, and the 5th to 95th percentile band.")
+            show(mc_paths_fig(res), f"mc_{res['kind']}_paths_chart")
+            st.caption(SOURCE)
+    with right:
+        with panel(f"mc_{res['kind']}_table"):
+            panel_head("Price distribution", "Simulated prices in USD per barrel.")
+            st.markdown(pct_table(res), unsafe_allow_html=True)
+            st.markdown('<p class="gc-small">"All simulated" pools every price on every day and path. "At forecast date" uses only the final day.</p>',
+                        unsafe_allow_html=True)
+            st.download_button("Download price history as CSV", _csv(res["hist"][::-1].rename("Close")), file_name="Brent_Price.csv",
+                               mime="text/csv", key=f"mc_{res['kind']}_dl")
+
+    a, b = st.columns(2, gap="medium")
+    with a:
+        with panel(f"mc_{res['kind']}_hist"):
+            panel_head("Distribution of final prices", "Simulated Brent price on the forecast date. Lines mark the mean, P30 and P80 of this distribution.")
+            show(mc_hist_fig(res), f"mc_{res['kind']}_hist_chart")
+    with b:
+        with panel(f"mc_{res['kind']}_history"):
+            panel_head("Historical price and rolling volatility", "The price history used to calibrate the simulation.")
+            show(mc_history_fig(res), f"mc_{res['kind']}_history_chart")
+            st.caption(SOURCE)
+
+
+def _default_forecast(kind):
+    """Daily: this year-end (or next if under 60 days remain). Monthly: next year-end, so there are enough monthly steps."""
+    today = dt.date.today()
+    year_end = dt.date(today.year, 12, 31)
+    if kind == "monthly" or (year_end - today).days <= 60:
+        return dt.date(today.year + 1, 12, 31)
+    return year_end
+
+
+def mc_tab(kind):
+    ss = f"mc_{kind}_result"
+    st.markdown(f'<p class="gc-lead">{"Daily" if kind == "daily" else "Monthly"} Monte Carlo simulation of Brent prices, calibrated on historical log returns.</p>',
+                unsafe_allow_html=True)
+    with st.expander("How the simulation works"):
+        st.markdown(TEXT["mc_daily" if kind == "daily" else "mc_monthly"])
+
+    today = dt.date.today()
+    with panel(f"mc_{kind}_inputs"):
+        panel_head("Simulation inputs")
+        c1, c2, c3, c4, c5 = st.columns([1, 1, 1.25, 1, 0.9])
+        with c1:
+            end_date = st.date_input("Current date", today - dt.timedelta(days=1), max_value=today - dt.timedelta(days=1), key=f"mc_{kind}_end")
+        with c2:
+            future = st.date_input("Forecast date", max(_default_forecast(kind), end_date + dt.timedelta(days=2)),
+                                   min_value=end_date + dt.timedelta(days=1), key=f"mc_{kind}_future")
+        with c3:
+            years = st.slider("Years of history", 1, 10, 10, key=f"mc_{kind}_years")
+        with c4:
+            iters = st.selectbox("Iterations", [5000, 10000, 25000], index=1, key=f"mc_{kind}_iters")
+        with c5:
+            st.markdown('<div style="height:1.75rem"></div>', unsafe_allow_html=True)
+            run = st.button("Run simulation", type="primary", key=f"mc_{kind}_run", use_container_width=True)
+
+    if run or ss not in st.session_state:
+        try:
+            with st.spinner("Running simulation"):
+                st.session_state[ss] = run_mc(kind, end_date, future, years, iters)
+        except ValueError as e:
+            st.session_state.pop(ss, None)
+            with panel(f"mc_{kind}_err"):
+                unavailable("Could not run the simulation", str(e))
+            return
+        except Exception:
+            st.session_state.pop(ss, None)
+            with panel(f"mc_{kind}_err"):
+                unavailable("Price history unavailable", "Yahoo Finance could not be reached. Try again shortly.")
+            return
+    render_mc(st.session_state[ss])
+
+
+# ---------------------------------------------------------------- technical tab
+def technical_tab():
+    st.markdown(f'<p class="gc-lead">{TEXT["tech_intro"]}</p>', unsafe_allow_html=True)
+
+    with panel("tech_daily"):
+        panel_head("Daily price with pivot points", "Standard pivot points from the previous period's high, low and close.")
+        c1, c2, _ = st.columns([1.3, 1.5, 2])
+        with c1:
+            rng = st.segmented_control("Range", list(DAILY_RANGES), default="6M", key="tech_d_range", label_visibility="collapsed") or "6M"
+        with c2:
+            basis = st.segmented_control("Pivot basis", ["Weekly", "Monthly", "Daily"], default="Weekly", key="tech_d_basis",
+                                         label_visibility="collapsed") or "Weekly"
+        df = _safe(daily_ohlc)
+        if df is None:
+            unavailable("Price data unavailable", "Yahoo Finance could not be reached. Try again shortly.")
+        else:
+            lv = pivot_levels(df, basis)
+            st.markdown(level_strip(lv, float(df["Close"].iloc[-1])), unsafe_allow_html=True)
+            start = df.index[-DAILY_RANGES[rng]]
+            show(daily_fig(df, lv, start), "tech_daily_chart")
+        st.caption(SOURCE + ". Pivot basis is the period the levels are calculated from.")
+    with st.expander("About pivot points"):
+        st.markdown(TEXT["pivot"])
+
+    with panel("tech_intraday"):
+        panel_head("Intraday price with RSI and MACD", "Times are shown in Malaysia time (MYT).")
+        c1, c2, _ = st.columns([1.5, 1.3, 2])
+        with c1:
+            interval = st.segmented_control("Interval", ["5m", "15m", "30m", "1h"], default="15m", key="tech_i_interval",
+                                            label_visibility="collapsed") or "15m"
+        with c2:
+            days = st.segmented_control("Window", list(INTRADAY_RANGES), default="5D", key="tech_i_range", label_visibility="collapsed") or "5D"
+        idf = _safe(intraday_ohlc, interval)
+        if idf is None:
+            unavailable("Intraday data unavailable", "Yahoo Finance could not be reached. Try again shortly.")
+        else:
+            show(intraday_fig(idf, INTRADAY_RANGES[days]), "tech_intraday_chart")
+        st.caption(SOURCE)
+    with st.expander("About RSI and MACD"):
+        st.markdown(TEXT["rsi_macd"])
+
+
+# ---------------------------------------------------------------- page
 def technical_probability_page():
-
-    # Import IBM Plex Sans font
-    st.markdown("""
-        <style>
-        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap');
-
-        body {
-            font-family: 'IBM Plex Sans', sans-serif;
-        }
-        .left-align {
-            text-align: left;
-            font-family: 'IBM Plex Sans', sans-serif;
-        }
-        </style>
-        """, unsafe_allow_html=True)
-
-
-    st.header("Technical and Probability Analysis")
-
-    
-
-    tab1,tab2,tab3 = st.tabs(['Technical Analysis','MonteCarlo Analysis (Daily)','MonteCarlo Analysis (Monthly)'])
-
-    with tab1:
-        st.subheader("TradingView Technical Analysis")
-
-        st.write(
-            """
-            In this section, we have integrated a TradingView advanced chart widget to provide you with a comprehensive technical analysis of Brent crude oil prices. 
-            This interactive chart allows you to visualize price movements and apply various technical indicators by hovering over the name of the commodity and clicking the triple dots, aiding in better analysis and decision-making."""
-            )
-
-        Brent_chart_Pivot = """
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Centered Content Example</title>
-                <style>
-                    body {
-                        margin: 0;
-                        display: flex;
-                        justify-content: centre;
-                        align-items: centre;
-                        height: 100vh;
-                    }
-
-                    .container {
-                        width: 90%;
-                        max-width: 1200px; /* Adjust max-width as per your design */
-                        text-align: centre;
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <!-- TradingView Widget BEGIN -->
-                <div class="tradingview-widget-container" style="height:100%;width:100%">
-                <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
-                <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"><span class="blue-text"></span></a></div>
-                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
-                {
-                "autosize": true,
-                "symbol": "VELOCITY:BRENT",
-                "interval": "D",
-                "timezone": "Asia/Kuala_Lumpur",
-                "theme": "dark",
-                "style": "1",
-                "locale": "en",
-                "hide_legend": true,
-                "allow_symbol_change": false,
-                "calendar": false,
-                "studies": [
-                    "STD;Pivot%1Points%1Standard"
-                ],
-                "hide_volume": true,
-                "support_host": "https://www.tradingview.com"
-                }
-                </script>
-                </div>
-                <!-- TradingView Widget END -->
-                </div>
-            </body>
-            </html>
-                """
-
-
-        Brent_chart = """
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Centered Content Example</title>
-                <style>
-                    body {
-                        margin: 0;
-                        display: flex;
-                        justify-content: centre;
-                        align-items: centre;
-                        height: 100vh;
-                    }
-
-                    .container {
-                        width: 90%;
-                        max-width: 1200px; /* Adjust max-width as per your design */
-                        text-align: centre;
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <!-- TradingView Widget BEGIN -->
-                    <div class="tradingview-widget-container" style="height:100%;width:100%">
-                    <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
-                    <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"><span class="blue-text"></span></a></div>
-                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
-                    {
-                    "autosize": true,
-                    "symbol": "VELOCITY:BRENT",
-                    "range":"5D",
-                    "timezone": "Asia/Kuala_Lumpur",
-                    "theme": "dark",
-                    "style": "1",
-                    "locale": "en",
-                    "hide_top_toolbar": true,
-                    "allow_symbol_change": false,
-                    "calendar": false,
-                    "studies": [
-                        "STD;MACD",
-                        "STD;RSI"
-            
-                    ],
-                    "hide_volume": true,
-                    "support_host": "https://www.tradingview.com"
-                    }
-                    </script>
-                    </div>
-                    <!-- TradingView Widget END -->
-                </div>
-            </body>
-            </html>
-                """
-        st.subheader("Daily Price with Pivot Points Indicator (Broker Quoted)")
-        st.write(
-        """
-        The latest broker quoted Brent daily price data, sourced from TradingView, with a difference of USD 0.40 to USD 0.60 compared to the actual ICE Brent price.. The chart includes "Pivot Points," which are commonly used to identify potential support and resistance levels based on historical price data. Pivot points are calculated using the previous period's high, low, and close prices. If the price is trading above the main pivot point, it is generally considered to indicate bullish sentiment, while a price trading below the pivot point suggests bearish sentiment.
-
-        Additionally, traders often look at the first, second, and third support (S1, S2, S3) and resistance levels (R1, R2, R3) derived from pivot points. These levels can serve as potential price targets or areas where reversals may occur. For instance, if the price approaches a resistance level and fails to break through, it may signal a reversal to the downside. Similarly, if the price finds support at a pivot level and holds, it may indicate a potential upward movement.
-        """
-        )
-        components.html(Brent_chart_Pivot, height=800, scrolling=False)
-        st.divider()
-        st.subheader("Intraday Price with RSI & MACD Indicator (Broker Quoted)")
-        st.write(
-            """
-            The chart includes the "RSI (Relative Strength Index)" and "MACD (Moving Average Convergence Divergence)" studies, which help identify potential market trends and momentum based on historical price data. Typically, if the RSI is above 50 and the MACD is above zero, the asset is considered to have positive momentum, while an RSI below 50 and a MACD below zero indicate negative momentum. However, it's also important to look for RSI divergence, 
-            which can signal a potential reversal despite the current momentum.
-            """
-            )
-        components.html(Brent_chart, height=800, scrolling=False)
-        # Use the font with right-aligned text
-        st.markdown("<p class='left-align'>Source: TradingView</p>", unsafe_allow_html=True)
-
-    with tab2:
-        st.subheader("Monte Carlo (Daily Prices)")
-
-        st.write(
-            """
-            **Predicting Oil Prices with Monte Carlo Simulation**
-
-            Monte Carlo simulation is a method used to estimate the future price of oil by considering various factors that influence its value. It's like guessing the possible outcomes of a game by rolling dice multiple times.
-
-            ### How Does it Work?
-
-            1. **Understanding Oil Prices**: While oil prices are influenced by factors such as supply, demand, geopolitical events, and economic conditions, Monte Carlo simulation does not require direct input of these factors. Instead, it uses statistical properties such as historical price distributions and volatility.
-
-            2. **Simulating Scenarios**: The simulation generates thousands of possible future scenarios for oil prices by applying random variations to the historical price data. This process creates a diverse set of potential future price paths.
-
-            3. **Calculating Probabilities**: Each scenario represents a possible outcome, and the simulation calculates the likelihood of each scenario occurring.
-
-            4. **Analyzing Results**: By analyzing the range of possible outcomes and their probabilities, we can understand the potential risks and make informed decisions about oil-related strategies.
-            """
-            )
-        
-        st.divider()
-
-        # Inputs for the simulation
-        today = datetime.date.today()
-        end_date = st.date_input("Select current date", today - datetime.timedelta(days=1), max_value=today - datetime.timedelta(days=1), key="end_date_input")
-        future_end_date = st.date_input("Select forecast date", datetime.date(2025, 12, 31), min_value= end_date + datetime.timedelta(days=1), key="future_date_input")
-        # Streamlit slider for selecting the number of years of historical data
-        years_of_data = st.slider('Select number of years of historical data:', min_value=1, max_value=10, value=10, key="years_of_data_2") 
-
-        run_simulation = st.button("Run Simulation", key="RUN")
-
-        
-
-        if run_simulation:
-            start_date = pd.Timestamp(end_date) - pd.DateOffset(years=years_of_data)
-            brent_data = yf.download('BZ=F', start=start_date, end=pd.Timestamp(end_date) + pd.Timedelta(days=1))
-
-            # Extract the 'Close' prices
-            new_data = brent_data['Close']
-
-            # Historical log returns
-            log_returns = np.log(1 + new_data.pct_change())
-
-            # Drift = Average Daily Return − (Variance / 2)
-            u = log_returns.mean()
-            var = log_returns.var()
-            drift = float(u - (0.5 * var))  # Convert to float scalar
-
-            # Standard deviation of historic log returns
-            stdev = float(log_returns.std())  # Convert to float scalar
-
-            # Price predictions for the specified future period with iterations
-            last_date = new_data.index[-1]
-            t_intervals = (pd.Timestamp(future_end_date) - last_date).days
-            iterations = 10000
-            daily_returns = np.exp(drift + stdev * norm.ppf(np.random.rand(t_intervals, iterations)))
-
-            # Initial stock price
-            S0 = new_data.iloc[-1]
-            price_list = np.zeros_like(daily_returns)
-            price_list[0] = S0
-
-            # Simulate price series
-            for t in range(1, t_intervals):
-                price_list[t] = price_list[t - 1] * daily_returns[t]
-
-            # Calculate daily, monthly, and annual volatility
-            daily_volatility = log_returns.std()
-            trading_days_per_month = 21  # Assuming 21 trading days in a month
-            monthly_volatility = daily_volatility * np.sqrt(trading_days_per_month)
-            trading_days_per_year = 252  # Assuming 252 trading days in a year
-            annual_volatility = daily_volatility * np.sqrt(trading_days_per_year)
-
-            # Calculate VaR
-            confidence_level = 0.05  # 5% confidence level
-            var = np.percentile(price_list, confidence_level * 100)
-
-            # Calculate VaR
-            confidence_level_3 = 0.01  # 1% confidence level
-            var_3 = np.percentile(price_list, confidence_level_3 * 100)
-
-            confidence_level_2 = 0.95  # 95% confidence level
-            var_2 = np.percentile(price_list, confidence_level_2 * 100)
-
-            confidence_level_4 = 0.99  # 95% confidence level
-            var_4 = np.percentile(price_list, confidence_level_4 * 100)
-
-            st.subheader("Simulation Details & Results")
-
-            col1, col2, col3 = st.columns(3)
-
-            with col1:
-                st.divider()
-                st.metric(label="Current Closing Price", value=round(S0, 2))
-                st.metric(label="Number of Iterations", value=iterations)
-                st.metric(label="Forecasted Period", value=future_end_date.strftime('%Y-%m-%d') + f" ({t_intervals} days)")
-                st.metric(label="Expected Average Price", value=round(np.mean(price_list), 2))
-                @st.cache_data
-                def convert_df(df):
-                    # IMPORTANT: Cache the conversion to prevent computation on every rerun
-                    return df.to_csv().encode("utf-8")
-
-                # Reverse the DataFrame
-                reversed_data = new_data[::-1]
-                csv = convert_df(reversed_data)
-
-                st.download_button(
-                    label="Download data as CSV",
-                    data=csv,
-                    file_name="Brent_Price.csv",
-                    mime="text/csv",
-    )
-
-
-            with col2:
-                st.divider()
-                st.metric(label="Daily Volatility", value=f"{round(daily_volatility * 100, 2)}%")
-                st.metric(label="Monthly Volatility (21 trading days)", value=f"{round(monthly_volatility * 100, 2)}%")
-                st.metric(label="Annual Volatility (252 trading days)", value=f"{round(annual_volatility * 100, 2)}%")
-
-            with col3:
-                st.divider()
-                st.metric(label="Quantile (30%)", value=round(np.percentile(price_list, 30), 2))
-                st.metric(label="Quantile (80%)", value=round(np.percentile(price_list, 80), 2))
-                st.metric(label=f"1% confidence level", value=round(var_3, 2))
-                st.metric(label=f"5% confidence level", value=round(var, 2))
-                st.metric(label=f"95% confidence level", value=round(var_2, 2))
-                st.metric(label=f"99% confidence level", value=round(var_4, 2))
-            
-            #############################################
-            col4, col5 = st.columns(2)
-            ##############################
-
-            with col4:
-                st.subheader("Monte Carlo Simulation of Brent Oil Prices - Histogram")
-                fig = px.histogram(price_list[-1], nbins=500, title='Distribution of Final Prices from Monte Carlo Simulation',
-                                labels={'value': 'Price', 'count': 'Frequency'})
-                fig.update_layout(
-                    xaxis_title='Price',
-                    yaxis_title='Frequency',
-                    bargap=0.2,
-                    template='plotly_dark'
-                )
-                
-                # Add lines for mean and median
-                mean_price = np.mean(price_list[-1])
-                fig.add_vline(x=mean_price, line_dash="dash", line_color="black", annotation_text="Mean", annotation_position="bottom")
-
-                Q30 =  round(np.percentile(price_list, 30), 2)
-                Q80 =  round(np.percentile(price_list, 80), 2)
-                
-                # Add annotations for VaR
-                fig.add_vline(x=Q30, line_dash="dash", line_color="red", annotation_text="Q30", annotation_position="top")
-                fig.add_vline(x=Q80, line_dash="dash", line_color="orange", annotation_text="Q80", annotation_position="top")
-                
-                st.plotly_chart(fig)
-
-                st.subheader("Monte Carlo Simulation of Brent Oil Prices - Key Paths")
-                mean_path = np.mean(price_list, axis=1)
-
-                percentile_30_path = np.percentile(price_list, 30, axis=1)
-                percentile_80_path = np.percentile(price_list, 80, axis=1)
-
-                fig_key_paths = px.line(title='Monte Carlo Simulation Key Paths', labels={'index': 'Days', 'value': 'Price'})
-                fig_key_paths.add_scatter(x=list(range(t_intervals)), y=mean_path, mode='lines', name='Mean Path', line=dict(color='blue'))
-                fig_key_paths.add_scatter(x=list(range(t_intervals)), y=percentile_30_path, mode='lines', name='P30', line=dict(color='red', dash='dash'))
-                fig_key_paths.add_scatter(x=list(range(t_intervals)), y=percentile_80_path, mode='lines', name='P80', line=dict(color='orange', dash='dash'))
-
-                fig_key_paths.update_layout(template='plotly_dark')
-                st.plotly_chart(fig_key_paths)
-
-            ############################################
-            with col5:
-                st.subheader("Historical Brent Oil Prices and Rolling Historical Volatility")
-                fig_combined = go.Figure()
-                rolling_volatility = log_returns.rolling(window=252).std() * np.sqrt(252)
-
-                # Add Brent oil prices to the graph
-                fig_combined.add_trace(go.Scatter(x=new_data.index, y=new_data.values, mode='lines', name='Brent Oil Prices', line=dict(color='blue')))
-
-                # Create a second y-axis for the volatility
-                fig_combined.update_layout(yaxis=dict(title="Brent Oil Prices"), yaxis2=dict(title="Volatility", overlaying="y", side="right"))
-
-                # Add rolling historical volatility to the graph
-                fig_combined.add_trace(go.Scatter(x=rolling_volatility.index, y=rolling_volatility.values, mode='lines', name='Rolling Volatility', line=dict(color='red'), yaxis='y2'))
-
-                fig_combined.update_layout(title="Historical Brent Oil Prices and Rolling Historical Volatility", template='plotly_dark')
-                st.plotly_chart(fig_combined)
-                
-
-
-            ############################################
-
-    with tab3:
-        st.subheader("Monte Carlo (Monthly Average Prices)")
-
-        st.write(
-            """
-            **Predicting Oil Prices with Monte Carlo Simulation (Monthly Average)**
-
-            Similar to the the daily Monte Carlo Analysis, it uses historical price to predict possible future scenarios but uses average historical price of every month instead of daily historical price. This will typically lead to lower volatility and a smaller Monte Carlo band. 
-            """
-            )
-
-
-
-        # Inputs for the simulation
-        today = datetime.date.today()
-        end_date = st.date_input("Select current date", today - datetime.timedelta(days=1), max_value=today - datetime.timedelta(days=1), key="end_date_input_2")
-        future_end_date = st.date_input("Select forecast date", datetime.date(2025, 12, 31), min_value= end_date + datetime.timedelta(days=1), key="future_date_input_2")
-        # Streamlit slider for selecting the number of years of historical data
-        years_of_data = st.slider('Select number of years of historical data:', min_value=1, max_value=10, value=10, key="years_of_data") 
-
-        run_simulation = st.button("Run Simulation", key="RUN_2")
-
-        
-
-        if run_simulation:
-            start_date = pd.Timestamp(end_date) - pd.DateOffset(years=years_of_data)
-            brent_data = yf.download('BZ=F', start=start_date, end=pd.Timestamp(end_date) + pd.Timedelta(days=1))
-
-            # Extract the 'Close' prices
-            new_data = brent_data['Close']
-            # Resample the data to get monthly closing prices
-            monthly_data = brent_data['Close'].resample('M').last()
-
-            # Historical monthly log returns
-            log_returns_monthly = np.log(1 + monthly_data.pct_change())
-
-            # Drift = Average Monthly Return − (Variance / 2)
-            u_monthly = log_returns_monthly.mean()
-            var_monthly = log_returns_monthly.var()
-            drift_monthly = u_monthly - (0.5 * var_monthly)
-
-            # Standard deviation of historical monthly log returns
-            stdev_monthly = log_returns_monthly.std()           
-
-            # Price predictions for the specified future period with iterations
-            last_date = monthly_data.index[-1]
-            # Assuming last_date is a datetime.date object
-            last_date_timestamp = pd.Timestamp(last_date)
-
-            # Convert future_end_date to Timestamp
-            future_end_date_timestamp = pd.Timestamp(future_end_date)
-
-            # Then perform the subtraction
-            t_intervals_monthly = (future_end_date_timestamp - last_date_timestamp).days // 30
-            iterations = 10000
-            monthly_returns = np.exp(drift_monthly + stdev_monthly * norm.ppf(np.random.rand(t_intervals_monthly, iterations)))
-
-            # Initial stock price
-            S0 = monthly_data.iloc[-1]
-            price_list_monthly = np.zeros_like(monthly_returns)
-            price_list_monthly[0] = S0
-
-            # Simulate price series
-            for t in range(1, t_intervals_monthly):
-                price_list_monthly[t] = price_list_monthly[t - 1] * monthly_returns[t]
-
-            # Calculate monthly and annual volatility
-            monthly_volatility = stdev_monthly
-            trading_months_per_year = 12  # 12 months in a year
-            annual_volatility = monthly_volatility * np.sqrt(trading_months_per_year)
-
-            # Calculate VaR
-            confidence_level = 0.05  # 5% confidence level
-            var = np.percentile(price_list_monthly, confidence_level * 100)
-
-            # Calculate VaR
-            confidence_level_3 = 0.01  # 1% confidence level
-            var_3 = np.percentile(price_list_monthly, confidence_level_3 * 100)
-
-            confidence_level_2 = 0.95  # 95% confidence level
-            var_2 = np.percentile(price_list_monthly, confidence_level_2 * 100)
-
-            confidence_level_4 = 0.99  # 95% confidence level
-            var_4 = np.percentile(price_list_monthly, confidence_level_4 * 100)
-
-            st.subheader("Simulation Details & Results")
-
-            col1, col2, col3 = st.columns(3)
-
-            with col1:
-                st.divider()
-                st.metric(label="Current Closing Price", value=round(S0, 2))
-                st.metric(label="Number of Iterations", value=iterations)
-                st.metric(label="Forecasted Period", value=future_end_date.strftime('%Y-%m-%d') + f" ({t_intervals_monthly} Months)")
-                st.metric(label="Expected Average Price", value=round(np.mean(price_list_monthly), 2))
-                @st.cache_data
-                def convert_df(df):
-                    # IMPORTANT: Cache the conversion to prevent computation on every rerun
-                    return df.to_csv().encode("utf-8")
-
-                # Reverse the DataFrame
-                reversed_data = new_data[::-1]
-                csv = convert_df(reversed_data)
-
-                st.download_button(
-                    label="Download data as CSV",
-                    data=csv,
-                    file_name="Brent_Price.csv",
-                    mime="text/csv",
-    )
-
-
-            with col2:
-                st.divider()
-                st.metric(label="Monthly Volatility (21 trading days)", value=f"{round(monthly_volatility * 100, 2)}%")
-                st.metric(label="Annual Volatility (252 trading days)", value=f"{round(annual_volatility * 100, 2)}%")
-
-            with col3:
-                st.divider()
-                st.metric(label="Quantile (30%)", value=round(np.percentile(price_list_monthly, 30), 2))
-                st.metric(label="Quantile (80%)", value=round(np.percentile(price_list_monthly, 80), 2))
-                st.metric(label=f"1% confidence level", value=round(var_3, 2))
-                st.metric(label=f"5% confidence level", value=round(var, 2))
-                st.metric(label=f"95% confidence level", value=round(var_2, 2))
-                st.metric(label=f"99% confidence level", value=round(var_4, 2))
-            
-            #############################################
-            col4, col5 = st.columns(2)
-            ##############################
-
-            with col4:
-                st.subheader("Monte Carlo Simulation of Brent Oil Prices - Histogram")
-                fig = px.histogram(price_list_monthly[-1], nbins=500, title='Distribution of Final Prices from Monthly Average Monte Carlo Simulation',
-                                labels={'value': 'Price', 'count': 'Frequency'})
-                fig.update_layout(
-                    xaxis_title='Price',
-                    yaxis_title='Frequency',
-                    bargap=0.2,
-                    template='plotly_dark'
-                )
-                
-                # Add lines for mean and median
-                mean_price = np.mean(price_list_monthly[-1])
-                fig.add_vline(x=mean_price, line_dash="dash", line_color="black", annotation_text="Mean", annotation_position="bottom")
-
-                Q30 =  round(np.percentile(price_list_monthly, 30), 2)
-                Q80 =  round(np.percentile(price_list_monthly, 80), 2)
-                
-                # Add annotations for VaR
-                fig.add_vline(x=Q30, line_dash="dash", line_color="red", annotation_text="Q30", annotation_position="top")
-                fig.add_vline(x=Q80, line_dash="dash", line_color="orange", annotation_text="Q80", annotation_position="top")
-                
-                st.plotly_chart(fig)
-
-                st.subheader("Monte Carlo Simulation of Brent Oil Prices for Monthly Average - Key Paths")
-                mean_path = np.mean(price_list_monthly, axis=1)
-
-                percentile_30_path = np.percentile(price_list_monthly, 30, axis=1)
-                percentile_80_path = np.percentile(price_list_monthly, 80, axis=1)
-
-                fig_key_paths = px.line(title='Monte Carlo Simulation Key Paths', labels={'index': 'Days', 'value': 'Price'})
-                fig_key_paths.add_scatter(x=list(range(t_intervals_monthly)), y=mean_path, mode='lines', name='Mean Path', line=dict(color='blue'))
-                fig_key_paths.add_scatter(x=list(range(t_intervals_monthly)), y=percentile_30_path, mode='lines', name='P30', line=dict(color='red', dash='dash'))
-                fig_key_paths.add_scatter(x=list(range(t_intervals_monthly)), y=percentile_80_path, mode='lines', name='P80', line=dict(color='orange', dash='dash'))
-
-                fig_key_paths.update_layout(template='plotly_dark')
-                st.plotly_chart(fig_key_paths)
-
-            ############################################
-            with col5:
-                st.subheader("Historical Brent Oil Prices and Rolling Historical Volatility")
-                fig_combined = go.Figure()
-                rolling_volatility = log_returns_monthly.rolling(window=1).std() * np.sqrt(252)
-
-                # Add Brent oil prices to the graph
-                fig_combined.add_trace(go.Scatter(x=new_data.index, y=new_data.values, mode='lines', name='Brent Oil Prices', line=dict(color='blue')))
-
-                # Create a second y-axis for the volatility
-                fig_combined.update_layout(yaxis=dict(title="Brent Oil Prices"), yaxis2=dict(title="Volatility", overlaying="y", side="right"))
-
-                # Add rolling historical volatility to the graph
-                fig_combined.add_trace(go.Scatter(x=rolling_volatility.index, y=rolling_volatility.values, mode='lines', name='Rolling Volatility', line=dict(color='red'), yaxis='y2'))
-
-                fig_combined.update_layout(title="Historical Brent Oil Prices and Rolling Historical Volatility", template='plotly_dark')
-                st.plotly_chart(fig_combined)
-                
-
-
-            ############################################
-
+    hero("Technical and Probability Analysis",
+         "Pivot points, momentum indicators and Monte Carlo price scenarios for Brent crude.",
+         "Source<br>Yahoo Finance (BZ=F)", slim=True)
+    t1, t2, t3 = st.tabs(["Technical Analysis", "MonteCarlo Analysis (Daily)", "MonteCarlo Analysis (Monthly)"])
+    with t1:
+        technical_tab()
+    with t2:
+        mc_tab("daily")
+    with t3:
+        mc_tab("monthly")

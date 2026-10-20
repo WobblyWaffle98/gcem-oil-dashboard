@@ -1,1662 +1,592 @@
-import streamlit as st
-import pandas as pd
+from datetime import datetime, timedelta
+
 import numpy as np
-import plotly.graph_objs as go
-import seaborn as sns
-import matplotlib.pyplot as plt
-from matplotlib.colors import LinearSegmentedColormap
-import yfinance as yf
-from datetime import datetime
-from collections import defaultdict
+import pandas as pd
+import plotly.graph_objects as go
 import requests
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
-from datetime import date, timedelta
-from dateutil.relativedelta import relativedelta    
+import streamlit as st
+import yfinance as yf
+
+from app_secrets import get_secret
+from charts import layout, legend_swatch, panel, show, unavailable
+from fundamentals_copy import TEXT
+from theme import COLORS, PALETTE_LONG, hero, kpi_grid, panel_head
+
+STEO_URL = "https://api.eia.gov/v2/steo/data/"
+WEEKLY_URL = "https://api.eia.gov/v2/petroleum/sum/sndw/data/"
+MBD = "Volume (million barrels per day)"
+
+# ---------------------------------------------------------------- series definitions (labels in plot order)
+WORLD_BREAKDOWN = {  # annual; "Other" is world minus the two groups below
+    "PAPR_OPECPLUS_OPEC": "OPEC members",
+    "PAPR_OPECPLUS_OTHER": "Additional OPEC+ members",
+}
+OPEC_MEMBERS = {
+    "PAPR_AG": "Algeria", "PAPR_CF": "Congo (Brazzaville)", "PAPR_EK": "Equatorial Guinea", "PAPR_GB": "Gabon",
+    "PAPR_IR": "Iran", "PAPR_IZ": "Iraq", "PAPR_KU": "Kuwait", "PAPR_LY": "Libya", "PAPR_NI": "Nigeria",
+    "PAPR_SA": "Saudi Arabia", "PAPR_TC": "United Arab Emirates", "PAPR_VE": "Venezuela",
+}
+OPECPLUS_OTHER = {
+    "PAPR_AJ": "Azerbaijan", "PAPR_BA": "Bahrain", "PAPR_BX": "Brunei", "PAPR_KZ": "Kazakhstan", "PAPR_MY": "Malaysia",
+    "PAPR_MX": "Mexico", "PAPR_MU": "Oman", "PAPR_RS": "Russia", "PAPR_OD": "South Sudan", "PAPR_SU": "Sudan",
+}
+NON_OPEC_NAMED = {  # subtracted from "non-OPEC+ ex-US" to leave "Others"
+    "PAPR_CA": "Canada", "PAPR_AR": "Argentina", "PAPR_BR": "Brazil", "PAPR_CO": "Colombia", "PAPR_GY": "Guyana",
+    "PAPR_NO": "Norway", "PAPR_UK": "United Kingdom", "PAPR_QA": "Qatar", "PAPR_AO": "Angola", "PAPR_EG": "Egypt",
+    "PAPR_CH": "China", "PAPR_IN": "India", "PAPR_ID": "Indonesia",
+}
+NON_OPEC_ORDER = ["PAPR_CA", "PAPR_US", "PAPR_AR", "PAPR_BR", "PAPR_CO", "PAPR_GY", "PAPR_NO", "PAPR_UK", "PAPR_QA",
+                  "PAPR_AO", "PAPR_EG", "PAPR_CH", "PAPR_IN", "PAPR_ID"]
+CONSUMPTION = {
+    "PATC_CA": "Canada", "PATC_OECD_EUROPE": "Europe OECD", "PATC_JA": "Japan", "PATC_US": "United States",
+    "PATC_UST": "U.S. Territories", "PATC_OTHER_OECD": "Other OECD", "PATC_CH": "China", "PATC_FSU": "Eurasia",
+    "PATC_NONOECD_EUROPE": "Europe non-OECD", "PATC_OTHER_ASIA": "Other Asia", "PATC_OTHER_NONOECD": "Other Non-OECD",
+}
+OECD = ["PATC_CA", "PATC_OECD_EUROPE", "PATC_JA", "PATC_US", "PATC_UST", "PATC_OTHER_OECD"]
+NON_OECD = ["PATC_CH", "PATC_FSU", "PATC_NONOECD_EUROPE", "PATC_OTHER_ASIA", "PATC_OTHER_NONOECD"]
+MONTHLY = {"COPR_OPECPLUS": "OPEC+", "COPRPUS": "US", "COPR_NONOPECPLUS_XUS": "Non-OPEC+ ex-US"}
+STOCKS = {
+    "WCESTUS1": ("Crude oil (ex-SPR)", "U.S. Ending Stocks excluding SPR of Crude Oil"),
+    "WGTSTUS1": ("Gasoline", "U.S. Ending Stocks of Total Gasoline"),
+    "WDISTUS1": ("Distillate", "U.S. Ending Stocks of Distillate Fuel Oil"),
+}
+SPR_SERIES = "WCSSTUS1"
+RANGE_DAYS = {"6M": 182, "1Y": 365, "2Y": 730, "5Y": 1826}
 
 
-def fundamentals_page():
-
-    # Import IBM Plex Sans font
-    st.markdown("""
-        <style>
-        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap');
-
-        body {
-            font-family: 'IBM Plex Sans', sans-serif;
-        }
-        .left-align {
-            text-align: left;
-            font-family: 'IBM Plex Sans', sans-serif;
-        }
-        </style>
-        """, unsafe_allow_html=True)
-
-    st.header("Fundamental Indicators")
-    # Add fundamentals page specific code here
-
-    tab1, tabx, tab4, tab2, tab5, tab6  = st.tabs(["Balances", "Production", "Consumption","Seasonality", "EIA Inventory","EIA Inventory (SPR)"])
-
-    with tab1:
-        st.subheader("Supply-Demand balances")
-        st.write("""
-            The Supply-Demand balances provides an analysis of global petroleum production and consumption over time.
-            The following charts display trends in production and consumption, as well as oversupply or undersupply.
-            Please note that some of the numbers presented are forecasts and may be subject to change.
-            
-            Detailed breakdowns of consumption and production can be found in their respective tabs.
-            Data is sourced from the [U.S. Energy Information Administration (EIA)](https://www.eia.gov/).
-        """)
-
-        def fetch_data(api_url, params):
-            try:
-                response = requests.get(api_url, params=params, verify=False)
-                response.raise_for_status()
-                return response.json()
-            except requests.exceptions.HTTPError as err:
-                print(f"HTTP error occurred: {err}")
-            except Exception as err:
-                print(f"An error occurred: {err}")
-            return None
-
-        api_url = 'https://api.eia.gov/v2/steo/data/'
-        api_key = 'gcp5ZkcZhaL5aCVvviD38eMtVEZXEyP28KqMHh4h'
-
-        params_template = {
-            "api_key": api_key,
-            "frequency": "annual",
-            "data[]": "value",
-            "start": "2000",
-            "sort[0][column]": "period",
-            "sort[0][direction]": "desc",
-            "offset": 0,
-            "length": 5000
-        }
-
-        # Define series IDs for world production and consumption
-        production_series_id = "PAPR_WORLD"
-        consumption_series_id = "PATC_WORLD"
-
-        # Fetch production data
-        params_production = params_template.copy()
-        params_production["facets[seriesId][]"] = production_series_id
-        production_data = fetch_data(api_url, params_production)
-
-        # Fetch consumption data
-        params_consumption = params_template.copy()
-        params_consumption["facets[seriesId][]"] = consumption_series_id
-        consumption_data = fetch_data(api_url, params_consumption)
-
-        # Extract and organize the data
-        periods = sorted(list(set(int(item['period']) for item in production_data['response']['data'])))
-        production_values = {int(item['period']): float(item['value']) for item in production_data['response']['data']}
-        consumption_values = {int(item['period']): float(item['value']) for item in consumption_data['response']['data']}
-
-        # Calculate oversupply/undersupply
-        oversupply_undersupply = {year: production_values.get(year, 0) - consumption_values.get(year, 0) for year in periods}
-
-        # Create a DataFrame
-        df = pd.DataFrame({
-            'Year': periods,
-            'Production': [production_values.get(year, 0) for year in periods],
-            'Consumption': [consumption_values.get(year, 0) for year in periods],
-            'Oversupply/Undersupply': [oversupply_undersupply.get(year, 0) for year in periods]
-        })
-
-        # Create the first plot for Production and Consumption
-        fig1 = go.Figure()
-        fig1.add_trace(go.Scatter(x=df['Year'], y=df['Production'], mode='lines+markers', name='Production'))
-        fig1.add_trace(go.Scatter(x=df['Year'], y=df['Consumption'], mode='lines+markers', name='Consumption'))
-
-        fig1.update_layout(
-            title='World Petroleum Production vs Consumption',
-            xaxis_title='Year',
-            yaxis_title='Volume (million barrels per day)',
-            template='plotly_white'
-        )
+# ---------------------------------------------------------------- data (each raises on failure; wrappers below catch)
+def _key():
+    return get_secret("EIA_API_KEY", "eia", "api_key")
 
 
-        # Create the second plot for Oversupply/Undersupply
-        fig2 = go.Figure()
-        fig2.add_trace(go.Bar(x=df['Year'], y=df['Oversupply/Undersupply'], name='Oversupply/Undersupply', 
-                            marker_color=df['Oversupply/Undersupply'].apply(lambda x: 'green' if x >= 0 else 'red'),text=df['Oversupply/Undersupply']))
-        
-        # Update traces to format the text as x.x M
-        fig2.update_traces(texttemplate='%{text:.2f}', textposition='inside',textfont_color="white")
-
-        fig2.update_layout(
-            title='World Petroleum Oversupply/Undersupply',
-            xaxis_title='Year',
-            yaxis_title='Volume (million barrels per day)',
-        )
+def _verify():
+    insecure = get_secret("EIA_INSECURE_SSL") == "1"
+    if insecure:
+        requests.packages.urllib3.disable_warnings()
+    return not insecure
 
 
-        params_template = {
-        "api_key": api_key,
-        "frequency": "quarterly",
-        "data[]": "value",
-        "start": "2000",
-        "sort[0][column]": "period",
-        "sort[0][direction]": "desc",
-        "offset": 0,
-        "length": 5000
-        }
-
-        # Define series IDs for world production and consumption
-        production_series_id = "PAPR_WORLD"
-        consumption_series_id = "PATC_WORLD"
-
-        # Fetch production data
-        params_production = params_template.copy()
-        params_production["facets[seriesId][]"] = production_series_id
-        production_data = fetch_data(api_url, params_production)
-
-        # Fetch consumption data
-        params_consumption = params_template.copy()
-        params_consumption["facets[seriesId][]"] = consumption_series_id
-        consumption_data = fetch_data(api_url, params_consumption)
-
-        # Extract and organize the data
-        production_periods = [item['period'] for item in production_data['response']['data']]
-        production_values = {item['period']: float(item['value']) for item in production_data['response']['data']}
-        consumption_values = {item['period']: float(item['value']) for item in consumption_data['response']['data']}
-
-        # Calculate oversupply/undersupply
-        all_periods = sorted(set(production_periods + list(consumption_values.keys())), reverse=False)
-        oversupply_undersupply = {period: production_values.get(period, 0) - consumption_values.get(period, 0) for period in all_periods}
-
-        # Create a DataFrame
-        df = pd.DataFrame({
-            'Period': all_periods,
-            'Production': [production_values.get(period, 0) for period in all_periods],
-            'Consumption': [consumption_values.get(period, 0) for period in all_periods],
-            'Oversupply/Undersupply': [oversupply_undersupply.get(period, 0) for period in all_periods]
-        })
-
-        # Create the first plot for Production and Consumption
-        fig1q = go.Figure()
-        fig1q.add_trace(go.Scatter(x=df['Period'], y=df['Production'], mode='lines+markers', name='Production'))
-        fig1q.add_trace(go.Scatter(x=df['Period'], y=df['Consumption'], mode='lines+markers', name='Consumption'))
-
-        fig1q.update_layout(
-            title='World Petroleum Quarterly Production vs Consumption ',
-            xaxis_title='Quarter',
-            yaxis_title='Volume (million barrels per day)',
-            template='plotly_white'
-        )
+def _get_rows(url, params, verify):
+    rows, offset = [], 0
+    while True:
+        r = requests.get(url, params={**params, "offset": offset}, timeout=30, verify=verify)
+        r.raise_for_status()
+        resp = r.json()["response"]
+        chunk = resp.get("data", [])
+        rows += chunk
+        offset += len(chunk)
+        if not chunk or offset >= int(resp.get("total", offset)):
+            return rows
 
 
-        # Create the second plot for Oversupply/Undersupply
-        fig2q = go.Figure()
-        fig2q.add_trace(go.Bar(x=df['Period'], y=df['Oversupply/Undersupply'], name='Oversupply/Undersupply',
-                            marker_color=df['Oversupply/Undersupply'].apply(lambda x: 'green' if x >= 0 else 'red'),text=df['Oversupply/Undersupply'],))
-        
-        # Update traces to format the text as x.x M
-        fig2q.update_traces(texttemplate='%{text:.2f}', textposition='inside',textfont_color="white")
-        
-        
-
-        fig2q.update_layout(
-            title='World Petroleum Quarterly Oversupply/Undersupply',
-            xaxis_title='Quarter',
-            yaxis_title='Volume (million barrels per day)',
-        )
-
-
-        col1, col2= st.columns(2)
-        # Show the DataFrame and the plots
-        with col1:
-            st.plotly_chart(fig1,use_container_width=True)
-            # Use the font with right-aligned text
-            st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
-            st.plotly_chart(fig1q,use_container_width=True)
-            # Use the font with right-aligned text
-            st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
-        
-        with col2:
-            st.plotly_chart(fig2,use_container_width=True)
-            # Use the font with right-aligned text
-            st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
-            st.plotly_chart(fig2q,use_container_width=True)
-            # Use the font with right-aligned text
-            st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
-
-        @st.cache_data
-        def convert_df(df):
-            # IMPORTANT: Cache the conversion to prevent computation on every rerun
-            return df.to_csv().encode("utf-8")
+@st.cache_data(ttl=6 * 3600, show_spinner=False)
+def _steo(series_ids, frequency, start, key, verify):
+    rows = _get_rows(STEO_URL, {
+        "api_key": key, "frequency": frequency, "data[]": "value", "start": start,
+        "facets[seriesId][]": list(series_ids), "sort[0][column]": "period", "sort[0][direction]": "desc", "length": 5000,
+    }, verify)
+    df = pd.DataFrame(rows)
+    if df.empty:
+        raise ValueError("No data returned")
+    df["value"] = pd.to_numeric(df["value"], errors="coerce")
+    wide = df.pivot_table(index="period", columns="seriesId", values="value", aggfunc="first").sort_index()
+    if frequency == "annual":
+        wide.index = wide.index.astype(int)
+    return wide.reindex(columns=list(series_ids))
 
 
-        st.download_button(
-            label="Download data as CSV",
-            data=convert_df(df),
-            file_name="OilBalances.csv",
-            mime="text/csv",
-            )
-
-        st.subheader("Other sources of Supply-Demand Balances (May require paid subscriptions)")
-        st.write("""
-        1. The [OPEC Monthly Oil Market Report (MOMR)](https://www.opec.org/opec_web/en/publications/338.htm) covers major issues affecting the world oil market and provides an outlook for crude oil market developments for the coming year. 
-        The report provides a detailed analysis of key developments impacting oil market trends in world oil demand, supply as well as the oil market balance.
-        
-        2. The [IEA Oil Market Report (OMR)](https://www.iea.org/energy-system/fossil-fuels/oil)is one of the world's most authoritative and timely sources of data, forecasts and analysis on the global oil market – 
-        including detailed statistics and commentary on oil supply, demand, inventories, prices and refining activity, as well as oil trade for IEA and selected non-IEA countries.
-                 
-        3. The [Wood Mackenzie Portal](https://my.woodmac.com/) provides comprehensive data, forecasts, and expert analysis on global oil markets. It offers in-depth insights into oil supply and demand dynamics, pricing trends, 
-        refining activities, and trade flows. Covering key regions and major players, the report delivers detailed statistics and commentary, 
-        helping industry stakeholders make informed decisions with timely and authoritative information on oil market developments.
-
-        """)
-
-    with tabx:
-        st.subheader("Breakdown of World Petroleum and Other Liquid Production ")
-        
-        st.write("""
-                 The bar chart tracks the production volumes of petroleum and other liquids by major global players: OPEC members, additional OPEC+ members, and non-OPEC countries. 
-                   """)
+def steo(series_ids, frequency="annual", start="2000"):
+    key = _key()
+    if not key:
+        return None
+    try:
+        return _steo(tuple(series_ids), frequency, start, key, _verify())
+    except Exception:
+        return None
 
 
-        # Suppress SSL verification warnings
-        requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-
-        def fetch_data(api_url, params):
-            try:
-                response = requests.get(api_url, params=params, verify=False)
-                response.raise_for_status()
-                return response.json()
-            except requests.exceptions.HTTPError as err:
-                print(f"HTTP error occurred: {err}")
-            except Exception as err:
-                print(f"An error occurred: {err}")
-            return None
-
-        api_url = 'https://api.eia.gov/v2/steo/data/'
-        api_key = 'gcp5ZkcZhaL5aCVvviD38eMtVEZXEyP28KqMHh4h'
-
-        params = {
-            "api_key": api_key,
-            "frequency": "annual",
-            "data[]": "value",
-            "start": "2000",
-            "sort[0][column]": "period",
-            "sort[0][direction]": "desc",
-            "offset": 0,
-            "length": 5000
-        }
-
-        # Fetch OPEC production data
-        params["facets[seriesId][]"] = "PAPR_OPECPLUS_OPEC"
-        data_production_OPEC = fetch_data(api_url, params)
-
-        # Fetch Non-OPEC production data
-        params["facets[seriesId][]"] = "PAPR_OPECPLUS_OTHER"
-        data_production_OPECP = fetch_data(api_url, params)
-
-        # Fetch Non-OPEC production data
-        params["facets[seriesId][]"] = "PAPR_WORLD"
-        data_production_WORLD = fetch_data(api_url, params)
+@st.cache_data(ttl=3600, show_spinner=False)
+def _weekly(series, start, key, verify):
+    rows = _get_rows(WEEKLY_URL, {
+        "api_key": key, "frequency": "weekly", "data[0]": "value", "facets[series][]": series, "start": start,
+        "sort[0][column]": "period", "sort[0][direction]": "desc", "length": 5000,
+    }, verify)
+    df = pd.DataFrame(rows)
+    if df.empty:
+        raise ValueError("No data returned")
+    df["date"] = pd.to_datetime(df["period"])
+    df["value"] = pd.to_numeric(df["value"], errors="coerce")
+    return df[["date", "value"]].dropna().sort_values("date").reset_index(drop=True)
 
 
+def weekly(series):
+    key = _key()
+    if not key:
+        return None
+    start = (datetime.now() - timedelta(days=5 * 365)).strftime("%Y-%m-%d")
+    try:
+        return _weekly(series, start, key, _verify())
+    except Exception:
+        return None
 
 
-        # Extract production data
-        periods = [int(item['period']) for item in data_production_OPEC['response']['data']]
-        production_values_OPEC = [float(item['value']) for item in data_production_OPEC['response']['data']]
-        production_values_OPECP = [float(item['value']) for item in data_production_OPECP['response']['data']]
-        production_values_WORLD = [float(item['value']) for item in data_production_WORLD['response']['data']]
+@st.cache_data(ttl=6 * 3600, show_spinner=False)
+def brent_close():
+    s = yf.Ticker("BZ=F").history(start="2014-01-01")["Close"].dropna()
+    if s.empty:
+        raise ValueError("No prices")
+    return s
 
-        # Correct calculation of world production values (element-wise subtraction)
-        production_values_others = [
-            world - opecp - opec
-            for world, opecp, opec in zip(production_values_WORLD, production_values_OPECP, production_values_OPEC)
+
+def _safe(fn, *a):
+    try:
+        return fn(*a)
+    except Exception:
+        return None
+
+
+@st.cache_data(show_spinner=False)
+def csv_bytes(df):
+    return df.to_csv().encode("utf-8")
+
+
+# ---------------------------------------------------------------- charts
+def _forecast_band(fig, years):
+    """Shade the EIA forecast period (the current and following year) on annual charts."""
+    now = datetime.now().year
+    if len(years) and max(years) >= now:
+        fig.add_vrect(x0=now - 0.5, x1=max(years) + 0.5, fillcolor="rgba(36,145,207,0.08)", line_width=0, layer="below")
+        legend_swatch(fig, "EIA forecast period", "rgba(36,145,207,0.35)")
+
+
+def stacked_bar(wide, columns, labels, height=480, totals=True):
+    fig = go.Figure()
+    for i, col in enumerate(columns):
+        fig.add_trace(go.Bar(x=wide.index, y=wide[col], name=labels[col], marker_color=PALETTE_LONG[i % len(PALETTE_LONG)],
+                             hovertemplate="%{y:.2f}"))
+    if totals:
+        t = wide[columns].sum(axis=1)
+        fig.add_trace(go.Scatter(x=wide.index, y=t, mode="text", text=[f"{v:.1f}" for v in t], textposition="top center",
+                                 textfont=dict(size=11, color=COLORS["ink"]), showlegend=False, hoverinfo="skip"))
+    fig.update_layout(barmode="stack")
+    _forecast_band(fig, list(wide.index))
+    layout(fig, height)
+    fig.update_yaxes(title_text=MBD)
+    fig.update_xaxes(dtick=1 if len(wide) <= 30 else None)
+    return fig
+
+
+def pc_fig(x, prod, cons, annual):
+    fig = go.Figure()
+    mode = "lines+markers" if annual else "lines"
+    fig.add_trace(go.Scatter(x=x, y=prod, mode=mode, name="Production", line=dict(color=COLORS["brand"], width=2.4),
+                             marker=dict(size=6), hovertemplate="%{y:.2f}"))
+    fig.add_trace(go.Scatter(x=x, y=cons, mode=mode, name="Consumption", line=dict(color=COLORS["blue"], width=2.4),
+                             marker=dict(size=6), hovertemplate="%{y:.2f}"))
+    if annual:
+        _forecast_band(fig, list(x))
+    layout(fig, 430)
+    fig.update_yaxes(title_text=MBD)
+    return fig
+
+
+def balance_fig(x, bal, annual):
+    colors = [COLORS["up"] if v >= 0 else COLORS["down"] for v in bal]
+    fig = go.Figure(go.Bar(x=x, y=bal, marker_color=colors, name="Oversupply / undersupply", showlegend=False, hovertemplate="%{y:.2f}",
+                           text=[f"{v:.2f}" for v in bal] if annual else None, textposition="outside",
+                           textfont=dict(size=10, color=COLORS["muted"]), cliponaxis=False))
+    if annual:
+        _forecast_band(fig, list(x))
+    layout(fig, 430, legend=annual)
+    fig.update_yaxes(title_text=MBD, zeroline=True, zerolinecolor=COLORS["muted"], zerolinewidth=1)
+    return fig
+
+
+def lines_fig(monthly):
+    fig = go.Figure()
+    for col, color in zip(MONTHLY, [COLORS["brand"], COLORS["blue"], "#F2A93B"]):
+        fig.add_trace(go.Scatter(x=monthly.index, y=monthly[col], name=MONTHLY[col] + " production",
+                                 line=dict(color=color, width=2.2), hovertemplate="%{y:.2f}"))
+    layout(fig, 430)
+    fig.update_yaxes(title_text=MBD)
+    return fig
+
+
+def share_fig(share):
+    fig = go.Figure(go.Scatter(x=share.index, y=share, mode="lines", name="OPEC+ market share",
+                               line=dict(color=COLORS["brand"], width=2.4), hovertemplate="%{y:.1f}%"))
+    layout(fig, 430, legend=False)
+    fig.update_yaxes(title_text="Market share (%)", ticksuffix="%", rangemode="normal")
+    return fig
+
+
+def area100_fig(monthly):
+    fig = go.Figure()
+    for col, color in zip(MONTHLY, [COLORS["brand"], COLORS["blue"], "#F2A93B"]):
+        fig.add_trace(go.Scatter(x=monthly.index, y=monthly[col], name=MONTHLY[col] + " production", mode="none",
+                                 stackgroup="one", groupnorm="percent", fillcolor=color, hovertemplate="%{y:.1f}%"))
+    layout(fig, 400)
+    fig.update_yaxes(title_text="Production (%)", ticksuffix="%", range=[0, 100])
+    return fig
+
+
+def seasonality_table(close, rule, unit):
+    try:
+        res = close.resample(rule).last()
+    except ValueError:  # older pandas
+        res = close.resample(rule.replace("ME", "M").replace("QE", "Q")).last()
+    pct = res.pct_change() * 100
+    parts = [(i.year, i.month if unit == "Month" else i.quarter) for i in pct.index]
+    pct.index = pd.MultiIndex.from_tuples(parts, names=["Year", unit])
+    return pct.unstack(level=unit)
+
+
+def heatmap_fig(table, labels):
+    z = table.values
+    text = [["" if pd.isna(v) else f"{v:.1f}" for v in row] for row in z]
+    fig = go.Figure(go.Heatmap(
+        z=z, x=labels, y=[str(y) for y in table.index], text=text, texttemplate="%{text}",
+        textfont=dict(size=11), zmin=-10, zmax=10, zmid=0, hoverongaps=False, xgap=2, ygap=2,
+        colorscale=[[0, COLORS["down"]], [0.5, "#FFFFFF"], [1, COLORS["brand"]]],
+        colorbar=dict(title=dict(text="%", side="right"), thickness=12, len=0.9),
+        hovertemplate="%{y} %{x}: %{z:.2f}%<extra></extra>",
+    ))
+    layout(fig, 470, legend=False, hover="closest")
+    fig.update_layout(margin=dict(l=22, r=22, t=14, b=14))
+    fig.update_xaxes(side="top", showline=False)
+    fig.update_yaxes(type="category", showgrid=False)
+    return fig
+
+
+def wow_fig(df, name):
+    d = df.copy()
+    d["chg"] = d["value"].diff()
+    d = d.dropna()
+    fig = go.Figure(go.Bar(x=d["date"], y=d["chg"], name="Week-on-week change",
+                           marker_color=[COLORS["up"] if v > 0 else COLORS["down"] for v in d["chg"]],
+                           hovertemplate="%{y:,.0f} k bbl"))
+    layout(fig, 420, legend=False)
+    fig.update_yaxes(title_text="W-o-W change (thousand barrels)")
+    return fig
+
+
+def week_stats(df):
+    """5-year min / max / average by week of year (same grouping as the original charts)."""
+    wk = df["date"].dt.strftime("%U")
+    g = df.groupby(wk)["value"]
+    out = df.copy()
+    out["week"] = wk
+    out["min5"], out["max5"], out["avg5"] = wk.map(g.min()), wk.map(g.max()), wk.map(g.mean())
+    return out
+
+
+def range_fig(stats, start, with_avg=True):
+    v = stats[stats["date"] >= start]
+    x = list(v["date"])
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=x + x[::-1], y=list(v["max5"]) + list(v["min5"])[::-1], fill="toself",
+                             fillcolor="rgba(0,169,157,0.14)", line=dict(width=0), hoverinfo="skip", name="5-year range"))
+    if with_avg:
+        fig.add_trace(go.Scatter(x=v["date"], y=v["avg5"], mode="lines", name="5-year average",
+                                 line=dict(color="#F2A93B", width=1.8, dash="dash"), hovertemplate="%{y:,.0f}"))
+    fig.add_trace(go.Scatter(x=v["date"], y=v["value"], mode="lines", name="Actual",
+                             line=dict(color=COLORS["brand"], width=2.4), hovertemplate="%{y:,.0f}"))
+    layout(fig, 420)
+    fig.update_yaxes(title_text="Thousand barrels")
+    return fig
+
+
+# ---------------------------------------------------------------- small UI helpers
+def _need_key(tab):
+    with panel(f"fund_nokey_{tab}"):
+        unavailable("EIA API key not set",
+                    "Add <code>EIA_API_KEY</code> to your Streamlit secrets (or environment) to load EIA data.")
+
+
+def _chart_panel(key, title, note, fig, source="Source: EIA"):
+    with panel(key):
+        panel_head(title, note)
+        if fig is None:
+            unavailable("Data unavailable", "The source could not be reached. Try again shortly.")
+        else:
+            show(fig, key)
+        st.caption(source)
+
+
+def _download(label, df, name, key):
+    st.download_button(label, csv_bytes(df), file_name=name, mime="text/csv", key=key)
+
+
+def _arrow(d):
+    return "\u25B2" if d > 0 else "\u25BC" if d < 0 else ""
+
+
+def _seg(label, options, key, default=None):
+    return st.segmented_control(label, options, default=default or options[0], key=key, label_visibility="collapsed") or (default or options[0])
+
+
+# ---------------------------------------------------------------- tab: balances
+def balances_tab():
+    if not _key():
+        return _need_key("bal")
+    ids = ["PAPR_WORLD", "PATC_WORLD"]
+    ann, qtr = steo(ids, "annual"), steo(ids, "quarterly")
+
+    if ann is not None and ann.dropna().shape[0] > 1:
+        a = ann.dropna()
+        now = datetime.now().year
+        y = now if now in a.index else int(a.index.max())
+        P, C = a.loc[y, "PAPR_WORLD"], a.loc[y, "PATC_WORLD"]
+        pp, cp = a["PAPR_WORLD"].get(y - 1), a["PATC_WORLD"].get(y - 1)
+        tag = "forecast" if y >= now else "actual"
+
+        def delta(cur, prev):
+            if prev is None or pd.isna(prev):
+                return {}
+            d = cur - prev
+            return dict(pill=f"{_arrow(d)} {abs(d):.2f} vs {y - 1}", pill_cls="flat")
+
+        bal = P - C
+        y2 = y + 1 if (y + 1) in a.index else None
+        cards = [
+            dict(label=f"World production, {y}", value=f"{P:.2f}", sub=f"Million barrels per day \u00B7 EIA {tag}", **delta(P, pp)),
+            dict(label=f"World consumption, {y}", value=f"{C:.2f}", sub=f"Million barrels per day \u00B7 EIA {tag}", **delta(C, cp)),
+            dict(label=f"Balance, {y}", value=f"{bal:+.2f}", pill="Oversupply" if bal >= 0 else "Undersupply",
+                 pill_cls="up" if bal >= 0 else "down", sub="Production minus consumption, mb/d"),
         ]
-
-
-        # Create a stacked bar chart
-        fig = go.Figure()
-        # Add traces with raw values for the text
-        fig.add_trace(go.Bar(x=periods, y=production_values_OPEC, name='OPEC Members Production', text=production_values_OPEC, textposition='auto'))
-        fig.add_trace(go.Bar(x=periods, y=production_values_OPECP, name='OPEC+ Additional Members Production', text=production_values_OPECP, textposition='auto'))
-        fig.add_trace(go.Bar(x=periods, y=production_values_others, name='Other Production', text=production_values_others, textposition='auto'))
-
-
-        # Update traces to format the text as x.x M
-        fig.update_traces(texttemplate='%{text:.2f}', textposition='inside',textfont_color="white")
-
-        fig.update_layout(
-            title='Total World Petroleum and Other Liquid Production Breakdown',
-            xaxis_title='Year',
-            yaxis_title='Volume (million barrels per day)',
-            barmode='stack',
-        )
-
-        st.plotly_chart(fig,use_container_width=True)
-
-        st.divider()
-
-        col_OPEC,col_OPECPLUS,col_NON = st.columns(3)
-
-        with col_OPEC:
-            def fetch_data(api_url, params):
-                try:
-                    response = requests.get(api_url, params=params, verify=False)
-                    response.raise_for_status()
-                    return response.json()
-                except requests.exceptions.HTTPError as err:
-                    print(f"HTTP error occurred: {err}")
-                except Exception as err:
-                    print(f"An error occurred: {err}")
-                return None
-
-            api_url = 'https://api.eia.gov/v2/steo/data/'
-            api_key = 'gcp5ZkcZhaL5aCVvviD38eMtVEZXEyP28KqMHh4h'
-
-
-
-            params = {
-                "api_key": api_key,
-                "frequency": "annual",
-                "data[]": "value",
-                "start": "2000",
-                "sort[0][column]": "period",
-                "sort[0][direction]": "desc",
-                "offset": 0,
-                "length": 5000
-            }
-
-            # Algeria
-            params["facets[seriesId][]"] = "PAPR_AG"
-            data_production_Algeria = fetch_data(api_url, params)
-
-            # Congo (Brazzaville)
-            params["facets[seriesId][]"] = "PAPR_CF"
-            data_production_Congo_Brazzaville = fetch_data(api_url, params)
-
-            # Equatorial Guinea
-            params["facets[seriesId][]"] = "PAPR_EK"
-            data_production_Equatorial_Guinea = fetch_data(api_url, params)
-
-            # Gabon
-            params["facets[seriesId][]"] = "PAPR_GB"
-            data_production_Gabon = fetch_data(api_url, params)
-
-            # Iran
-            params["facets[seriesId][]"] = "PAPR_IR"
-            data_production_Iran = fetch_data(api_url, params)
-
-            # Iraq
-            params["facets[seriesId][]"] = "PAPR_IZ"
-            data_production_Iraq = fetch_data(api_url, params)
-
-            # Kuwait
-            params["facets[seriesId][]"] = "PAPR_KU"
-            data_production_Kuwait = fetch_data(api_url, params)
-
-            # Libya
-            params["facets[seriesId][]"] = "PAPR_LY"
-            data_production_Libya = fetch_data(api_url, params)
-
-            # Nigeria
-            params["facets[seriesId][]"] = "PAPR_NI"
-            data_production_Nigeria = fetch_data(api_url, params)
-
-            # Saudi Arabia
-            params["facets[seriesId][]"] = "PAPR_SA"
-            data_production_Saudi_Arabia = fetch_data(api_url, params)
-
-            # United Arab Emirates
-            params["facets[seriesId][]"] = "PAPR_TC"
-            data_production_UAE = fetch_data(api_url, params)
-
-            # Venezuela
-            params["facets[seriesId][]"] = "PAPR_VE"
-            data_production_Venezuela = fetch_data(api_url, params)
-
-
-
-
-            # Extract production data
-            periods = [int(item['period']) for item in data_production_Saudi_Arabia['response']['data']]
-
-            def extract_production_values(data):
-                return [float(item['value']) for item in data['response']['data']]
-
-            # Extract production values for each country
-            production_values_Algeria = extract_production_values(data_production_Algeria)
-            production_values_Congo_Brazzaville = extract_production_values(data_production_Congo_Brazzaville)
-            production_values_Equatorial_Guinea = extract_production_values(data_production_Equatorial_Guinea)
-            production_values_Gabon = extract_production_values(data_production_Gabon)
-            production_values_Iran = extract_production_values(data_production_Iran)
-            production_values_Iraq = extract_production_values(data_production_Iraq)
-            production_values_Kuwait = extract_production_values(data_production_Kuwait)
-            production_values_Libya = extract_production_values(data_production_Libya)
-            production_values_Nigeria = extract_production_values(data_production_Nigeria)
-            production_values_Saudi_Arabia = extract_production_values(data_production_Saudi_Arabia)
-            production_values_UAE = extract_production_values(data_production_UAE)
-            production_values_Venezuela = extract_production_values(data_production_Venezuela)
-
-
-
-            # Create a stacked bar chart
-            fig = go.Figure()
-
-            # Add traces for each country
-            fig.add_trace(go.Bar(x=periods, y=production_values_Algeria, name='Algeria', text=production_values_Algeria))
-            fig.add_trace(go.Bar(x=periods, y=production_values_Congo_Brazzaville, name='Congo (Brazzaville)', text=production_values_Congo_Brazzaville))
-            fig.add_trace(go.Bar(x=periods, y=production_values_Equatorial_Guinea, name='Equatorial Guinea', text=production_values_Equatorial_Guinea))
-            fig.add_trace(go.Bar(x=periods, y=production_values_Gabon, name='Gabon', text=production_values_Gabon))
-            fig.add_trace(go.Bar(x=periods, y=production_values_Iran, name='Iran', text=production_values_Iran))
-            fig.add_trace(go.Bar(x=periods, y=production_values_Iraq, name='Iraq', text=production_values_Iraq))
-            fig.add_trace(go.Bar(x=periods, y=production_values_Kuwait, name='Kuwait', text=production_values_Kuwait))
-            fig.add_trace(go.Bar(x=periods, y=production_values_Libya, name='Libya', text=production_values_Libya))
-            fig.add_trace(go.Bar(x=periods, y=production_values_Nigeria, name='Nigeria', text=production_values_Nigeria))
-            fig.add_trace(go.Bar(x=periods, y=production_values_Saudi_Arabia, name='Saudi Arabia', text=production_values_Saudi_Arabia))
-            fig.add_trace(go.Bar(x=periods, y=production_values_UAE, name='United Arab Emirates', text=production_values_UAE))
-            fig.add_trace(go.Bar(x=periods, y=production_values_Venezuela, name='Venezuela', text=production_values_Venezuela))
-
-
-            # Update traces to format the text as x.x M
-            fig.update_traces(texttemplate='%{text:.2f}', textposition='inside',textfont_color="white")
-
-            fig.update_layout(
-                title='Total OPEC Member Production Breakdown',
-                xaxis_title='Year',
-                yaxis_title='Volume (million barrels per day)',
-                barmode='stack',
-            )
-
-            
-            st.plotly_chart(fig,use_container_width=True)
-            st.write("""
-                 OPEC does not provide production forecast figures for its member countries for either the current or the following year 
-                   """)
-            st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
-        with col_OPECPLUS:
-            def fetch_data(api_url, params):
-                try:
-                    response = requests.get(api_url, params=params, verify=False)
-                    response.raise_for_status()
-                    return response.json()
-                except requests.exceptions.HTTPError as err:
-                    print(f"HTTP error occurred: {err}")
-                except Exception as err:
-                    print(f"An error occurred: {err}")
-                return None
-
-            api_url = 'https://api.eia.gov/v2/steo/data/'
-            api_key = 'gcp5ZkcZhaL5aCVvviD38eMtVEZXEyP28KqMHh4h'
-
-
-
-            params = {
-                "api_key": api_key,
-                "frequency": "annual",
-                "data[]": "value",
-                "start": "2000",
-                "sort[0][column]": "period",
-                "sort[0][direction]": "desc",
-                "offset": 0,
-                "length": 5000
-            }
-
-            params["facets[seriesId][]"] = "PAPR_AJ"
-            data_production_Azerbaijan = fetch_data(api_url, params)
-
-            params["facets[seriesId][]"] = "PAPR_BA"
-            data_production_Bahrain = fetch_data(api_url, params)
-
-            params["facets[seriesId][]"] = "PAPR_BX"
-            data_production_Brunei = fetch_data(api_url, params)
-
-            params["facets[seriesId][]"] = "PAPR_KZ"
-            data_production_Kazakhstan = fetch_data(api_url, params)
-
-            params["facets[seriesId][]"] = "PAPR_MY"
-            data_production_Malaysia = fetch_data(api_url, params)
-
-            params["facets[seriesId][]"] = "PAPR_MX"
-            data_production_Mexico = fetch_data(api_url, params)
-
-            params["facets[seriesId][]"] = "PAPR_MU"
-            data_production_Oman = fetch_data(api_url, params)
-
-            params["facets[seriesId][]"] = "PAPR_RS"
-            data_production_Russia = fetch_data(api_url, params)
-
-            params["facets[seriesId][]"] = "PAPR_OD"
-            data_production_South_Sudan = fetch_data(api_url, params)
-
-            params["facets[seriesId][]"] = "PAPR_SU"
-            data_production_Sudan = fetch_data(api_url, params)
-
-
-
-
-            # Extract production data
-            periods = [int(item['period']) for item in data_production_Sudan['response']['data']]
-
-            def extract_production_values(data):
-                return [float(item['value']) for item in data['response']['data']]
-
-            # Extract production values for each country
-            production_values_Azerbaijan = extract_production_values(data_production_Azerbaijan)
-            production_values_Bahrain = extract_production_values(data_production_Bahrain)
-            production_values_Brunei = extract_production_values(data_production_Brunei)
-            production_values_Kazakhstan = extract_production_values(data_production_Kazakhstan)
-            production_values_Malaysia = extract_production_values(data_production_Malaysia)
-            production_values_Mexico = extract_production_values(data_production_Mexico)
-            production_values_Oman = extract_production_values(data_production_Oman)
-            production_values_Russia = extract_production_values(data_production_Russia)
-            production_values_South_Sudan = extract_production_values(data_production_South_Sudan)
-            production_values_Sudan = extract_production_values(data_production_Sudan)
-
-
-
-            # Create a stacked bar chart
-            fig = go.Figure()
-            # Add a trace for each country
-            fig.add_trace(go.Bar(x=periods, y=production_values_Azerbaijan, name='Algeria', text=production_values_Azerbaijan))
-            fig.add_trace(go.Bar(x=periods, y=production_values_Bahrain, name='Bahrain', text=production_values_Bahrain))
-            fig.add_trace(go.Bar(x=periods, y=production_values_Brunei, name='Brunei', text=production_values_Brunei))
-            fig.add_trace(go.Bar(x=periods, y=production_values_Kazakhstan, name='Kazakhstan', text=production_values_Kazakhstan))
-            fig.add_trace(go.Bar(x=periods, y=production_values_Malaysia, name='Malaysia', text=production_values_Malaysia))
-            fig.add_trace(go.Bar(x=periods, y=production_values_Mexico, name='Mexico', text=production_values_Mexico))
-            fig.add_trace(go.Bar(x=periods, y=production_values_Oman, name='Oman', text=production_values_Oman))
-            fig.add_trace(go.Bar(x=periods, y=production_values_Russia, name='Russia', text=production_values_Russia))
-            fig.add_trace(go.Bar(x=periods, y=production_values_South_Sudan, name='South Sudan', text=production_values_South_Sudan))
-            fig.add_trace(go.Bar(x=periods, y=production_values_Sudan, name='Sudan', text=production_values_Sudan))
-
-
-            # Update traces to format the text as x.x M
-            fig.update_traces(texttemplate='%{text:.2f}', textposition='inside',textfont_color="white")
-
-            fig.update_layout(
-                title='Additional OPEC+ Members Production Breakdown',
-                xaxis_title='Year',
-                yaxis_title='Volume (million barrels per day)',
-                barmode='stack',
-            )
-
-
-            st.plotly_chart(fig,use_container_width=True)
-            st.write("""
-                 The current and the following year are production forecast figure
-                   """)
-            st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
-        with col_NON:
-            def fetch_data(api_url, params):
-                try:
-                    response = requests.get(api_url, params=params, verify=False)
-                    response.raise_for_status()
-                    return response.json()
-                except requests.exceptions.HTTPError as err:
-                    print(f"HTTP error occurred: {err}")
-                except Exception as err:
-                    print(f"An error occurred: {err}")
-                return None
-
-            api_url = 'https://api.eia.gov/v2/steo/data/'
-            api_key = 'gcp5ZkcZhaL5aCVvviD38eMtVEZXEyP28KqMHh4h'
-
-
-
-            params = {
-                "api_key": api_key,
-                "frequency": "annual",
-                "data[]": "value",
-                "start": "2000",
-                "sort[0][column]": "period",
-                "sort[0][direction]": "desc",
-                "offset": 0,
-                "length": 5000
-            }
-
-            # Fetch data for each country
-            params["facets[seriesId][]"] = "PAPR_CA"
-            data_production_Canada = fetch_data(api_url, params)
-
-            params["facets[seriesId][]"] = "PAPR_US"
-            data_production_United_States = fetch_data(api_url, params)
-
-            params["facets[seriesId][]"] = "PAPR_AR"
-            data_production_Argentina = fetch_data(api_url, params)
-
-            params["facets[seriesId][]"] = "PAPR_BR"
-            data_production_Brazil = fetch_data(api_url, params)
-
-            params["facets[seriesId][]"] = "PAPR_CO"
-            data_production_Colombia = fetch_data(api_url, params)
-
-            params["facets[seriesId][]"] = "PAPR_GY"
-            data_production_Guyana = fetch_data(api_url, params)
-
-            params["facets[seriesId][]"] = "PAPR_NO"
-            data_production_Norway = fetch_data(api_url, params)
-
-            params["facets[seriesId][]"] = "PAPR_UK"
-            data_production_United_Kingdom = fetch_data(api_url, params)
-
-            params["facets[seriesId][]"] = "PAPR_QA"
-            data_production_Qatar = fetch_data(api_url, params)
-
-            params["facets[seriesId][]"] = "PAPR_AO"
-            data_production_Angola = fetch_data(api_url, params)
-
-            params["facets[seriesId][]"] = "PAPR_EG"
-            data_production_Egypt = fetch_data(api_url, params)
-
-            params["facets[seriesId][]"] = "PAPR_CH"
-            data_production_China = fetch_data(api_url, params)
-
-            params["facets[seriesId][]"] = "PAPR_IN"
-            data_production_India = fetch_data(api_url, params)
-
-            params["facets[seriesId][]"] = "PAPR_ID"
-            data_production_Indonesia = fetch_data(api_url, params)
-
-            # Fetch data for extras
-            params["facets[seriesId][]"] = "PAPR_NONOPECPLUS_XUS"
-            data_production_others = fetch_data(api_url, params)
-
-
-
-
-            # Extract production data
-            periods = [int(item['period']) for item in data_production_Indonesia['response']['data']]
-
-            def extract_production_values(data):
-                return [float(item['value']) for item in data['response']['data']]
-
-            # Extract production values for each country
-            production_values_Canada = extract_production_values(data_production_Canada)
-            production_values_United_States = extract_production_values(data_production_United_States)
-            production_values_Argentina = extract_production_values(data_production_Argentina)
-            production_values_Brazil = extract_production_values(data_production_Brazil)
-            production_values_Colombia = extract_production_values(data_production_Colombia)
-            production_values_Guyana = extract_production_values(data_production_Guyana)
-            production_values_Norway = extract_production_values(data_production_Norway)
-            production_values_United_Kingdom = extract_production_values(data_production_United_Kingdom)
-            production_values_Qatar = extract_production_values(data_production_Qatar)
-            production_values_Angola = extract_production_values(data_production_Angola)
-            production_values_Egypt = extract_production_values(data_production_Egypt)
-            production_values_China = extract_production_values(data_production_China)
-            production_values_India = extract_production_values(data_production_India)
-            production_values_Indonesia = extract_production_values(data_production_Indonesia)
-
-            production_values_others = extract_production_values(data_production_others)
-
-            # Correct calculation of other production values (element-wise subtraction)
-            other_production_values = [
-                others - (canada + argentina + brazil + colombia + guyana +
-                        norway + uk + qatar + angola + egypt +
-                        china + india + indonesia)
-                for others, canada, argentina, brazil, colombia, guyana,
-                    norway, uk, qatar, angola, egypt, china, india, indonesia
-                in zip(production_values_others, production_values_Canada,
-                    production_values_Argentina, production_values_Brazil,
-                    production_values_Colombia, production_values_Guyana,
-                    production_values_Norway, production_values_United_Kingdom,
-                    production_values_Qatar, production_values_Angola,
-                    production_values_Egypt, production_values_China,
-                    production_values_India, production_values_Indonesia)
-            ]
-
-
-
-            # Create a stacked bar chart
-            fig = go.Figure()
-
-            # Add traces for each country
-            fig.add_trace(go.Bar(x=periods, y=other_production_values, name='Others', text=other_production_values))
-            fig.add_trace(go.Bar(x=periods, y=production_values_Canada, name='Canada', text=production_values_Canada))
-            fig.add_trace(go.Bar(x=periods, y=production_values_United_States, name='United States', text=production_values_United_States))
-            fig.add_trace(go.Bar(x=periods, y=production_values_Argentina, name='Argentina', text=production_values_Argentina))
-            fig.add_trace(go.Bar(x=periods, y=production_values_Brazil, name='Brazil', text=production_values_Brazil))
-            fig.add_trace(go.Bar(x=periods, y=production_values_Colombia, name='Colombia', text=production_values_Colombia))
-            fig.add_trace(go.Bar(x=periods, y=production_values_Guyana, name='Guyana', text=production_values_Guyana))
-            fig.add_trace(go.Bar(x=periods, y=production_values_Norway, name='Norway', text=production_values_Norway))
-            fig.add_trace(go.Bar(x=periods, y=production_values_United_Kingdom, name='United Kingdom', text=production_values_United_Kingdom))
-            fig.add_trace(go.Bar(x=periods, y=production_values_Qatar, name='Qatar', text=production_values_Qatar))
-            fig.add_trace(go.Bar(x=periods, y=production_values_Angola, name='Angola', text=production_values_Angola))
-            fig.add_trace(go.Bar(x=periods, y=production_values_Egypt, name='Egypt', text=production_values_Egypt))
-            fig.add_trace(go.Bar(x=periods, y=production_values_China, name='China', text=production_values_China))
-            fig.add_trace(go.Bar(x=periods, y=production_values_India, name='India', text=production_values_India))
-            fig.add_trace(go.Bar(x=periods, y=production_values_Indonesia, name='Indonesia', text=production_values_Indonesia))
-
-
-
-            # Update traces to format the text as x.x M
-            fig.update_traces(texttemplate='%{text:.2f}', textposition='inside',textfont_color="white")
-
-            fig.update_layout(
-                title='Non-OPEC Member Production Breakdown',
-                xaxis_title='Year',
-                yaxis_title='Volume (million barrels per day)',
-                barmode='stack',
-            )
-
-
-            st.plotly_chart(fig,use_container_width=True)
-            st.write("""
-                 The current and the following year are production forecast figure
-                   """)
-            st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
-
-        st.divider()
-
-        def fetch_data(api_url, params):
-            try:
-                response = requests.get(api_url, params=params, verify=False)
-                response.raise_for_status()
-                return response.json()
-            except requests.exceptions.HTTPError as err:
-                print(f"HTTP error occurred: {err}")
-            except Exception as err:
-                print(f"An error occurred: {err}")
-            return None
-
-        api_url = 'https://api.eia.gov/v2/steo/data/'
-        api_key = 'gcp5ZkcZhaL5aCVvviD38eMtVEZXEyP28KqMHh4h'
-
-        params = {
-            "api_key": api_key,
-            "frequency": "monthly",
-            "data[]": "value",
-            "start": "1998",
-            "sort[0][column]": "period",
-            "sort[0][direction]": "desc",
-            "offset": 0,
-            "length": 5000
-        }
-
-        # Fetch OPEC+ production data
-        params["facets[seriesId][]"] = "COPR_OPECPLUS"
-        data_production_OPECPLUS = fetch_data(api_url, params)
-
-        # Fetch US production data
-        params["facets[seriesId][]"] = "COPRPUS"
-        data_production_US = fetch_data(api_url, params)
-
-        # Fetch US production data
-        params["facets[seriesId][]"] = "COPR_NONOPECPLUS_XUS"
-        data_production_NONOPECxUS = fetch_data(api_url, params)
-
-        # Extract production data
-        periods = [item['period'] for item in data_production_OPECPLUS['response']['data']]
-        production_values_OPECPLUS = [float(item['value']) for item in data_production_OPECPLUS['response']['data']]
-        production_values_US = [float(item['value']) for item in data_production_US['response']['data']]
-        production_values_NONOPECxUS = [float(item['value']) for item in data_production_NONOPECxUS['response']['data']]
-
-        # Calculate market share percentage of OPEC+ over total volume
-        total_volume = [p + c + d for p, c , d in zip(production_values_OPECPLUS, production_values_US, production_values_NONOPECxUS)]
-        opec_plus_market_share = [(p / t) * 100 for p, t in zip(production_values_OPECPLUS, total_volume)]
-
-        # Create a stacked bar chart
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(x=periods, y=production_values_OPECPLUS, name='OPEC+ Production'))
-        fig.add_trace(go.Scatter(x=periods, y=production_values_US, name='US Production'))
-        fig.add_trace(go.Scatter(x=periods, y=production_values_NONOPECxUS, name='Non OPEC+ exUS Production'))
-
-
-        fig.update_layout(
-            title='Total World Petroleum and Other Liquid Production by OPEC+ and Non-OPEC',
-            xaxis_title='Month',
-            yaxis_title='Volume (million barrels per day)',
-        )
-
-        # Print the DataFrame
-        df = pd.DataFrame({
-            'Month': periods,
-            'OPEC+ Production': production_values_OPECPLUS,
-            'US Production': production_values_US,
-            'Non OPEC+ exUS Production': production_values_NONOPECxUS,
-            'OPEC+ Market Share (%)': opec_plus_market_share
-        })
-
-        
-        
-        # Create a line plot for OPEC+ market share
-        fig_market_share = go.Figure()
-        fig_market_share.add_trace(go.Scatter(x=periods, y=opec_plus_market_share, mode='lines', name='OPEC+ Market Share'))
-
-        fig_market_share.update_layout(
-            title='OPEC+ Market Share Over Time',
-            xaxis_title='Month',
-            yaxis_title='Market Share (%)',
-            template='plotly_white'
-        )
-
-        @st.cache_data
-        def convert_df(df):
-            # IMPORTANT: Cache the conversion to prevent computation on every rerun
-            return df.to_csv().encode("utf-8")
-        
-
-        st.subheader("Line chart of World Petroleum and Other Liquid Production by OPEC+, US, and Non-OPEC (ex-US)")
-        
-        st.write("""
-                 This line chart tracks the production volumes of petroleum and other liquids by major global players: OPEC+, the US, and non-OPEC countries excluding the US. 
-                   """)
-        
-
-        st.plotly_chart(fig, use_container_width=True)
-        
-
-        # Normalize production values to sum to 100% for each period
-        total_production = np.array(production_values_OPECPLUS) + np.array(production_values_US) + np.array(production_values_NONOPECxUS)
-        production_values_OPECPLUS_norm = np.array(production_values_OPECPLUS) / total_production * 100
-        production_values_US_norm = np.array(production_values_US) / total_production * 100
-        production_values_NONOPECxUS_norm = np.array(production_values_NONOPECxUS) / total_production * 100
-
-        # Create the stacked area chart
-        fig = go.Figure()
-
-        # First area (OPEC+ Production)
-        fig.add_trace(go.Scatter(
-            x=periods, 
-            y=production_values_OPECPLUS_norm, 
-            name='OPEC+ Production', 
-            fill='tonexty',
-            mode='none'  # Only fill the area without markers or lines
-        ))
-
-        # Second area (US Production)
-        fig.add_trace(go.Scatter(
-            x=periods, 
-            y=production_values_US_norm + production_values_OPECPLUS_norm,  # Stacking on top of OPEC+
-            name='US Production', 
-            fill='tonexty',
-            mode='none'
-        ))
-
-        # Third area (Non OPEC+ exUS Production)
-        fig.add_trace(go.Scatter(
-            x=periods, 
-            y=production_values_NONOPECxUS_norm + production_values_US_norm + production_values_OPECPLUS_norm,  # Stacking on top of US and OPEC+
-            name='Non OPEC+ exUS Production', 
-            fill='tonexty',
-            mode='none'
-        ))
-
-        # Customize layout
-        fig.update_layout(
-            title='100% Stacked Area Chart of Production',
-            xaxis_title='Periods',
-            yaxis_title='Production (%)',
-            showlegend=True
-        )
-
-        st.plotly_chart(fig,use_container_width=True)
-        st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
-        st.divider()
-        
-
-        st.subheader("OPEC+ Market Share")
-
-        st.write("""
-                 The OPEC+ Market Share chart illustrates the percentage of global petroleum production attributed to OPEC+ over time. It captures fluctuations in OPEC+’s share of the global market, reflecting its influence on global supply relative to other producers. 
-                 
-                 This chart highlights how OPEC+’s market share evolves, potentially due to changes in production levels, global demand, or competition from other major producers. By tracking these changes, the chart provides valuable insights into the shifting balance of power within the global oil market.   """)
-        
-        
-        
-        st.plotly_chart(fig_market_share, use_container_width=True)
-        st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
-
-        st.download_button(
-            label="Download data as CSV",
-            data=convert_df(df),
-            file_name="OilMonthlyProduction.csv",
-            mime="text/csv",
-            )
-
-
-#####################################
-    with tab2:
-        # Cache the data fetching to avoid reloading it each time the app is rerun
-        @st.cache_data
-        def fetch_data(ticker, start_date):
-            return yf.download(ticker, start=start_date, end=datetime.now())
-
-        def calculate_percentage_changes(data, resample_rule, time_unit):
-            resampled_data = data['Close'].resample(resample_rule).last()
-            pct_change = resampled_data.pct_change() * 100
-            if time_unit == 'Month':
-                pct_change.index = pd.MultiIndex.from_tuples(
-                    [(i.year, i.month) for i in pct_change.index], names=['Year', time_unit])
-            else:  # Quarter
-                pct_change.index = pd.MultiIndex.from_tuples(
-                    [(i.year, i.quarter) for i in pct_change.index], names=['Year', time_unit])
-            return pct_change.unstack(level=time_unit)
-
-        def plot_heatmap(data, x_labels, title, x_title, y_title):
-            fig = go.Figure(data=go.Heatmap(
-                z=data.values,
-                x=x_labels,
-                y=data.index,
-                colorscale='RdYlGn',
-                colorbar=dict(title='Percentage Change'),
-                zmin=-10,  # Adjust according to your data
-                zmax=10,   # Adjust according to your data
-                hoverongaps=False
-            ))
-            fig.update_layout(
-                title=title,
-                xaxis_title=x_title,
-                yaxis_title=y_title
-            )
-            return fig
-
-        st.subheader("Monthly and Quarterly Seasonality Analysis")
-
-        st.write(
-            """
-            This heatmap illustrates the month-on-month (left) or quarter-on-quarter(right) percentage 
-            change in Brent Crude Oil prices over the past decade. Each cell represents the average 
-            percentage change for a specific month or quarter of each year. The color gradient ranges from red (indicating a decrease) to green (indicating an increase), providing a visual overview of seasonal trends and fluctuations in oil prices.
-
-            Key Insights:
-
-            - Observe the seasonal patterns where certain months consistently show higher or lower changes.
-            - Identify trends and anomalies in the price changes month by month.
-            """
-        )
-
-        col1, col2 = st.columns(2)
-
-        # Define the ticker symbol for Brent Crude Oil
-        ticker = 'BZ=F'
-
-        # Fetch historical data for the last 10 years
-        data = fetch_data(ticker, start_date='2014-01-01')
-
-        # Calculate monthly and quarterly percentage changes
-        monthly_avg_pct_change = calculate_percentage_changes(data, 'ME', 'Month')
-        quarterly_avg_pct_change = calculate_percentage_changes(data, 'QE', 'Quarter')
-
-        with col1:
-            fig_monthly = plot_heatmap(
-                monthly_avg_pct_change,
-                ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-                'Month-on-Month Percentage Change Seasonality of Brent Crude Oil Prices',
-                'Month', 'Year'
-            )
-            st.plotly_chart(fig_monthly, use_container_width=True)
-            st.markdown("<p class='left-align'>Source: Yahoo Finance</p>", unsafe_allow_html=True)
-
-        with col2:
-            fig_quarterly = plot_heatmap(
-                quarterly_avg_pct_change,
-                ['Q1', 'Q2', 'Q3', 'Q4'],
-                'Quarter-on-Quarter Percentage Change Seasonality of Brent Crude Oil Prices',
-                'Quarter', 'Year'
-            )
-            st.plotly_chart(fig_quarterly, use_container_width=True)
-            st.markdown("<p class='left-align'>Source: Yahoo Finance</p>", unsafe_allow_html=True)
-
-
-        #####################
-
-        """
-
-        st.divider()
-        st.subheader("Interactive Period Analysis")
-
-        st.write(
-            
-            Use the slider to select different periods and observe the average month-on-month percentage change in Brent Crude Oil prices. This bar chart aggregates the average changes over the selected years, helping you understand longer-term trends and variations in seasonal patterns.
-            
-            Key Insights:
-
-            - The color-coded bars indicate positive (green) and negative (red) average changes.
-            - Customize the period to examine how seasonality and trends evolve over different time frames.
-
-            
-        )
-        # Streamlit slider for selecting the period (in years)
-        period = st.slider("Period (in years)", min_value=1, max_value=monthly_avg_pct_change.shape[0], value=12)
-
-        # Function to update the plot based on the selected period
-        def update_plot(period):
-            # Get the total number of available years
-            num_years = monthly_avg_pct_change.shape[0]
-            
-            # Calculate the start index for the selected period
-            start_index = max(0, num_years - period)
-            
-            # Select the relevant data for the period
-            monthly_data_period = monthly_avg_pct_change.iloc[start_index:]
-            
-            # Now we keep all years and group by month to get the mean for each month
-            monthly_avg_pct_change_by_month = monthly_data_period.groupby(monthly_data_period.index.get_level_values(1)).mean()
-            
-            # Define custom color palette based on positive or negative values
-            colors = ['red' if val < 0 else 'green' for val in monthly_avg_pct_change_by_month.values]
-            
-            # Create Plotly bar chart for average month-on-month change for each month in the selected period
-            fig = go.Figure(data=[
-                go.Bar(x=['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-                    y=monthly_avg_pct_change_by_month.values,
-                    marker_color=colors)
-            ])
-            
-            # Customize the layout of the chart
-            fig.update_layout(
-                title=f'Average Month-on-Month Percentage Change of Brent Crude Oil Prices (Period: {period} years)',
-                xaxis_title='Month',
-                yaxis_title='Average Percentage Change',
-                xaxis=dict(tickmode='array', tickvals=list(range(1, 13)), ticktext=['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'])
-            )
-            
-            # Display the chart in Streamlit
-            st.plotly_chart(fig, use_container_width=True)
-            
-            # Add the data source
-            st.markdown("<p class='left-align'>Source: Yahoo Finance</p>", unsafe_allow_html=True)
-
-        # Call the update_plot function with the initial period value
-        update_plot(period)"""
-
-
-
-
-
-
-##################################################
-    with tab4:
-        st.subheader("World Petroleum and Other Liquid Consumption ")
-        st.write("""
-                This chart offers a comprehensive overview of global petroleum consumption, segmented into various categories. 
-                 
-                 It includes total consumption figures for OECD countries, which are further divided into specific regions such as 
-                 Canada, Europe OECD, Japan, the United States, U.S. Territories, and Other OECD 
-                 members. Additionally, it captures total consumption by non-OECD countries, 
-                 including China, Eurasia, Europe non-OECD, Other Asia, and Other Non-OECD regions. 
-                 
-                 The stacked bar chart displays these components to show how each region’s consumption contributes to the overall global demand.
-                """)
-        # Suppress SSL verification warnings
-        requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-
-        def fetch_data(api_url, params):
-            try:
-                response = requests.get(api_url, params=params, verify=False)
-                response.raise_for_status()
-                return response.json()
-            except requests.exceptions.HTTPError as err:
-                print(f"HTTP error occurred: {err}")
-            except Exception as err:
-                print(f"An error occurred: {err}")
-            return None
-
-        api_url = 'https://api.eia.gov/v2/steo/data/'
-        api_key = 'gcp5ZkcZhaL5aCVvviD38eMtVEZXEyP28KqMHh4h'
-
-        params_template = {
-            "api_key": api_key,
-            "frequency": "annual",
-            "data[]": "value",
-            "start": "2000",
-            "sort[0][column]": "period",
-            "sort[0][direction]": "desc",
-            "offset": 0,
-            "length": 5000
-        }
-
-        # Define the series IDs for each component with new names
-        series_ids = {
-            "Total OECD Petroleum Consumption": ["PATC_CA", "PATC_OECD_EUROPE", "PATC_JA", "PATC_US", "PATC_UST", "PATC_OTHER_OECD"],
-            "Total non-OECD Petroleum Consumption": ["PATC_CH", "PATC_FSU", "PATC_NONOECD_EUROPE", "PATC_OTHER_ASIA", "PATC_OTHER_NONOECD"]
-        }
-
-        # Function to fetch data for multiple series IDs
-        def fetch_multiple_series(api_url, params_template, series_ids):
-            data = {}
-            for category, sub_series in series_ids.items():
-                data[category] = {}
-                for sub_series_id in sub_series:
-                    params = params_template.copy()
-                    params["facets[seriesId][]"] = sub_series_id
-                    result = fetch_data(api_url, params)
-                    if result:
-                        data[category][sub_series_id] = result['response']['data']
-                    else:
-                        print(f"Failed to fetch data for series {sub_series_id}")
-            return data
-
-        # Fetch the data
-        data = fetch_multiple_series(api_url, params_template, series_ids)
-
-        # Extract and organize the data
-        periods = [int(item['period']) for item in next(iter(data['Total OECD Petroleum Consumption'].values()))]
-
-        # Extract sub-component data
-        canada_consumption = [float(item['value']) for item in data['Total OECD Petroleum Consumption']['PATC_CA']]
-        europe_oecd_consumption = [float(item['value']) for item in data['Total OECD Petroleum Consumption']['PATC_OECD_EUROPE']]
-        japan_consumption = [float(item['value']) for item in data['Total OECD Petroleum Consumption']['PATC_JA']]
-        us_consumption = [float(item['value']) for item in data['Total OECD Petroleum Consumption']['PATC_US']]
-        us_territories_consumption = [float(item['value']) for item in data['Total OECD Petroleum Consumption']['PATC_UST']]
-        other_oecd_consumption = [float(item['value']) for item in data['Total OECD Petroleum Consumption']['PATC_OTHER_OECD']]
-
-        china_consumption = [float(item['value']) for item in data['Total non-OECD Petroleum Consumption']['PATC_CH']]
-        eurasia_consumption = [float(item['value']) for item in data['Total non-OECD Petroleum Consumption']['PATC_FSU']]
-        europe_nonoecd_consumption = [float(item['value']) for item in data['Total non-OECD Petroleum Consumption']['PATC_NONOECD_EUROPE']]
-        other_asia_consumption = [float(item['value']) for item in data['Total non-OECD Petroleum Consumption']['PATC_OTHER_ASIA']]
-        other_nonoecd_consumption = [float(item['value']) for item in data['Total non-OECD Petroleum Consumption']['PATC_OTHER_NONOECD']]
-
-        # Create a DataFrame
-        df_annual_consumption = pd.DataFrame({
-            'Year': periods,
-            'Canada Petroleum Consumption': canada_consumption,
-            'Europe OECD Petroleum Consumption': europe_oecd_consumption,
-            'Japan Petroleum Consumption': japan_consumption,
-            'United States Petroleum Consumption': us_consumption,
-            'U.S. Territories Petroleum Consumption': us_territories_consumption,
-            'Other OECD Petroleum Consumption': other_oecd_consumption,
-            'China Petroleum Consumption': china_consumption,
-            'Eurasia Petroleum Consumption': eurasia_consumption,
-            'Europe non-OECD Petroleum Consumption': europe_nonoecd_consumption,
-            'Other Asia Petroleum Consumption': other_asia_consumption,
-            'Other Non-OECD Petroleum Consumption': other_nonoecd_consumption
-        })
-
-        # Calculate total values for stacking
-        df_annual_consumption['Total OECD Petroleum Consumption'] = (
-            df_annual_consumption['Canada Petroleum Consumption'] +
-            df_annual_consumption['Europe OECD Petroleum Consumption'] +
-            df_annual_consumption['Japan Petroleum Consumption'] +
-            df_annual_consumption['United States Petroleum Consumption'] +
-            df_annual_consumption['U.S. Territories Petroleum Consumption'] +
-            df_annual_consumption['Other OECD Petroleum Consumption']
-        )
-
-        df_annual_consumption['Total non-OECD Petroleum Consumption'] = (
-            df_annual_consumption['China Petroleum Consumption'] +
-            df_annual_consumption['Eurasia Petroleum Consumption'] +
-            df_annual_consumption['Europe non-OECD Petroleum Consumption'] +
-            df_annual_consumption['Other Asia Petroleum Consumption'] +
-            df_annual_consumption['Other Non-OECD Petroleum Consumption']
-        )
-
-        df_annual_consumption['Total World Petroleum Consumption'] = df_annual_consumption['Total OECD Petroleum Consumption'] + df_annual_consumption['Total non-OECD Petroleum Consumption']
-
-        # Create a stacked bar chart
-        fig = go.Figure()
-
-        # Add sub-component traces
-        fig.add_trace(go.Bar(x=df_annual_consumption['Year'], y=df_annual_consumption['Canada Petroleum Consumption'], name='Canada Petroleum Consumption', visible=True,text=df_annual_consumption['Canada Petroleum Consumption']))
-        fig.add_trace(go.Bar(x=df_annual_consumption['Year'], y=df_annual_consumption['Europe OECD Petroleum Consumption'], name='Europe OECD Petroleum Consumption', visible=True,text=df_annual_consumption['Europe OECD Petroleum Consumption']))
-        fig.add_trace(go.Bar(x=df_annual_consumption['Year'], y=df_annual_consumption['Japan Petroleum Consumption'], name='Japan Petroleum Consumption', visible=True,text=df_annual_consumption['Japan Petroleum Consumption'],))
-        fig.add_trace(go.Bar(x=df_annual_consumption['Year'], y=df_annual_consumption['United States Petroleum Consumption'], name='United States Petroleum Consumption', visible=True,text=df_annual_consumption['United States Petroleum Consumption']))
-        fig.add_trace(go.Bar(x=df_annual_consumption['Year'], y=df_annual_consumption['U.S. Territories Petroleum Consumption'], name='U.S. Territories Petroleum Consumption', visible=True,text=df_annual_consumption['U.S. Territories Petroleum Consumption']))
-        fig.add_trace(go.Bar(x=df_annual_consumption['Year'], y=df_annual_consumption['Other OECD Petroleum Consumption'], name='Other OECD Petroleum Consumption', visible=True,text=df_annual_consumption['Other OECD Petroleum Consumption']))
-        fig.add_trace(go.Bar(x=df_annual_consumption['Year'], y=df_annual_consumption['China Petroleum Consumption'], name='China Petroleum Consumption', visible=True,text=df_annual_consumption['China Petroleum Consumption']))
-        fig.add_trace(go.Bar(x=df_annual_consumption['Year'], y=df_annual_consumption['Eurasia Petroleum Consumption'], name='Eurasia Petroleum Consumption', visible=True,text=df_annual_consumption['Eurasia Petroleum Consumption']))
-        fig.add_trace(go.Bar(x=df_annual_consumption['Year'], y=df_annual_consumption['Europe non-OECD Petroleum Consumption'], name='Europe non-OECD Petroleum Consumption', visible=True,text=df_annual_consumption['Europe non-OECD Petroleum Consumption'],))
-        fig.add_trace(go.Bar(x=df_annual_consumption['Year'], y=df_annual_consumption['Other Asia Petroleum Consumption'], name='Other Asia Petroleum Consumption', visible=True,text=df_annual_consumption['Other Asia Petroleum Consumption']))
-        fig.add_trace(go.Bar(x=df_annual_consumption['Year'], y=df_annual_consumption['Other Non-OECD Petroleum Consumption'], name='Other Non-OECD Petroleum Consumption', visible=True,text=df_annual_consumption['Other Non-OECD Petroleum Consumption']))
-
-        # Update traces to format the text as x.x M
-        fig.update_traces(texttemplate='%{text:.2f}', textposition='inside',textfont_color="white")
-
-
-        fig.update_layout(
-            title='World Petroleum and Other Liquid Consumption Components',
-            xaxis_title='Year',
-            yaxis_title='Volume (million barrels per day)',
-            barmode='stack',
-        )
-
-        st.plotly_chart(fig, use_container_width=True)
-        st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
-
-        @st.cache_data
-        def convert_df(df):
-            # IMPORTANT: Cache the conversion to prevent computation on every rerun
-            return df.to_csv().encode("utf-8")
-
-
-        st.download_button(
-            label="Download data as CSV",
-            data=convert_df(df_annual_consumption),
-            file_name="OilAnnualConsumption.csv",
-            mime="text/csv",
-            )
-
-
-
-###########################
-    with tab5:
-        st.subheader("EIA Weekly Inventory numbers")
-
-        st.write(
-            """
-            The metrics provide a quick overview of the most recent changes in U.S. inventory levels for crude oil, gasoline, and distillates. 
-            """
-        )
-
-        # Suppress SSL verification warnings
-        requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-
-        # Series to fetch
-        series_list = {
-            'WGTSTUS1': 'U.S. Ending Stocks of Total Gasoline',
-            'WDISTUS1': 'U.S. Ending Stocks of Distillate Fuel Oil',
-            'WCESTUS1' : 'U.S. Ending Stocks excluding SPR of Crude Oil',
-        }
-
-        # Function to fetch data from the API
-        def fetch_data(series):
-            url = f"https://api.eia.gov/v2/petroleum/sum/sndw/data/?api_key=gcp5ZkcZhaL5aCVvviD38eMtVEZXEyP28KqMHh4h&frequency=weekly&data[0]=value&facets[series][]={series}&start=2024-01-01&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
-            response = requests.get(url, verify=False)
-            if response.status_code == 200:
-                return response.json().get('response', {}).get('data', [])
-            else:
-                print(f"Failed to fetch data for series {series}: {response.status_code} {response.reason}")
-                return []
-
-        # Function to calculate W-o-W changes
-        def calculate_wow_changes(data):
-            dates = [entry['period'] for entry in data]
-            values = [float(entry['value']) for entry in data]
-            changes = [values[i] - values[i+1] for i in range(len(values)-1)]
-            return dates[:-1], changes
-
-
-        # Fetch data for each series
-        series_data = {series: fetch_data(series) for series in series_list}
-
-        def plot_series(series_key, series_name):
-            # Fetch data for the series
-            data = fetch_data(series_key)
-
-            # Check if data is available
-            if data:
-                # Calculate week-over-week changes
-                wow_dates, wow_changes = calculate_wow_changes(data)
-
-                # Create a bar plot
-                fig = go.Figure(go.Bar(
-                    x=wow_dates,
-                    y=wow_changes,
-                    marker_color=['green' if change > 0 else 'red' for change in wow_changes]
-                ))
-
-                # Customize layout for the bar plot
-                fig.update_layout(
-                    title=f'Week-over-Week Changes in {series_name}',
-                    xaxis=dict(title='Date'),
-                    yaxis=dict(title='W-o-W Change (Thousand Barrels)'),
-                    plot_bgcolor='rgba(0,0,0,0)'
-                )
-
-                # Show plot
-                st.plotly_chart(fig, use_container_width=True)
-                
-        def calculate_latest_and_wow_percentage(data):
-            if len(data) >= 2:
-                latest_value = float(data[0]['value'])
-                previous_value = float(data[1]['value'])
-                wow_percentage_change = ((latest_value - previous_value) / previous_value) * 100
-                wow_change = (latest_value - previous_value) 
-                return latest_value, wow_percentage_change, wow_change
-            else:
-                return None, None
-
-        def plot_inventory_levels(series_key, series_name):
-            data = series_data.get(series_key, [])
-            if data:
-                dates = [entry['period'] for entry in data]
-                values = [float(entry['value']) for entry in data]
-                fig = go.Figure(go.Scatter(
-                    x=dates,
-                    y=values,
-                    mode='lines+markers',
-                    line=dict(color='blue', width=2)
-                ))
-                fig.update_layout(
-                    title=f'{series_name} Absolute Levels Over Time',
-                    xaxis=dict(title='Date'),
-                    yaxis=dict(title='Inventory Levels (Thousand Barrels)'),
-                    plot_bgcolor='rgba(0,0,0,0)'
-                )
-                st.plotly_chart(fig, use_container_width=True)
-
-
-        # Function to fetch data from the API
-        def fetch_data_2(series, start_date):
-            url = f"https://api.eia.gov/v2/petroleum/sum/sndw/data/?api_key=gcp5ZkcZhaL5aCVvviD38eMtVEZXEyP28KqMHh4h&frequency=weekly&data[0]=value&facets[series][]={series}&start={start_date}&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
-            response = requests.get(url, verify=False)
-            if response.status_code == 200:
-                return response.json().get('response', {}).get('data', [])
-            else:
-                st.error(f"Failed to fetch data for series {series}: {response.status_code} {response.reason}")
-                return []
-            
-        # Function to calculate 5-year range and average
-        def calculate_five_year_stats(data):
-            weekly_values = defaultdict(list)
-            for entry in data:
-                week = datetime.strptime(entry['period'], "%Y-%m-%d").strftime("%U")
-                weekly_values[week].append(float(entry['value']))
-            
-            five_year_min = {week: min(values) for week, values in weekly_values.items()}
-            five_year_max = {week: max(values) for week, values in weekly_values.items()}
-            five_year_avg = {week: sum(values) / len(values) for week, values in weekly_values.items()}
-            return five_year_min, five_year_max, five_year_avg
-
-        # Series to fetch
-        series_list = {
-            'WCESTUS1': 'U.S. Ending Stocks excluding SPR of Crude Oil',
-            'WGTSTUS1': 'U.S. Ending Stocks of Total Gasoline',
-            'WDISTUS1': 'U.S. Ending Stocks of Distillate Fuel Oil',
-        }
-
-
-        # Calculate the start date for 5 years of historical data
-        start_date_2 = (datetime.now() - timedelta(days=5*365)).strftime("%Y-%m-%d")
-
-        # Fetch data for each series
-        series_data_2 = {series: fetch_data_2(series, start_date_2) for series in series_list}
-
-
-        # Create separate plots for each series
-        figs = {}
-        all_data = []
-        for i, (series, data) in enumerate(series_data_2.items(), start=1):
-            if data:
-                # Extract dates and values
-                dates = [entry['period'] for entry in data]
-                values = [float(entry['value']) for entry in data]
-                
-                # Calculate 5-year range and average
-                five_year_min, five_year_max, five_year_avg = calculate_five_year_stats(data)
-                weeks = [datetime.strptime(date, "%Y-%m-%d").strftime("%U") for date in dates]
-                min_values = [five_year_min[week] for week in weeks]
-                max_values = [five_year_max[week] for week in weeks]
-                avg_values = [five_year_avg[week] for week in weeks]
-
-                # Create a DataFrame for this series
-                df = pd.DataFrame({
-                    'Date': dates,
-                    'Actual Values': values,
-                    '5-Year Min': min_values,
-                    '5-Year Max': max_values,
-                    '5-Year Average': avg_values
-                })
-                
-                # Add series name to the DataFrame
-                df['Series'] = series_list[series]
-                
-                # Append to the all_data list
-                all_data.append(df)
-                
-                # Create a plot
-                fig = go.Figure()
-
-                # Add actual values line plot
-                fig.add_trace(go.Scatter(
-                    x=dates, 
-                    y=values, 
-                    mode='lines',
-                    name='Actual Values',
-                    marker=dict(color='blue'),
-                    line=dict(color='blue')
-                ))
-                
-                # Add 5-year range as a filled area
-                fig.add_trace(go.Scatter(
-                    x=dates + dates[::-1],
-                    y=max_values + min_values[::-1],
-                    fill='toself',
-                    fillcolor='rgba(0,100,80,0.2)',
-                    line=dict(color='rgba(255,255,255,0)'),
-                    hoverinfo="skip",
-                    showlegend=True,
-                    name='5-Year Range'
-                ))
-
-                # Add 5-year average line plot
-                fig.add_trace(go.Scatter(
-                    x=dates, 
-                    y=avg_values, 
-                    mode='lines',
-                    name='5-Year Average',
-                    line=dict(color='orange', dash='dash')
-                ))
-
-                # Customize layout
-                fig.update_layout(
-                    title=f'{series_list[series]}',
-                    xaxis=dict(title='Date'),
-                    yaxis=dict(title='Value (Thousand Barrels)'),
-                    plot_bgcolor='rgba(0,0,0,0)'
-                )
-
-                # Store plot in dictionary
-                figs[f'fig{i}'] = fig
-
-        # Combine all DataFrames into one
-        combined_df = pd.concat(all_data, ignore_index=True)
-
-
-
-        col3,col4,col5 = st.columns(3)
-
-        with col3:
-            latest_value, wow_percentage_change, wow_change = calculate_latest_and_wow_percentage(series_data['WCESTUS1'])
-            st.metric(label="U.S. Crude Oil Inventory", value=str(f"Δ {wow_change:,.0f} k barrels"), delta=str(f"{wow_percentage_change:,.02f}")+"%")
-            # Plot for 'U.S. Ending Stocks excluding SPR of Crude Oil'
-            
-
-        with col4:
-            latest_value, wow_percentage_change, wow_change = calculate_latest_and_wow_percentage(series_data['WGTSTUS1'])
-            st.metric(label="U.S. Gasoline Inventory", value=str(f"Δ {wow_change:,.0f} k barrels"), delta=str(f"{wow_percentage_change:,.02f}")+"%")
-            
-
-        with col5:
-            latest_value, wow_percentage_change, wow_change = calculate_latest_and_wow_percentage(series_data['WDISTUS1'])
-            st.metric(label="U.S. Distillate Inventory", value=str(f"Δ {wow_change:,.0f} k barrels"), delta=str(f"{wow_percentage_change:,.02f}")+"%")
-            
-
-        st.divider()
-
-        st.subheader('Week-on-Week inventory changes and absoulte inventory levels')
-
-        st.write(
-            """
-            The upper bar plots below displays the week-over-week changes in U.S. inventory levels while the line plot below instead shows absolute inventory levels. Each plot shows the fluctuations in inventory levels, with
-            inventory buildups indicated in green and inventory drawdowns in red.
-            """
-        )
-
-        col6,col7,col8 = st.columns(3)
-
-        with col6:
-            latest_value, wow_percentage_change, wow_change = calculate_latest_and_wow_percentage(series_data['WCESTUS1'])
-            # Plot for 'U.S. Ending Stocks excluding SPR of Crude Oil'
-            plot_series('WCESTUS1', 'U.S. Crude Oil Inventory')
-            st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
-            plot_inventory_levels('WCESTUS1', 'U.S. Crude Oil Inventory')
-            st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
-            
-
-        with col7:
-            latest_value, wow_percentage_change, wow_change = calculate_latest_and_wow_percentage(series_data['WGTSTUS1'])
-            
-            # Plot for 'U.S. Ending Stocks of Total Gasoline'
-            plot_series('WGTSTUS1', 'U.S. Gasoline Inventory')
-            st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
-            plot_inventory_levels('WGTSTUS1', 'U.S. Gasoline Inventory')
-            st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
-            
-
-        with col8:
-            latest_value, wow_percentage_change, wow_change = calculate_latest_and_wow_percentage(series_data['WDISTUS1'])
-           
-            # Plot for 'U.S. Ending Stocks of Distillate Fuel Oil'
-            plot_series('WDISTUS1', 'U.S. Distillate Inventory')
-            st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
-            plot_inventory_levels('WDISTUS1', 'U.S. Distillate Inventory')
-            st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
-        
-        st.divider()
-
-        st.subheader('Historical inventory levels and range')
-
-        st.write(
-            """
-            The line graph illustrate the historical inventory levels over time. The plots include actual values, a 5-year range, and a 5-year average, offering a comprehensive view of long-term trends and seasonal patterns.
-            """
-        )
-
-        col9,col10,col11 = st.columns(3)
-
-        with col9:
-            latest_value, wow_percentage_change, wow_change = calculate_latest_and_wow_percentage(series_data['WCESTUS1'])
-            st.plotly_chart(figs['fig1'], use_container_width=True)
-            st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
-
-        with col10:
-            latest_value, wow_percentage_change, wow_change = calculate_latest_and_wow_percentage(series_data['WGTSTUS1'])
-            st.plotly_chart(figs['fig2'], use_container_width=True)
-            st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
-
-        with col11:
-            latest_value, wow_percentage_change, wow_change = calculate_latest_and_wow_percentage(series_data['WDISTUS1'])
-
-            st.plotly_chart(figs['fig3'], use_container_width=True)
-            st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
-
-        # Function to convert DataFrame to Excel
-        @st.cache_data
-        def convert_df(df):
-            # IMPORTANT: Cache the conversion to prevent computation on every rerun
-            return df.to_csv().encode("utf-8")
-        
-
-        # Download button for Excel
-        st.download_button(
-            label="Download data as CSV",
-            data=convert_df(combined_df),
-            file_name="CRUDE-EIA-Inventory.csv",
-            mime="text/csv",
-        )
-
-
-    with tab6:
-
-        st.subheader("EIA Strategic Petroleum Reserve (SPR)")
-
-        st.write(
-        """
-        The Strategic Petroleum Reserve (SPR) is the world's largest supply of emergency crude oil, maintained by the U.S. Department of Energy. It was established to mitigate the impact of disruptions in the supply of petroleum products and ensure energy security. The SPR provides a critical buffer against unforeseen events that could affect the availability of crude oil, such as natural disasters, geopolitical conflicts, or significant market fluctuations.
-
-        **Strategic Petroleum Reserve (SPR) Inventory Levels Over Time**
-        
-        This line plot illustrates the historical levels of crude oil in the U.S. Strategic Petroleum Reserve (SPR) over time. 
-        The plot includes actual values and a 5-year range offering a comprehensive view of US government usage of the SPR inventory.
-        """
-        )
-
-
-        # Function to fetch data from the API
-        def fetch_data_2(series, start_date):
-            url = f"https://api.eia.gov/v2/petroleum/sum/sndw/data/?api_key=gcp5ZkcZhaL5aCVvviD38eMtVEZXEyP28KqMHh4h&frequency=weekly&data[0]=value&facets[series][]={series}&start={start_date}&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
-            response = requests.get(url, verify=False)
-            if response.status_code == 200:
-                return response.json().get('response', {}).get('data', [])
-            else:
-                st.error(f"Failed to fetch data for series {series}: {response.status_code} {response.reason}")
-                return []
-            
-        # Function to calculate 5-year range and average
-        def calculate_five_year_stats(data):
-            weekly_values = defaultdict(list)
-            for entry in data:
-                week = datetime.strptime(entry['period'], "%Y-%m-%d").strftime("%U")
-                weekly_values[week].append(float(entry['value']))
-            
-            five_year_min = {week: min(values) for week, values in weekly_values.items()}
-            five_year_max = {week: max(values) for week, values in weekly_values.items()}
-            five_year_avg = {week: sum(values) / len(values) for week, values in weekly_values.items()}
-            return five_year_min, five_year_max, five_year_avg
-
-
-        series_list = {
-            'WCSSTUS1': 'U.S. Ending Stocks of Crude Oil in SPR',
-        }
-
-
-        # Calculate the start date for 5 years of historical data
-        start_date_2 = (datetime.now() - timedelta(days=5*365)).strftime("%Y-%m-%d")
-
-        # Fetch data for each series
-        series_data_2 = {series: fetch_data_2(series, start_date_2) for series in series_list}
-
-
-        # Create separate plots for each series
-        figs = {}
-        for i, (series, data) in enumerate(series_data_2.items(), start=1):
-            if data:
-                # Extract dates and values
-                dates = [entry['period'] for entry in data]
-                values = [float(entry['value']) for entry in data]
-                
-                # Calculate 5-year range and average
-                five_year_min, five_year_max, five_year_avg = calculate_five_year_stats(data)
-                weeks = [datetime.strptime(date, "%Y-%m-%d").strftime("%U") for date in dates]
-                min_values = [five_year_min[week] for week in weeks]
-                max_values = [five_year_max[week] for week in weeks]
-                avg_values = [five_year_avg[week] for week in weeks]
-                
-                # Create a plot
-                fig = go.Figure()
-
-                # Add actual values line plot
-                fig.add_trace(go.Scatter(
-                    x=dates, 
-                    y=values, 
-                    mode='lines',
-                    name='Actual Values',
-                    marker=dict(color='blue'),
-                    line=dict(color='blue')
-                ))
-                
-                # Add 5-year range as a filled area
-                fig.add_trace(go.Scatter(
-                    x=dates + dates[::-1],
-                    y=max_values + min_values[::-1],
-                    fill='toself',
-                    fillcolor='rgba(0,100,80,0.2)',
-                    line=dict(color='rgba(255,255,255,0)'),
-                    hoverinfo="skip",
-                    showlegend=True,
-                    name='5-Year Range'
-                ))
-
-
-                # Customize layout
-                fig.update_layout(
-                    title=f'{series_list[series]}',
-                    xaxis=dict(title='Date'),
-                    yaxis=dict(title='Value (Thousand Barrels)'),
-                    plot_bgcolor='rgba(0,0,0,0)'
-                )
-
-                # Store plot in dictionary
-                figs[f'fig{i}'] = fig
-
-
-
-        st.plotly_chart(figs['fig1'], use_container_width=True)
-        st.markdown("<p class='left-align'>Source: EIA</p>", unsafe_allow_html=True)
-
-
-
-
-
-
-            
-
-            
-
+        if y2:
+            b2 = a.loc[y2, "PAPR_WORLD"] - a.loc[y2, "PATC_WORLD"]
+            cards.append(dict(label=f"Balance, {y2}", value=f"{b2:+.2f}", pill="Oversupply" if b2 >= 0 else "Undersupply",
+                              pill_cls="up" if b2 >= 0 else "down", sub="EIA forecast, mb/d"))
+        kpi_grid(cards, cols=len(cards))
+
+    freq = _seg("Frequency", ["Annual", "Quarterly"], "fund_bal_freq")
+    d = ann if freq == "Annual" else qtr
+    annual = freq == "Annual"
+    if d is not None:
+        d = d.fillna(0)
+        bal_series = d["PAPR_WORLD"] - d["PATC_WORLD"]
+
+    left, right = st.columns(2, gap="medium")
+    with left:
+        _chart_panel("bal_pc", "Production vs consumption", "World petroleum and other liquids.",
+                     pc_fig(d.index, d["PAPR_WORLD"], d["PATC_WORLD"], annual) if d is not None else None)
+    with right:
+        _chart_panel("bal_bal", "Oversupply / undersupply", "Production minus consumption. Green is oversupply, red is undersupply.",
+                     balance_fig(d.index, bal_series, annual) if d is not None else None)
+
+    with st.expander("About the balances"):
+        st.markdown(TEXT["balances"])
+    with st.expander("Other sources of supply-demand balances (may require paid subscriptions)"):
+        st.markdown(TEXT["other_sources"])
+    if d is not None:
+        out = d.rename(columns={"PAPR_WORLD": "Production", "PATC_WORLD": "Consumption"}).copy()
+        out["Oversupply/Undersupply"] = bal_series
+        _download("Download data as CSV", out, "OilBalances.csv", "dl_balances")
+
+
+# ---------------------------------------------------------------- tab: production
+def production_tab():
+    if not _key():
+        return _need_key("prod")
+    view = _seg("View", ["Annual breakdown", "Monthly trends"], "fund_prod_view")
+
+    if view == "Annual breakdown":
+        ids = ["PAPR_WORLD", *WORLD_BREAKDOWN]
+        w = steo(ids, "annual")
+        fig = None
+        if w is not None:
+            w = w.copy()
+            w["OTHER"] = w["PAPR_WORLD"] - w["PAPR_OPECPLUS_OPEC"] - w["PAPR_OPECPLUS_OTHER"]
+            labels = {**WORLD_BREAKDOWN, "OTHER": "Other production"}
+            fig = stacked_bar(w, [*WORLD_BREAKDOWN, "OTHER"], labels, height=470)
+        _chart_panel("prod_total", "World production breakdown", TEXT["production"], fig)
+
+        group = _seg("Group", ["OPEC members", "Additional OPEC+ members", "Non-OPEC"], "fund_prod_group")
+        if group == "OPEC members":
+            g = steo(list(OPEC_MEMBERS), "annual")
+            fig = stacked_bar(g, list(OPEC_MEMBERS), OPEC_MEMBERS, height=520) if g is not None else None
+            _chart_panel("prod_group", "OPEC member production", TEXT["opec_note"], fig)
+        elif group == "Additional OPEC+ members":
+            g = steo(list(OPECPLUS_OTHER), "annual")
+            fig = stacked_bar(g, list(OPECPLUS_OTHER), OPECPLUS_OTHER, height=520) if g is not None else None
+            _chart_panel("prod_group", "Additional OPEC+ member production", TEXT["opecplus_note"], fig)
+        else:
+            g = steo([*NON_OPEC_ORDER, "PAPR_NONOPECPLUS_XUS"], "annual")
+            fig = None
+            if g is not None:
+                g = g.copy()
+                g["OTHERS"] = g["PAPR_NONOPECPLUS_XUS"] - g[list(NON_OPEC_NAMED)].sum(axis=1)
+                labels = {**NON_OPEC_NAMED, "PAPR_US": "United States", "OTHERS": "Others"}
+                fig = stacked_bar(g, ["OTHERS", *NON_OPEC_ORDER], labels, height=520)
+            _chart_panel("prod_group", "Non-OPEC production", TEXT["nonopec_note"], fig)
+        return
+
+    # monthly trends
+    m = steo(list(MONTHLY), "monthly", "1998")
+    if m is not None:
+        m = m.dropna().copy()
+        m.index = pd.to_datetime(m.index)
+        total = m.sum(axis=1)
+        share = m["COPR_OPECPLUS"] / total * 100
+    left, right = st.columns(2, gap="medium")
+    with left:
+        _chart_panel("prod_lines", "Production by OPEC+, US and non-OPEC ex-US", TEXT["lines"],
+                     lines_fig(m) if m is not None else None)
+    with right:
+        _chart_panel("prod_share", "OPEC+ market share", "Share of world petroleum and other liquids production.",
+                     share_fig(share) if m is not None else None)
+    _chart_panel("prod_area", "Production mix, 100% stacked", "Each group's share of the three-way total.",
+                 area100_fig(m) if m is not None else None)
+    with st.expander("About the OPEC+ market share chart"):
+        st.markdown(TEXT["share"])
+    if m is not None:
+        out = m.rename(columns={"COPR_OPECPLUS": "OPEC+ Production", "COPRPUS": "US Production",
+                                "COPR_NONOPECPLUS_XUS": "Non OPEC+ exUS Production"})
+        out["OPEC+ Market Share (%)"] = share
+        _download("Download data as CSV", out, "OilMonthlyProduction.csv", "dl_monthly")
+
+
+# ---------------------------------------------------------------- tab: consumption
+def consumption_tab():
+    if not _key():
+        return _need_key("cons")
+    w = steo(list(CONSUMPTION), "annual")
+    view = _seg("View", ["Components", "OECD vs non-OECD"], "fund_cons_view")
+    fig = None
+    if w is not None:
+        w = w.copy()
+        if view == "Components":
+            fig = stacked_bar(w, list(CONSUMPTION), CONSUMPTION, height=520)
+        else:
+            w["OECD"], w["NONOECD"] = w[OECD].sum(axis=1), w[NON_OECD].sum(axis=1)
+            fig = stacked_bar(w, ["OECD", "NONOECD"], {"OECD": "OECD", "NONOECD": "Non-OECD"}, height=520)
+    _chart_panel("cons_main", "World petroleum and other liquids consumption",
+                 "Annual consumption by region, in million barrels per day.", fig)
+    with st.expander("About this chart"):
+        st.markdown(TEXT["consumption"])
+    if w is not None:
+        csv = pd.DataFrame({"Year": w.index})
+        for sid, name in CONSUMPTION.items():
+            csv[f"{name} Petroleum Consumption"] = w[sid].values
+        csv["Total OECD Petroleum Consumption"] = w[OECD].sum(axis=1).values
+        csv["Total non-OECD Petroleum Consumption"] = w[NON_OECD].sum(axis=1).values
+        csv["Total World Petroleum Consumption"] = csv["Total OECD Petroleum Consumption"] + csv["Total non-OECD Petroleum Consumption"]
+        _download("Download data as CSV", csv.set_index("Year"), "OilAnnualConsumption.csv", "dl_cons")
+
+
+# ---------------------------------------------------------------- tab: seasonality
+def seasonality_tab():
+    close = _safe(brent_close)
+    left, right = st.columns(2, gap="medium")
+    months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    with left:
+        _chart_panel("seas_m", "Month-on-month change", "Brent crude, percentage change by month since 2014.",
+                     heatmap_fig(seasonality_table(close, "ME", "Month"), months) if close is not None else None,
+                     "Source: Yahoo Finance (BZ=F)")
+    with right:
+        _chart_panel("seas_q", "Quarter-on-quarter change", "Brent crude, percentage change by quarter since 2014.",
+                     heatmap_fig(seasonality_table(close, "QE", "Quarter"), ["Q1", "Q2", "Q3", "Q4"]) if close is not None else None,
+                     "Source: Yahoo Finance (BZ=F)")
+    with st.expander("How to read the heatmaps"):
+        st.markdown(TEXT["seasonality"])
+
+
+# ---------------------------------------------------------------- tab: EIA inventory
+def _stock_card(label, df, stats):
+    if df is None or len(df) < 2:
+        return dict(label=label, value="\u2014", pill="Unavailable")
+    last, prev = float(df["value"].iloc[-1]), float(df["value"].iloc[-2])
+    chg = last - prev
+    pct = chg / prev * 100 if prev else 0.0
+    wk = stats["week"].iloc[-1]
+    avg = stats.loc[stats["week"] == wk, "value"].mean()
+    return dict(
+        label=label, value=f"{last / 1000:,.1f}",
+        pill=f"{_arrow(chg)} {abs(chg) / 1000:,.1f} mb ({pct:+.2f}%) w/w",
+        pill_cls="flat" if chg == 0 else "up" if chg > 0 else "down",
+        sub=f"Million barrels \u00B7 week ending {df['date'].iloc[-1]:%d %b %Y} \u00B7 5Y avg {avg / 1000:,.1f}",
+    )
+
+
+def inventory_tab():
+    if not _key():
+        return _need_key("inv")
+    data = {sid: weekly(sid) for sid in STOCKS}
+    stats = {sid: week_stats(d) if d is not None else None for sid, d in data.items()}
+
+    names = {"WCESTUS1": "U.S. crude oil (ex-SPR)", "WGTSTUS1": "U.S. gasoline", "WDISTUS1": "U.S. distillate"}
+    kpi_grid([_stock_card(names[sid], data[sid], stats[sid]) for sid in STOCKS], cols=3)
+    st.markdown('<p class="gc-lead">Green marks an inventory build and red a draw. '
+                + TEXT["inv_intro"].strip() + "</p>", unsafe_allow_html=True)
+
+    c1, c2, _ = st.columns([2, 1.6, 1.2])
+    with c1:
+        which = _seg("Product", [STOCKS[s][0] for s in STOCKS], "fund_inv_which")
+    with c2:
+        rng = _seg("Range", list(RANGE_DAYS), "fund_inv_range", "2Y")
+    sid = next(s for s, v in STOCKS.items() if v[0] == which)
+    d, s = data[sid], stats[sid]
+    start = pd.Timestamp(datetime.now() - timedelta(days=RANGE_DAYS[rng]))
+
+    left, right = st.columns(2, gap="medium")
+    with left:
+        _chart_panel("inv_wow", f"{which}: week-on-week change", "Weekly build (green) or draw (red), thousand barrels.",
+                     wow_fig(d[d["date"] >= start - pd.Timedelta(days=7)], which) if d is not None else None)
+    with right:
+        _chart_panel("inv_rng", f"{which}: level vs 5-year range", "Actual stocks against the 5-year range and average for the same week.",
+                     range_fig(s, start) if s is not None else None)
+    with st.expander("About these charts"):
+        st.markdown(TEXT["inv_wow"])
+        st.markdown(TEXT["inv_hist"])
+
+    frames = []
+    for sid_, st_ in stats.items():
+        if st_ is not None:
+            f = st_.rename(columns={"date": "Date", "value": "Actual Values", "min5": "5-Year Min",
+                                    "max5": "5-Year Max", "avg5": "5-Year Average"}).drop(columns=["week"])
+            f["Series"] = STOCKS[sid_][1]
+            frames.append(f)
+    if frames:
+        _download("Download data as CSV", pd.concat(frames, ignore_index=True), "CRUDE-EIA-Inventory.csv", "dl_inv")
+
+
+# ---------------------------------------------------------------- tab: SPR
+def spr_tab():
+    if not _key():
+        return _need_key("spr")
+    d = weekly(SPR_SERIES)
+    s = week_stats(d) if d is not None else None
+    if s is not None and len(d) > 1:
+        kpi_grid([_stock_card("U.S. Strategic Petroleum Reserve", d, s)], cols=3)
+
+    c1, _ = st.columns([1.6, 3])
+    with c1:
+        rng = _seg("Range", ["1Y", "2Y", "5Y"], "fund_spr_range", "5Y")
+    start = pd.Timestamp(datetime.now() - timedelta(days=RANGE_DAYS[rng]))
+    _chart_panel("spr_main", "U.S. crude oil in the Strategic Petroleum Reserve",
+                 "Actual stocks against the 5-year range for the same week, thousand barrels.",
+                 range_fig(s, start, with_avg=False) if s is not None else None)
+    with st.expander("About the Strategic Petroleum Reserve"):
+        st.markdown(TEXT["spr"])
+
+
+# ---------------------------------------------------------------- page
+def fundamentals_page():
+    hero("Fundamental Indicators",
+         "Global supply and demand, production, seasonality and U.S. inventories.",
+         "Sources<br>U.S. EIA, Yahoo Finance", slim=True)
+    t1, t2, t3, t4, t5, t6 = st.tabs(["Balances", "Production", "Consumption", "Seasonality",
+                                       "EIA Inventory", "EIA Inventory (SPR)"])
+    with t1:
+        balances_tab()
+    with t2:
+        production_tab()
+    with t3:
+        consumption_tab()
+    with t4:
+        seasonality_tab()
+    with t5:
+        inventory_tab()
+    with t6:
+        spr_tab()

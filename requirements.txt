@@ -2,13 +2,7 @@ streamlit==1.41.0
 pandas==2.2.3
 numpy
 plotly==5.24.1
+requests
 yfinance
-matplotlib
-scipy
-seaborn
-datetime
+beautifulsoup4
 xlrd==2.0.1
-prettytable
-bs4
-streamlit-aggrid
-futures==3.0.5

@@ -163,7 +163,7 @@ button[data-testid="stBaseButton-segmented_controlActive"]{
 [class*="st-key-sec_"] [data-testid="stMarkdown"], [class*="st-key-sec_"] .stButton{ width:100% !important; }
 
 [class*="st-key-panel_"] [data-testid="stMultiSelect"], [class*="st-key-panel_"] [data-testid="stSelectbox"],
-[class*="st-key-panel_"] .stToggle, [class*="st-key-panel_"] [data-testid="stCaptionContainer"]{ width:100% !important; }
+[class*="st-key-panel_"] .stToggle, [class*="st-key-panel_"] [data-testid="stCaptionContainer"], [class*="st-key-panel_"] .stDownloadButton{ width:100% !important; }
 [class*="st-key-panel_"] [data-testid="stExpander"]{ box-sizing:border-box; margin:0 22px; width:calc(100% - 44px) !important; }
 
 /* Widgets stay light with dark text, even if the browser or Streamlit asks for dark */
@@ -230,6 +230,24 @@ button[data-baseweb="tab"][aria-selected="true"]{ color:var(--brand-dark); font-
 [data-baseweb="select"] > div{ background:var(--surface); border-color:var(--rule); border-radius:10px; }
 .gc-state{ color:var(--muted); font-size:0.9rem; line-height:1.5; padding:34px 6px 30px; text-align:center; }
 .gc-state b{ display:block; color:var(--ink); font-weight:600; margin-bottom:4px; }
+
+/* Primary button */
+button[data-testid="stBaseButton-primary"]{ background:var(--brand-dark); color:#fff; border:1px solid var(--brand-dark); border-radius:10px; font-weight:600; }
+button[data-testid="stBaseButton-primary"]:hover{ background:var(--deep); border-color:var(--deep); color:#fff; }
+
+/* Compact table */
+.gc-table{ width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; font-size:0.9rem; }
+.gc-table th{ text-align:right; font-weight:500; color:var(--muted); font-size:0.78rem; padding:6px 8px; border-bottom:1px solid var(--rule); }
+.gc-table th:first-child, .gc-table td:first-child{ text-align:left; }
+.gc-table td{ text-align:right; padding:9px 8px; border-bottom:1px solid var(--rule); color:var(--ink); }
+.gc-table td:first-child{ color:var(--muted); font-weight:500; }
+.gc-table tr:last-child td{ border-bottom:none; }
+.gc-table td.hl{ font-weight:600; }
+.gc-table tr.lv-r td:first-child{ color:#C3282D; font-weight:600; }
+.gc-table tr.lv-s td:first-child{ color:#14773F; font-weight:600; }
+.gc-table tr.lv-p td{ background:var(--tint); font-weight:600; }
+.gc-table tr.lv-p td:first-child{ color:var(--brand-dark); }
+.gc-small{ color:var(--muted); font-size:0.78rem; line-height:1.5; margin:10px 0 0; }
 </style>
 """)
 

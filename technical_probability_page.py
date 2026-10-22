@@ -117,7 +117,8 @@ def daily_fig(df, lv, start):
                                      showlegend=False, hoverinfo="skip"))
     layout(fig, 560, hover="x")
     fig.update_layout(margin=dict(l=22, r=22, t=46, b=14))
-    fig.update_xaxes(rangeslider=dict(visible=False), rangebreaks=[dict(bounds=["sat", "mon"])])
+    fig.update_xaxes(rangeslider=dict(visible=False), rangebreaks=[dict(bounds=["sat", "mon"])],
+                     range=[v.index.min() - pd.Timedelta(days=1), v.index.max() + pd.Timedelta(days=max(10, int((v.index.max() - v.index.min()).days * 0.19)))])
     fig.update_yaxes(side="right", title_text="USD per barrel")
     return fig
 
@@ -156,17 +157,18 @@ def intraday_fig(df, days):
     return fig
 
 
-def level_strip(lv, close):
+def level_table(lv, close):
+    """Current pivot levels as a table, followed by where the last close sits relative to the main pivot."""
     row = lv.iloc[-1]
     if row.isna().any():
         return ""
-    cells = "".join(
-        f'<div class="gc-lv {"r" if k.startswith("R") else "s" if k.startswith("S") else "p"}"><b>{k}</b><span>{row[k]:.2f}</span></div>'
-        for k in ["R3", "R2", "R1", "PP", "S1", "S2", "S3"]
-    )
+    body = ""
+    for k in ["R3", "R2", "R1", "PP", "S1", "S2", "S3"]:
+        cls = "r" if k.startswith("R") else "s" if k.startswith("S") else "p"
+        body += f'<tr class="lv-{cls}"><td>{k}</td><td>{row[k]:,.2f}</td></tr>'
     bias = "above" if close > row["PP"] else "below"
-    return (f'<div class="gc-levels">{cells}</div>'
-            f'<p class="gc-small">Last close {close:.2f} is <b>{bias}</b> the main pivot point ({row["PP"]:.2f}).</p>')
+    return (f'<table class="gc-table"><thead><tr><th>Level</th><th>Price</th></tr></thead><tbody>{body}</tbody></table>'
+            f'<p class="gc-small">Last close {close:,.2f} is <b>{bias}</b> the main pivot point ({row["PP"]:,.2f}).</p>')
 
 
 # ---------------------------------------------------------------- Monte Carlo
@@ -185,30 +187,68 @@ def simulate(S0, drift, stdev, steps, iterations):
 
 
 PCTS = [1, 5, 30, 80, 95, 99]
+VOL_MODES = ["1 year", "2 years", "5 years", "Full history", "Custom"]
+VOL_YEARS = {"1 year": 1, "2 years": 2, "5 years": 5}
+MIN_OBS = {"daily": 30, "monthly": 6}  # minimum returns needed to estimate a volatility
 
 
-def run_mc(kind, end_date, future_date, years, iterations):
-    close = brent_history(end_date, years)
+def _log_returns(kind, close):
+    series = close if kind == "daily" else _monthly_last(close)
+    return series, np.log(1 + series.pct_change())
+
+
+def realised_vols(kind, end_date, years):
+    """Annualised realised volatility over each lookback, to help choose one."""
+    close = _safe(brent_history, end_date, max(years, 5))
+    if close is None:
+        return None
+    series, lr = _log_returns(kind, close)
+    ann = np.sqrt(252 if kind == "daily" else 12)
+    last = series.index[-1]
+    out = {}
+    for label, y in VOL_YEARS.items():
+        w = lr[lr.index > last - pd.DateOffset(years=y)].dropna()
+        if len(w) >= MIN_OBS[kind]:
+            out[label] = float(w.std() * ann)
+    hist = lr if max(years, 5) == years else lr[lr.index > last - pd.DateOffset(years=years)]
+    out[f"Full history ({years}y)"] = float(hist.dropna().std() * ann)
+    return out
+
+
+def run_mc(kind, end_date, future_date, years, iterations, vol_mode="Full history", custom_vol=None):
+    lookback = VOL_YEARS.get(vol_mode)
+    close = brent_history(end_date, max(years, lookback or 0))
+    series, lr = _log_returns(kind, close)
+    last_date = series.index[-1]
     if kind == "daily":
-        series = close
-        lr = np.log(1 + series.pct_change())
-        last_date = series.index[-1]
         steps = (pd.Timestamp(future_date) - last_date).days
-        unit = "days"
+        unit, per_year = "days", 252
     else:
-        series = _monthly_last(close)
-        lr = np.log(1 + series.pct_change())
-        last_date = series.index[-1]
         steps = (pd.Timestamp(future_date) - last_date).days // 30
-        unit = "months"
+        unit, per_year = "months", 12
     if steps < 2:
         raise ValueError("Choose a forecast date at least two periods after the last price date.")
     if steps * iterations > MAX_CELLS:
         raise ValueError("That horizon is too long for this many iterations. Shorten the horizon or lower the iterations.")
 
-    u, var, stdev = lr.mean(), lr.var(), lr.std()
-    drift = float(u - 0.5 * var)
-    stdev = float(stdev)
+    # Drift: mean log return over the history window. Volatility: from the chosen lookback, or typed in (annualised).
+    lr_hist = lr if len(close) and max(years, lookback or 0) == years else lr[lr.index > last_date - pd.DateOffset(years=years)]
+    u = lr_hist.mean()
+    if vol_mode == "Custom":
+        if not custom_vol or custom_vol <= 0:
+            raise ValueError("Enter an annualised volatility above zero.")
+        stdev = float(custom_vol) / 100 / np.sqrt(per_year)
+        vol_label = "Custom input"
+    elif vol_mode == "Full history":
+        stdev = float(lr_hist.std())
+        vol_label = f"Full history ({years}y)"
+    else:
+        w = lr[lr.index > last_date - pd.DateOffset(years=lookback)].dropna()
+        if len(w) < MIN_OBS[kind]:
+            raise ValueError(f"Not enough price history for a {vol_mode} volatility lookback.")
+        stdev = float(w.std())
+        vol_label = f"{vol_mode} lookback"
+    drift = float(u - 0.5 * stdev ** 2)
     S0 = float(series.iloc[-1])
     paths = simulate(S0, drift, stdev, steps, iterations)
 
@@ -233,7 +273,8 @@ def run_mc(kind, end_date, future_date, years, iterations):
         recent = series.iloc[-24:]
 
     return dict(
-        kind=kind, unit=unit, inputs=(end_date, future_date, years, iterations), S0=S0, last_date=last_date, price_date=close.index[-1], steps=steps,
+        kind=kind, unit=unit, inputs=(end_date, future_date, years, iterations), S0=S0, vol_mode=vol_mode, vol_label=vol_label,
+        custom_vol=custom_vol, stdev=stdev, drift=drift, key=(kind, end_date, future_date, years, iterations, vol_mode, custom_vol), last_date=last_date, price_date=close.index[-1], steps=steps,
         iterations=iterations, vol=vol, mean_pooled=float(paths.mean()), mean_final=float(final.mean()),
         pooled=pooled, final_p=final_p, final=final, mean_path=paths.mean(axis=1), band=band, dates=dates,
         hist=close, hist_series=series, roll=roll, roll_label=roll_label, recent=recent,
@@ -286,6 +327,8 @@ def mc_history_fig(res):
                              hovertemplate="%{y:.2f}"), secondary_y=False)
     fig.add_trace(go.Scatter(x=roll.index, y=roll.values, mode="lines", name=res["roll_label"], line=dict(color="#F2A93B", width=1.8),
                              hovertemplate="%{y:.1%}"), secondary_y=True)
+    fig.add_trace(go.Scatter(x=[h.index.min(), h.index.max()], y=[res["vol"]["annual"]] * 2, mode="lines", name="Volatility used",
+                             line=dict(color=c["ink"], width=1.4, dash="dash"), hovertemplate="%{y:.1%}"), secondary_y=True)
     layout(fig, 430)
     fig.update_yaxes(title_text="USD per barrel", secondary_y=False)
     fig.update_yaxes(title_text="Volatility", tickformat=".0%", showgrid=False, secondary_y=True)
@@ -306,8 +349,9 @@ def pct_table(res):
 def render_mc(res):
     S0, ann = res["S0"], res["vol"]["annual"]
     end_date, future_date, years, iters = res["inputs"]
-    vol_sub = (f"Daily {res['vol']['daily'] * 100:.2f}% \u00B7 Monthly (21 days) {res['vol']['monthly'] * 100:.2f}%"
-               if res["kind"] == "daily" else f"Monthly {res['vol']['monthly'] * 100:.2f}%")
+    detail = (f"Daily {res['vol']['daily'] * 100:.2f}% \u00B7 Monthly (21 days) {res['vol']['monthly'] * 100:.2f}%"
+              if res["kind"] == "daily" else f"Monthly {res['vol']['monthly'] * 100:.2f}%")
+    vol_sub = f"{res['vol_label']}<br>{detail}"
     chg = (res["mean_pooled"] / S0 - 1) * 100
     arrow = "\u25B2" if chg > 0 else "\u25BC" if chg < 0 else ""
     kpi_grid([
@@ -360,6 +404,14 @@ def mc_tab(kind):
                 unsafe_allow_html=True)
     with st.expander("How the simulation works"):
         st.markdown(TEXT["mc_daily" if kind == "daily" else "mc_monthly"])
+        per = "daily" if kind == "daily" else "monthly"
+        st.markdown(
+            f"**Volatility lookback.** Choose how the volatility is estimated: the standard deviation of {per} log returns over the last "
+            "1, 2 or 5 years, over the full history set by the slider (the original behaviour), or type your own annualised volatility. "
+            f"An annualised figure is scaled to each step by dividing by the square root of {252 if kind == 'daily' else 12}. "
+            "The drift is the average log return over the history window less half the squared volatility being used, "
+            "so it follows the volatility you choose."
+        )
 
     today = dt.date.today()
     with panel(f"mc_{kind}_inputs"):
@@ -371,17 +423,34 @@ def mc_tab(kind):
             future = st.date_input("Forecast date", max(_default_forecast(kind), end_date + dt.timedelta(days=2)),
                                    min_value=end_date + dt.timedelta(days=1), key=f"mc_{kind}_future")
         with c3:
-            years = st.slider("Years of history", 1, 10, 10, key=f"mc_{kind}_years")
+            years = st.slider("Years of history", 1, 10, 10, key=f"mc_{kind}_years",
+                              help="Sets the price history used for the drift and shown in the history chart. Volatility is chosen below.")
         with c4:
             iters = st.selectbox("Iterations", [5000, 10000, 25000], index=1, key=f"mc_{kind}_iters")
         with c5:
             st.markdown('<div style="height:1.75rem"></div>', unsafe_allow_html=True)
             run = st.button("Run simulation", type="primary", key=f"mc_{kind}_run", use_container_width=True)
 
-    if run or ss not in st.session_state:
+        v1, v2, _ = st.columns([2.6, 1.2, 1.4])
+        with v1:
+            vol_mode = st.segmented_control("Volatility lookback", VOL_MODES, default="Full history", key=f"mc_{kind}_vol") or "Full history"
+        custom = None
+        with v2:
+            if vol_mode == "Custom":
+                custom = st.number_input("Annualised volatility (%)", min_value=1.0, max_value=200.0, value=30.0, step=0.5,
+                                         key=f"mc_{kind}_custom")
+        rv = realised_vols(kind, end_date, years)
+        if rv:
+            basis = "daily returns" if kind == "daily" else "monthly returns"
+            chips = " \u00B7 ".join(f"{k} <b>{v * 100:.1f}%</b>" for k, v in rv.items())
+            st.markdown(f'<p class="gc-small" style="margin-bottom:10px">Realised volatility, annualised, from {basis}: {chips}</p>', unsafe_allow_html=True)
+
+    key = (kind, end_date, future, years, iters, vol_mode, custom)
+    cur = st.session_state.get(ss)
+    if run or cur is None or cur.get("key") != key:
         try:
             with st.spinner("Running simulation"):
-                st.session_state[ss] = run_mc(kind, end_date, future, years, iters)
+                st.session_state[ss] = run_mc(kind, end_date, future, years, iters, vol_mode, custom)
         except ValueError as e:
             st.session_state.pop(ss, None)
             with panel(f"mc_{kind}_err"):
@@ -412,9 +481,12 @@ def technical_tab():
             unavailable("Price data unavailable", "Yahoo Finance could not be reached. Try again shortly.")
         else:
             lv = pivot_levels(df, basis)
-            st.markdown(level_strip(lv, float(df["Close"].iloc[-1])), unsafe_allow_html=True)
             start = df.index[-DAILY_RANGES[rng]]
-            show(daily_fig(df, lv, start), "tech_daily_chart")
+            left, right = st.columns([1, 3.6], gap="medium")
+            with left:
+                st.markdown(level_table(lv, float(df["Close"].iloc[-1])), unsafe_allow_html=True)
+            with right:
+                show(daily_fig(df, lv, start), "tech_daily_chart")
         st.caption(SOURCE + ". Pivot basis is the period the levels are calculated from.")
     with st.expander("About pivot points"):
         st.markdown(TEXT["pivot"])
